@@ -36,7 +36,8 @@ zastąpiona odbiciem połowy przed nim, np. dywan zasłonięty z jednej strony) 
 `layer`, `interaction`, `price`). Przy `keep` "largest" zostaje tylko jeden spójny kształt (bez odprysków
 sąsiadów). Arkusz może mieć `halo` i `holeTol` (= `hole_tol`) — patrz `background_mask` (rozmyty arkusz z jasną
 obwódką konturu i jasnymi płaszczyznami blisko tła: poduszki, dywany). Wyjście: public/items/<id>.png (przycięte
-do obrysu), src/home/items.generated.json {id: {w, h, scale}}, tools/out/items_manifest.json (dane katalogu z wpisów),
+do obrysu), src/home/items.generated.json {id: {w, h, scale, name, category, layer, interaction, price}} (dane
+katalogu tylko dla wpisów z `name`), tools/out/items_manifest.json (te same dane katalogu jako lista),
 podgląd ×3 z podpisami i postacią `idle_front` dla skali: tools/out/items_preview.png.
 
 Kotwica x: `anchor` arkusza albo wpisu — "head" (środek czubka głowy) albo "center" (środek obrazka, sceny).
@@ -766,14 +767,16 @@ def save_items(images, sheet_scale, gabi_scale, body):
             meta[name].update(anchorX=round(ref['anchorX'] - dx, 2), foot=ref['foot'] - dy)
             print(f'wyrównanie {name} -> {spec["alignTo"]}: dx={dx:+d} dy={dy:+d} zgodnych px łóżka={score}')
         if 'name' in spec:
-            manifest.append({'id': name, **{k: spec[k] for k in ITEM_FIELDS}})
+            catalog = {k: spec[k] for k in ITEM_FIELDS}
+            meta[name].update(catalog)
+            manifest.append({'id': name, **catalog})
         tiles.append((name, im, scale))
         print(f'{name:22s} {im.width:3d}x{im.height:3d} skala={scale:.3f} -> {im.width * scale:.0f}x{im.height * scale:.0f} px log.')
     for old in ITEMS_DIR.glob('*.png'):
         if old.stem not in meta:
             old.unlink()
     ITEMS_META.parent.mkdir(parents=True, exist_ok=True)
-    ITEMS_META.write_text(json.dumps(meta, indent=2) + '\n', encoding='utf-8')
+    ITEMS_META.write_text(json.dumps(meta, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
     ITEMS_MANIFEST.parent.mkdir(parents=True, exist_ok=True)
     ITEMS_MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
     save_items_preview(tiles, images['idle_front'][2], gabi_scale)

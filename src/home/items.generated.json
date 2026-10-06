@@ -1,326 +1,691 @@
 {
   "pc_desk": {
     "w": 49,
-    "h": 50
+    "h": 50,
+    "name": "Biurko z komputerem",
+    "category": "gaming",
+    "layer": "floor",
+    "interaction": "play",
+    "price": 350
   },
   "writing_desk": {
     "w": 31,
     "h": 35,
-    "scale": 1.25
+    "scale": 1.25,
+    "name": "Biurko do nauki",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "study",
+    "price": 180
   },
   "office_chair": {
     "w": 19,
-    "h": 29
+    "h": 29,
+    "name": "Krzesło obrotowe",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 80
   },
   "pouf": {
     "w": 14,
-    "h": 15
+    "h": 15,
+    "name": "Pufa",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 50
   },
   "bookshelf_tall": {
     "w": 32,
-    "h": 65
+    "h": 65,
+    "name": "Wysoki regał z książkami",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "read",
+    "price": 240
   },
   "wall_shelves": {
     "w": 33,
-    "h": 37
+    "h": 37,
+    "name": "Półki ścienne z roślinką",
+    "category": "furniture",
+    "layer": "wall",
+    "interaction": "read",
+    "price": 120
   },
   "sideboard": {
     "w": 29,
-    "h": 36
+    "h": 36,
+    "name": "Komoda z kaktusem",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 160
   },
   "nightstand_lamp": {
     "w": 21,
-    "h": 33
+    "h": 33,
+    "name": "Szafka nocna z lampką",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "lamp",
+    "price": 110
   },
   "window_flower": {
     "w": 33,
-    "h": 37
+    "h": 37,
+    "name": "Okno z kwiatkiem",
+    "category": "furniture",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 150
   },
   "window_curtains": {
     "w": 36,
-    "h": 38
+    "h": 38,
+    "name": "Okno z zasłonami",
+    "category": "furniture",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 180
   },
   "manga_pile": {
     "w": 39,
-    "h": 26
+    "h": 26,
+    "name": "Sterta mang",
+    "category": "hobby",
+    "layer": "floor",
+    "interaction": "read",
+    "price": 60
   },
   "cat_figure_orange": {
     "w": 14,
-    "h": 16
+    "h": 16,
+    "name": "Rudy kotek",
+    "category": "decor",
+    "layer": "floor",
+    "interaction": "cute",
+    "price": 70
   },
   "manga_wall_shelf": {
     "w": 36,
-    "h": 18
+    "h": 18,
+    "name": "Półka z mangami",
+    "category": "furniture",
+    "layer": "wall",
+    "interaction": "read",
+    "price": 110
   },
   "manga_stacks": {
     "w": 39,
-    "h": 22
+    "h": 22,
+    "name": "Stosy mang",
+    "category": "hobby",
+    "layer": "floor",
+    "interaction": "read",
+    "price": 80
   },
   "cat_figure_black": {
     "w": 13,
-    "h": 16
+    "h": 16,
+    "name": "Czarny kotek",
+    "category": "decor",
+    "layer": "floor",
+    "interaction": "cute",
+    "price": 70
   },
   "poster_mecha": {
     "w": 18,
-    "h": 32
+    "h": 32,
+    "name": "Plakat z robotem",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 50
   },
   "poster_girl": {
     "w": 18,
-    "h": 27
+    "h": 27,
+    "name": "Plakat z dziewczyną anime",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "cute",
+    "price": 60
   },
   "scroll_hero": {
     "w": 17,
-    "h": 31
+    "h": 31,
+    "name": "Zwój z bohaterem",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 60
   },
   "fairy_lights_warm": {
     "w": 34,
-    "h": 11
+    "h": 11,
+    "name": "Lampki ciepłe",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "lamp",
+    "price": 70
   },
   "poster_sun": {
     "w": 17,
-    "h": 25
+    "h": 25,
+    "name": "Plakat ze słońcem",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 45
   },
   "calendar": {
     "w": 13,
-    "h": 19
+    "h": 19,
+    "name": "Kalendarz",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "calendar",
+    "price": 40
   },
   "cork_board": {
     "w": 24,
-    "h": 21
+    "h": 21,
+    "name": "Tablica korkowa",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 60
   },
   "bean_bag": {
     "w": 58,
     "h": 37,
-    "scale": 0.6
+    "scale": 0.6,
+    "name": "Pufa z poduszką",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 140
   },
   "dresser_plush": {
     "w": 67,
     "h": 47,
-    "scale": 0.7
+    "scale": 0.7,
+    "name": "Komoda z pluszakami",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "cute",
+    "price": 240
   },
   "cat_bed_round": {
     "w": 35,
     "h": 23,
-    "scale": 0.6
+    "scale": 0.6,
+    "name": "Legowisko dla kota",
+    "category": "decor",
+    "layer": "floor",
+    "interaction": "cute",
+    "price": 60
   },
   "cat_cave": {
     "w": 33,
     "h": 31,
-    "scale": 0.6
+    "scale": 0.6,
+    "name": "Domek dla kota",
+    "category": "decor",
+    "layer": "floor",
+    "interaction": "cute",
+    "price": 90
   },
   "nightstand_mushroom": {
     "w": 21,
     "h": 39,
-    "scale": 0.7
+    "scale": 0.7,
+    "name": "Szafka z lampką-grzybkiem",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "lamp",
+    "price": 120
   },
   "star_lamp": {
     "w": 29,
     "h": 48,
-    "scale": 0.7
+    "scale": 0.7,
+    "name": "Szafka z lampką-gwiazdką",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "lamp",
+    "price": 120
   },
   "tv_retro": {
     "w": 59,
     "h": 55,
-    "scale": 0.55
+    "scale": 0.55,
+    "name": "Telewizor retro z konsolą",
+    "category": "gaming",
+    "layer": "floor",
+    "interaction": "play",
+    "price": 280
   },
   "tv_flat": {
     "w": 65,
     "h": 57,
-    "scale": 0.65
+    "scale": 0.65,
+    "name": "Telewizor na szafce",
+    "category": "gaming",
+    "layer": "floor",
+    "interaction": "play",
+    "price": 380
   },
   "gaming_desk": {
     "w": 83,
     "h": 66,
-    "scale": 0.7
+    "scale": 0.7,
+    "name": "Biurko z głośnikami",
+    "category": "gaming",
+    "layer": "floor",
+    "interaction": "music",
+    "price": 400
   },
   "wall_shelf_games": {
     "w": 69,
     "h": 24,
-    "scale": 0.7
+    "scale": 0.7,
+    "name": "Półka z grami i mangą",
+    "category": "gaming",
+    "layer": "wall",
+    "interaction": "read",
+    "price": 120
   },
   "gaming_chair_purple": {
     "w": 29,
     "h": 53,
-    "scale": 0.75
+    "scale": 0.75,
+    "name": "Fotel gamingowy fioletowy",
+    "category": "gaming",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 200
   },
   "gaming_chair_pink": {
     "w": 30,
     "h": 52,
-    "scale": 0.75
+    "scale": 0.75,
+    "name": "Fotel gamingowy różowy",
+    "category": "gaming",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 200
   },
   "bookshelf_manga": {
     "w": 43,
     "h": 75,
-    "scale": 0.8
+    "scale": 0.8,
+    "name": "Regał z mangami",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "read",
+    "price": 220
   },
   "figure_cabinet": {
     "w": 50,
     "h": 78,
-    "scale": 0.8
+    "scale": 0.8,
+    "name": "Witryna z figurkami",
+    "category": "hobby",
+    "layer": "floor",
+    "interaction": "cute",
+    "price": 300
   },
   "figure_wall_shelf": {
     "w": 56,
     "h": 32,
-    "scale": 0.6
+    "scale": 0.6,
+    "name": "Półka z figurkami",
+    "category": "hobby",
+    "layer": "wall",
+    "interaction": "cute",
+    "price": 120
   },
   "yarn_basket": {
     "w": 27,
     "h": 35,
-    "scale": 0.5
+    "scale": 0.5,
+    "name": "Koszyk z włóczką",
+    "category": "hobby",
+    "layer": "floor",
+    "interaction": "crochet",
+    "price": 70
   },
   "knitting_basket": {
     "w": 29,
     "h": 26,
-    "scale": 0.5
+    "scale": 0.5,
+    "name": "Koszyk z robótką",
+    "category": "hobby",
+    "layer": "floor",
+    "interaction": "crochet",
+    "price": 80
   },
   "first_aid_kit": {
     "w": 19,
     "h": 16,
-    "scale": 0.6
+    "scale": 0.6,
+    "name": "Apteczka",
+    "category": "decor",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 40
   },
   "medical_chart": {
     "w": 23,
     "h": 26,
-    "scale": 0.6
+    "scale": 0.6,
+    "name": "Karta pacjenta",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 35
   },
   "clothes_rack": {
     "w": 49,
     "h": 57,
-    "scale": 0.85
+    "scale": 0.85,
+    "name": "Wieszak na ubrania",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 180
   },
   "mirror_floor": {
     "w": 28,
     "h": 53,
-    "scale": 0.9
+    "scale": 0.9,
+    "name": "Lustro stojące",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 140
   },
   "mirror_wall": {
     "w": 33,
     "h": 39,
-    "scale": 0.7
+    "scale": 0.7,
+    "name": "Lustro ścienne",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 90
   },
   "window_pink": {
     "w": 43,
     "h": 44,
-    "scale": 0.85
+    "scale": 0.85,
+    "name": "Okno z różowymi zasłonkami",
+    "category": "furniture",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 170
   },
   "window_lilac": {
     "w": 43,
     "h": 43,
-    "scale": 0.85
+    "scale": 0.85,
+    "name": "Okno z liliowymi zasłonkami",
+    "category": "furniture",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 170
   },
   "window_blinds": {
     "w": 41,
     "h": 43,
-    "scale": 0.85
+    "scale": 0.85,
+    "name": "Okno z roletą",
+    "category": "furniture",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 160
   },
   "fairy_lights_color": {
     "w": 66,
     "h": 18,
-    "scale": 0.75
+    "scale": 0.75,
+    "name": "Kolorowe lampki",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "lamp",
+    "price": 80
   },
   "poster_moon": {
     "w": 23,
     "h": 31,
-    "scale": 0.6
+    "scale": 0.6,
+    "name": "Plakat z księżycem",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 45
   },
   "rug_round": {
     "w": 57,
     "h": 32,
-    "scale": 0.6
+    "scale": 0.6,
+    "name": "Okrągły dywanik",
+    "category": "decor",
+    "layer": "rug",
+    "interaction": "none",
+    "price": 90
   },
   "rug_heart": {
     "w": 52,
     "h": 37,
-    "scale": 0.6
+    "scale": 0.6,
+    "name": "Dywanik w serce",
+    "category": "decor",
+    "layer": "rug",
+    "interaction": "none",
+    "price": 110
   },
   "rug_striped": {
     "w": 55,
     "h": 26,
-    "scale": 0.6
+    "scale": 0.6,
+    "name": "Dywanik w zygzaki",
+    "category": "decor",
+    "layer": "rug",
+    "interaction": "none",
+    "price": 100
   },
   "monstera": {
     "w": 33,
-    "h": 46
+    "h": 46,
+    "name": "Monstera",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 120
   },
   "palm": {
     "w": 33,
-    "h": 48
+    "h": 48,
+    "name": "Palma pokojowa",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 130
   },
   "peace_lily": {
     "w": 38,
-    "h": 41
+    "h": 41,
+    "name": "Skrzydłokwiat",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 110
   },
   "snake_plant": {
     "w": 19,
-    "h": 45
+    "h": 45,
+    "name": "Sansewieria na stojaku",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 100
   },
   "ficus": {
     "w": 25,
-    "h": 51
+    "h": 51,
+    "name": "Drzewko w koszu",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 150
   },
   "plant_stand": {
     "w": 20,
-    "h": 54
+    "h": 54,
+    "name": "Roślina na kwietniku",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 120
   },
   "macrame_plant": {
     "w": 20,
-    "h": 46
+    "h": 46,
+    "name": "Roślina w makramie",
+    "category": "plant",
+    "layer": "wall",
+    "interaction": "water",
+    "price": 80
   },
   "pothos_hanging": {
     "w": 23,
-    "h": 49
+    "h": 49,
+    "name": "Wiszący epipremnum",
+    "category": "plant",
+    "layer": "wall",
+    "interaction": "water",
+    "price": 90
   },
   "plant_shelf_wall": {
     "w": 43,
-    "h": 26
+    "h": 26,
+    "name": "Półka z pnączem",
+    "category": "plant",
+    "layer": "wall",
+    "interaction": "water",
+    "price": 110
   },
   "hanging_fern": {
     "w": 30,
-    "h": 36
+    "h": 36,
+    "name": "Wisząca paproć",
+    "category": "plant",
+    "layer": "wall",
+    "interaction": "water",
+    "price": 90
   },
   "string_of_pearls": {
     "w": 14,
-    "h": 47
+    "h": 47,
+    "name": "Starzec Rowleya",
+    "category": "plant",
+    "layer": "wall",
+    "interaction": "water",
+    "price": 80
   },
   "ivy_trellis": {
     "w": 36,
-    "h": 42
+    "h": 42,
+    "name": "Bluszcz na kratce",
+    "category": "plant",
+    "layer": "wall",
+    "interaction": "water",
+    "price": 100
   },
   "cactus_flower": {
     "w": 12,
-    "h": 20
+    "h": 20,
+    "name": "Kaktus z kwiatkiem",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 35
   },
   "cactus_blue": {
     "w": 13,
-    "h": 23
+    "h": 23,
+    "name": "Kaktus w niebieskiej doniczce",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 35
   },
   "bonsai": {
     "w": 22,
-    "h": 22
+    "h": 22,
+    "name": "Bonsai",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 70
   },
   "fern_small": {
     "w": 26,
-    "h": 24
+    "h": 24,
+    "name": "Paprotka",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 50
   },
   "terrarium_dome": {
     "w": 18,
-    "h": 20
+    "h": 20,
+    "name": "Terrarium pod kloszem",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 70
   },
   "jar_terrarium": {
     "w": 17,
-    "h": 24
+    "h": 24,
+    "name": "Las w słoiku",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 65
   },
   "teacup_plant": {
     "w": 15,
-    "h": 19
+    "h": 19,
+    "name": "Roślinka w filiżance",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 40
   },
   "propagation": {
     "w": 32,
-    "h": 24
+    "h": 24,
+    "name": "Sadzonki w probówkach",
+    "category": "plant",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 55
   },
   "watering_can": {
     "w": 23,
-    "h": 18
+    "h": 18,
+    "name": "Konewka",
+    "category": "decor",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 35
   },
   "gabi_bed_empty": {
     "w": 89,
