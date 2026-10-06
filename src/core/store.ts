@@ -3,10 +3,21 @@ import type { GameState } from './types';
 
 type Listener = (state: GameState) => void;
 
+export interface StoreOptions {
+  /** Wywoływany raz na serię nieudanych zapisów (seria kończy się udanym zapisem). */
+  onSaveError?: () => void;
+}
+
 export class Store {
   private listeners = new Set<Listener>();
 
-  constructor(private state: GameState, private readonly kv: KV) {}
+  private failing = false;
+
+  constructor(
+    private state: GameState,
+    private readonly kv: KV,
+    private readonly opts: StoreOptions = {},
+  ) {}
 
   get(): GameState {
     return this.state;
@@ -16,7 +27,14 @@ export class Store {
     const next = fn(this.state);
     if (next === this.state) return;
     this.state = next;
-    saveState(this.kv, next);
+    if (saveState(this.kv, next)) {
+      this.failing = false;
+    } else if (!this.failing) {
+      // Powiadamiamy raz na serię błędów, żeby nie zalewać gracza komunikatami.
+      this.failing = true;
+      console.warn('Nie udało się zapisać stanu gry.');
+      this.opts.onSaveError?.();
+    }
     this.listeners.forEach((l) => l(next));
   }
 

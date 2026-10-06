@@ -86,7 +86,9 @@ async function boot(): Promise<void> {
     const now = Date.now();
     const loaded = loadState(localStorage, now);
     const bonus = claimDailyBonus(applyElapsed(loaded.state, now), now);
-    const store = new Store(bonus.state, localStorage);
+    const store = new Store(bonus.state, localStorage, {
+      onSaveError: () => app?.toast('Nie udało się zapisać postępu.'),
+    });
     saveState(localStorage, bonus.state);
 
     const names = new Set([...allFrameNames(ANIMATIONS), ...framesMeta.body, ...Object.keys(framesMeta.portraits)]);

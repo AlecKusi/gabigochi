@@ -30,6 +30,36 @@ describe('Store', () => {
     expect(listener).not.toHaveBeenCalled();
   });
 
+  it('onSaveError wywoływany raz na serię błędów zapisu, seria kończy się udanym zapisem', () => {
+    const data = new Map<string, string>();
+    let failing = true;
+    const storage: KV = {
+      getItem: (k) => data.get(k) ?? null,
+      setItem: (k, v) => {
+        if (failing) throw new Error('QuotaExceeded');
+        data.set(k, v);
+      },
+    };
+    const onSaveError = vi.fn();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const store = new Store(createState(T0), storage, { onSaveError });
+
+    store.update((s) => ({ ...s, coins: 1 }));
+    store.update((s) => ({ ...s, coins: 2 }));
+    expect(onSaveError).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalled();
+    expect(store.get().coins).toBe(2);
+
+    failing = false;
+    store.update((s) => ({ ...s, coins: 3 }));
+    expect(onSaveError).toHaveBeenCalledTimes(1);
+
+    failing = true;
+    store.update((s) => ({ ...s, coins: 4 }));
+    expect(onSaveError).toHaveBeenCalledTimes(2);
+    warn.mockRestore();
+  });
+
   it('odsubskrybowanie', () => {
     const store = new Store(createState(T0), kv());
     const listener = vi.fn();
