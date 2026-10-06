@@ -279,10 +279,13 @@ Wszystkie zwracają `GameResult` (rozdz. 4.1). Rekordy zapisywane w stanie.
 
 ## 11. Dane od użytkownika
 
+Ustalone:
+- **Imię:** Gabriela
+- **Okazja:** 26. urodziny (motyw „26” na torcie w Zdmuchnij świeczki — 26 świeczek do zdmuchnięcia w finale — i na ekranie urodzinowym)
+- **Nazwa aplikacji:** Gabigochi (nazwa pod ikoną, `short_name` i `name` w manifeście PWA, tytuł na ekranie urodzinowym)
+
 Potrzebne do ukończenia etapu 1:
-- **Imię** solenizantki (wyświetlane w profilu i tekstach)
-- **Treść życzeń** na ekran urodzinowy
-- **Nazwa aplikacji** na ekranie początkowym (domyślnie imię solenizantki)
+- **Treść życzeń** na ekran urodzinowy (do tego czasu — szkic życzeń przygotowany przez Claude do podmiany)
 
 Potrzebne do etapu 2:
 - **15–30 słów osobistych** do szyfrokrzyżówek
