@@ -8,7 +8,7 @@ import { feed, petCharacter, setSleeping } from '../../core/economy';
 import { moodLevel, needStatus } from '../../core/needs';
 import { dayNumber } from '../../core/time';
 import type { GameState } from '../../core/types';
-import { animationName, createBrain, stepBrain, triggerBrain, type Brain } from '../../pet/brain';
+import { animationName, createBrain, stepBrain, triggerBrain, wakeBrain, type Brain } from '../../pet/brain';
 import { drawPet, drawShadow } from '../../pet/petRenderer';
 import { FEET_Y, ROOM_H, ROOM_W, drawRoom } from '../../pet/room';
 import { pick, pickLine } from '../../pet/speech';
@@ -150,7 +150,7 @@ export function roomScreen(app: App): Screen {
     const wasSleeping = store.get().sleeping;
     store.update((s) => setSleeping(s, !wasSleeping));
     if (wasSleeping) {
-      brain = triggerBrain(brain, 'wave', performance.now());
+      brain = wakeBrain(brain, performance.now());
       say(pick(content.lines.wakeUp));
     } else {
       say(pick(content.lines.goodNight), 2000);
@@ -165,7 +165,7 @@ export function roomScreen(app: App): Screen {
     const now = performance.now();
     if (store.get().sleeping) {
       store.update((s) => setSleeping(s, false));
-      brain = triggerBrain(brain, 'wave', now);
+      brain = wakeBrain(brain, now);
       say(pick(content.lines.wakeUp));
       return;
     }

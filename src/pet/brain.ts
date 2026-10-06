@@ -21,6 +21,8 @@ export interface BrainCtx {
 
 /** Współrzędne w pikselach logicznych pokoju (128 px szerokości). */
 export const ROOM_BOUNDS = { minX: 24, maxX: 104, walkSpeed: 14 } as const;
+/** Po przebudzeniu postać stoi (macha) co najmniej tyle, zanim ruszy w drogę. */
+export const WAKE_PAUSE_MS = 2500;
 export const ACTION_MS: Record<TimedAction, number> = { eat: 1600, wave: 1200, talk: 2500, jump: 700 };
 const WALK_CHANCE: Record<MoodLevel, number> = { happy: 0.7, ok: 0.45, sad: 0.15 };
 const PAUSE_MS: Record<MoodLevel, number> = { happy: 2000, ok: 3500, sad: 6000 };
@@ -40,7 +42,7 @@ export function stepBrain(b: Brain, dtMs: number, ctx: BrainCtx): Brain {
   }
   if (isTimed(b.action)) {
     if (ctx.now < b.actionEndsAt) return b;
-    return { ...b, action: 'idle', nextDecisionAt: ctx.now + 1500 };
+    return { ...b, action: 'idle', nextDecisionAt: Math.max(b.nextDecisionAt, ctx.now + 1500) };
   }
   if (b.action === 'walk') {
     const diff = b.targetX - b.x;
@@ -60,6 +62,11 @@ export function stepBrain(b: Brain, dtMs: number, ctx: BrainCtx): Brain {
 
 export function triggerBrain(b: Brain, action: TimedAction, now: number): Brain {
   return { ...b, action, targetX: b.x, actionEndsAt: now + ACTION_MS[action] };
+}
+
+/** Przebudzenie: powitalne machanie i gwarantowana pauza przed pierwszym spacerem. */
+export function wakeBrain(b: Brain, now: number): Brain {
+  return { ...triggerBrain(b, 'wave', now), nextDecisionAt: now + WAKE_PAUSE_MS };
 }
 
 export function animationName(b: Brain, s: { sleeping: boolean; hungry: boolean; mood: MoodLevel }): string {

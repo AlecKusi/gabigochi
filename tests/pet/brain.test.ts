@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ACTION_MS, ROOM_BOUNDS, animationName, createBrain, stepBrain, triggerBrain, type BrainCtx } from '../../src/pet/brain';
+import { ACTION_MS, ROOM_BOUNDS, animationName, createBrain, stepBrain, triggerBrain, wakeBrain, WAKE_PAUSE_MS, type BrainCtx } from '../../src/pet/brain';
 
 const ctx = (patch: Partial<BrainCtx> = {}): BrainCtx => ({ now: 10_000, mood: 'happy', sleeping: false, rng: () => 0, ...patch });
 
@@ -67,5 +67,16 @@ describe('animationName', () => {
     expect(animationName(b, { ...st, hungry: true })).toBe('hungry');
     expect(animationName(b, { ...st, mood: 'sad' })).toBe('sad');
     expect(animationName(b, st)).toBe('idle');
+  });
+});
+
+describe('wakeBrain', () => {
+  it('macha ręką i nie rusza w drogę przez WAKE_PAUSE_MS', () => {
+    const b = wakeBrain(createBrain(0), 5000);
+    expect(b.action).toBe('wave');
+    expect(b.targetX).toBe(b.x);
+    expect(b.nextDecisionAt).toBe(5000 + WAKE_PAUSE_MS);
+    const after = stepBrain(b, 16, ctx({ now: 5000 + ACTION_MS.wave }));
+    expect(after.nextDecisionAt).toBeGreaterThanOrEqual(5000 + WAKE_PAUSE_MS);
   });
 });
