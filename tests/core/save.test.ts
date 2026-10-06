@@ -3,7 +3,7 @@ import { BACKUP_KEY, NewerSaveError, SAVE_KEY, loadState, saveState, type KV } f
 import { createState } from '../../src/core/state';
 import type { GameState } from '../../src/core/types';
 import { GABI_BED } from '../../src/home/catalog';
-import { DEFAULT_LOOKS, LOOKS } from '../../src/home/looks';
+import { DEFAULT_LOOKS, LATER_DEFAULT_LOOKS, LOOKS } from '../../src/home/looks';
 import { createHome } from '../../src/home/starter';
 
 const T0 = new Date(2026, 9, 6, 12).getTime();
@@ -187,6 +187,35 @@ describe('zapis v2 i migracja v1 → v2', () => {
     expect(r.state.rooms.bedroom).toEqual(s0.rooms.bedroom);
     expect(r.state.rooms.studio.floor).toBe(DEFAULT_LOOKS.studio.floor);
     expect(r.state.rooms.studio.items).toEqual(s0.rooms.studio.items);
+  });
+
+  it('zapis v2 sprzed łazienki: łazienka i jej wyglądy dochodzą po cichu, z nowymi uid', () => {
+    const s0 = createState(T0);
+    const { bathroom: _b, ...rooms } = s0.rooms;
+    const ownedLooks = s0.ownedLooks.filter((id) => !LATER_DEFAULT_LOOKS.includes(id));
+    const raw = { ...s0, rooms, ownedLooks, nextUid: 40 };
+    const { r, kv } = load(raw, T0 + 5);
+    expect(r).toMatchObject({ fresh: false, recovered: false, repaired: false });
+    expect(kv.data.has(BACKUP_KEY)).toBe(false);
+    const bath = r.state.rooms.bathroom;
+    expect(bath.wallpaper).toBe(DEFAULT_LOOKS.bathroom.wallpaper);
+    expect(bath.floor).toBe(DEFAULT_LOOKS.bathroom.floor);
+    expect(bath.items.map((i) => i.itemId)).toEqual(createHome(T0).rooms.bathroom.items.map((i) => i.itemId));
+    expect(bath.items.map((i) => i.uid)).toEqual(bath.items.map((_, i) => `u${40 + i}`));
+    expect(r.state.nextUid).toBe(40 + bath.items.length);
+    for (const id of LATER_DEFAULT_LOOKS) expect(r.state.ownedLooks).toContain(id);
+    expect(r.state.rooms.salon).toEqual(s0.rooms.salon);
+    const all = Object.values(r.state.rooms).flatMap((room) => room.items.map((i) => i.uid));
+    expect(new Set(all).size).toBe(all.length);
+    expect(saveState(kv, r.state)).toBe(true);
+    expect(loadState(kv, T0 + 6)).toMatchObject({ repaired: false, state: r.state });
+  });
+
+  it('uszkodzona łazienka (nie brakująca) nadal jest naprawą', () => {
+    const s0 = createState(T0);
+    const { r } = load({ ...s0, rooms: { ...s0.rooms, bathroom: 'zepsuta' } });
+    expect(r.repaired).toBe(true);
+    expect(r.state.rooms.bathroom.items).toHaveLength(createHome(T0).rooms.bathroom.items.length);
   });
 
   it('naprawa pól magazynu, wyglądów, pokoju, cooldownów i licznika uid', () => {

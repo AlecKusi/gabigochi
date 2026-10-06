@@ -18,7 +18,8 @@ export const STARTER_LAYOUT: Readonly<Record<RoomId, readonly { itemId: string; 
     { itemId: 'monstera', x: 108, y: 140 },
   ],
   bedroom: [
-    { itemId: GABI_BED, x: 64, y: 148 },
+    // za linią stóp Gabi (FEET_Y = 144) — w dzień chodzi przed łóżkiem, a nie znika za nim
+    { itemId: GABI_BED, x: 64, y: 136 },
     { itemId: 'window_curtains', x: 24, y: 52 },
     { itemId: 'poster_moon', x: 104, y: 56 },
   ],
@@ -27,6 +28,13 @@ export const STARTER_LAYOUT: Readonly<Record<RoomId, readonly { itemId: string; 
     { itemId: 'writing_desk', x: 92, y: 140 },
     { itemId: 'office_chair', x: 76, y: 148 },
     { itemId: 'cactus_flower', x: 20, y: 140 },
+  ],
+  // Łazienka bez armatury (brak jej w arkuszach) — lustro, okno, roślina i dywanik.
+  bathroom: [
+    { itemId: 'rug_striped', x: 64, y: 152 },
+    { itemId: 'mirror_wall', x: 32, y: 64 },
+    { itemId: 'window_flower', x: 100, y: 52 },
+    { itemId: 'snake_plant', x: 20, y: 140 },
   ],
 };
 

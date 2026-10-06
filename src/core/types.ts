@@ -8,7 +8,7 @@ export interface Needs {
 
 export type MoodLevel = 'happy' | 'ok' | 'sad';
 
-export type RoomId = 'salon' | 'bedroom' | 'studio';
+export type RoomId = 'salon' | 'bedroom' | 'studio' | 'bathroom';
 
 /** Przedmiot postawiony w pokoju; `x` — środek, `y` — linia dolna (stopy), w px logicznych pokoju. */
 export interface PlacedItem {

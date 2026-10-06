@@ -1,6 +1,6 @@
 import { GABI_BED, findItem } from '../home/catalog';
 import { ROOMS, clampToLayer } from '../home/layout';
-import { DEFAULT_LOOKS, defaultLookIds, findLook } from '../home/looks';
+import { DEFAULT_LOOKS, LATER_DEFAULT_LOOKS, defaultLookIds, findLook } from '../home/looks';
 import { STARTER_LAYOUT, createHome, type HomeState } from '../home/starter';
 import { createState } from './state';
 import type { GameState, PlacedItem, RoomId, RoomState } from './types';
@@ -28,6 +28,12 @@ export interface LoadResult {
 
 const isRecord = (x: unknown): x is Record<string, unknown> =>
   typeof x === 'object' && x !== null && !Array.isArray(x);
+/**
+ * Pokoje dodane po pierwszej wersji zapisu v2. Zapis bez takiego pokoju nie jest uszkodzony — pokój dochodzi
+ * po cichu (domyślny wygląd i meble startowe z nowymi `uid`), bez kopii zapasowej i bez komunikatu.
+ */
+const LATER_ROOMS: readonly RoomId[] = ['bathroom'];
+
 const isNum = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
 const allNums = (x: Record<string, unknown>): boolean => Object.values(x).every(isNum);
 
@@ -77,7 +83,7 @@ function readHome(x: Record<string, unknown>, now: number): { home: HomeState; r
     if (ownedLooks.length !== x.ownedLooks.length) bad();
     ownedLooks = [...new Set(ownedLooks)];
     for (const id of defaultLookIds()) if (!ownedLooks.includes(id)) {
-      bad();
+      if (!LATER_DEFAULT_LOOKS.includes(id)) bad();
       ownedLooks.push(id);
     }
   } else {
@@ -90,8 +96,16 @@ function readHome(x: Record<string, unknown>, now: number): { home: HomeState; r
   // pokoje
   const rawRooms = isRecord(x.rooms) ? x.rooms : (bad(), {});
   const rooms = {} as Record<RoomId, RoomState>;
+  /** Meble startowe pokoi dodanych po cichu — dostaną `uid` za licznikiem. */
+  const added = new Set<PlacedItem>();
   for (const r of ROOMS) {
     const raw = rawRooms[r];
+    if (raw === undefined && LATER_ROOMS.includes(r) && isRecord(x.rooms)) {
+      const items = defaults.rooms[r].items.map((it) => ({ ...it, uid: '' }));
+      for (const it of items) added.add(it);
+      rooms[r] = { ...defaults.rooms[r], items };
+      continue;
+    }
     if (!isRecord(raw)) {
       bad();
       rooms[r] = defaults.rooms[r];
@@ -116,6 +130,7 @@ function readHome(x: Record<string, unknown>, now: number): { home: HomeState; r
   let beds = 0;
   for (const r of ROOMS) {
     rooms[r].items = rooms[r].items.filter((it) => {
+      if (added.has(it)) return true;
       if (it.itemId === GABI_BED && ++beds > 1) {
         bad();
         return false;
@@ -143,7 +158,7 @@ function readHome(x: Record<string, unknown>, now: number): { home: HomeState; r
   let nextUid = maxUid + 1;
   if (Number.isInteger(x.nextUid) && (x.nextUid as number) >= nextUid) nextUid = x.nextUid as number;
   else bad();
-  for (const it of needUid) it.uid = `u${nextUid++}`;
+  for (const it of [...needUid, ...added]) it.uid = `u${nextUid++}`;
 
   // normalizacja bez zgłaszania
   for (const r of ROOMS) {

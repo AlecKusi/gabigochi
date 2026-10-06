@@ -2,7 +2,7 @@ import type { RoomId } from '../core/types';
 
 export type LookKind = 'wallpaper' | 'floor';
 
-export const WALL_PATTERNS = ['plain', 'stripes', 'dots', 'hearts', 'checks', 'stars'] as const;
+export const WALL_PATTERNS = ['plain', 'stripes', 'dots', 'hearts', 'checks', 'stars', 'tiles'] as const;
 export const FLOOR_PATTERNS = ['boards', 'tiles', 'carpet', 'herringbone'] as const;
 export type WallPattern = (typeof WALL_PATTERNS)[number];
 export type FloorPattern = (typeof FLOOR_PATTERNS)[number];
@@ -35,6 +35,7 @@ export const LOOKS: readonly LookDef[] = [
   wall('wall_peach_hearts', 'Brzoskwiniowe serduszka', 120, 'hearts', ['#ffe3d1', '#ff8fb8', '#d98a66']),
   wall('wall_lilac_hearts', 'Liliowe serduszka', 120, 'hearts', ['#e8dcff', '#c9a6f2', '#8a63c7']),
   wall('wall_night_stars', 'Nocne niebo', 160, 'stars', ['#3b3772', '#ffd34d', '#26224f']),
+  wall('wall_aqua_tiles', 'Błękitne kafelki', 0, 'tiles', ['#e3f6f6', '#b7dcdf', '#6aa6ad']),
   floor('floor_purple_boards', 'Fioletowe deski', 0, 'boards', ['#8d68c4', '#7f5bb6']),
   floor('floor_light_boards', 'Jasne deski', 0, 'boards', ['#e2bf92', '#c79c6c', '#edd0aa']),
   floor('floor_white_tiles', 'Białe kafelki', 0, 'tiles', ['#eceff5', '#c8cdd9']),
@@ -42,6 +43,7 @@ export const LOOKS: readonly LookDef[] = [
   floor('floor_pink_carpet', 'Różowa wykładzina', 100, 'carpet', ['#f3a9c9', '#e590b5']),
   floor('floor_dark_boards', 'Ciemne deski', 120, 'boards', ['#6e4a33', '#553724', '#80583e']),
   floor('floor_herringbone', 'Parkiet w jodełkę', 160, 'herringbone', ['#c99260', '#ad7646', '#8c5a32']),
+  floor('floor_blue_tiles', 'Niebieskie kafelki', 0, 'tiles', ['#cfe3f7', '#a3bfdc']),
 ];
 
 /** Darmowe wyglądy startowe; salon odtwarza dawny pokój (lawendowe paski + fioletowe deski). */
@@ -49,7 +51,14 @@ export const DEFAULT_LOOKS: Readonly<Record<RoomId, { wallpaper: string; floor: 
   salon: { wallpaper: 'wall_lilac_stripes', floor: 'floor_purple_boards' },
   bedroom: { wallpaper: 'wall_pink_dots', floor: 'floor_light_boards' },
   studio: { wallpaper: 'wall_mint', floor: 'floor_white_tiles' },
+  bathroom: { wallpaper: 'wall_aqua_tiles', floor: 'floor_blue_tiles' },
 };
+
+/**
+ * Darmowe wyglądy dodane po pierwszej wersji zapisu v2 (z łazienką). Starszy zapis ich nie zna — dostaje je
+ * po cichu, bez zgłaszania naprawy.
+ */
+export const LATER_DEFAULT_LOOKS: readonly string[] = ['wall_aqua_tiles', 'floor_blue_tiles'];
 
 const BY_ID: ReadonlyMap<string, LookDef> = new Map(LOOKS.map((l) => [l.id, l]));
 
@@ -110,6 +119,11 @@ export function drawWallpaper(ctx: Ctx, look: LookDef, w: number, h: number): vo
     case 'checks':
       for (let cy = 0; cy * 8 < h; cy++)
         for (let cx = cy % 2; cx * 8 < w; cx += 2) rect(cx * 8, cy * 8, 8, 8);
+      break;
+    case 'tiles':
+      // kafelki 8×8 z fugą (kolor wzoru) — łazienkowa glazura
+      for (let y = 7; y < h - 3; y += 8) rect(0, y, w, 1);
+      for (let x = 7; x < w; x += 8) rect(x, 0, 1, h - 3);
       break;
     case 'stars':
       for (let cy = 0; cy * 16 < h - 3; cy++)

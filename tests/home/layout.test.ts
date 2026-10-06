@@ -19,6 +19,7 @@ const empty = (patch: Partial<GameState> = {}): GameState => {
       salon: { ...s.rooms.salon, items: [] },
       bedroom: { ...s.rooms.bedroom, items: [] },
       studio: { ...s.rooms.studio, items: [] },
+      bathroom: { ...s.rooms.bathroom, items: [] },
     },
   };
 };
@@ -39,8 +40,8 @@ function inLayer(id: string, x: number, y: number): boolean {
 
 describe('pokoje i siatka', () => {
   it('trzy pokoje z polskimi nazwami', () => {
-    expect(ROOMS).toEqual(['salon', 'bedroom', 'studio']);
-    expect(ROOM_NAMES).toEqual({ salon: 'Salon', bedroom: 'Sypialnia', studio: 'Pracownia' });
+    expect(ROOMS).toEqual(['salon', 'bedroom', 'studio', 'bathroom']);
+    expect(ROOM_NAMES).toEqual({ salon: 'Salon', bedroom: 'Sypialnia', studio: 'Pracownia', bathroom: 'Łazienka' });
   });
 
   it('snap do siatki 4 px', () => {

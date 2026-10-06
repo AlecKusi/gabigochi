@@ -27,6 +27,7 @@ describe('dom startowy', () => {
     expect(ids('salon')).toEqual(['rug_round', 'window_flower', 'wall_shelves', 'monstera']);
     expect(ids('bedroom')).toEqual([GABI_BED, 'window_curtains', 'poster_moon']);
     expect(ids('studio')).toEqual(['window_blinds', 'writing_desk', 'office_chair', 'cactus_flower']);
+    expect(ids('bathroom')).toEqual(['rug_striped', 'mirror_wall', 'window_flower', 'snake_plant']);
     expect(ids('bedroom').filter((i) => i.startsWith('nightstand'))).toEqual([]);
   });
 
@@ -41,6 +42,8 @@ describe('dom startowy', () => {
     expect(win.x).toBeLessThan(40);
     const bed = home.rooms.bedroom.items.find((i) => i.itemId === GABI_BED)!;
     expect(bed.x).toBe(64);
+    // łóżko za linią stóp Gabi — chodzi przed nim, a nie za nim
+    expect(bed.y).toBeLessThan(144);
     expect(STARTER_LAYOUT.salon.find((e) => e.itemId === 'rug_round')!.x).toBe(64);
   });
 

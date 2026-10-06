@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  DEFAULT_LOOKS, FLOOR_PATTERNS, LOOKS, WALL_PATTERNS, drawFloor, drawWallpaper, findLook, lookById,
+  DEFAULT_LOOKS, FLOOR_PATTERNS, LATER_DEFAULT_LOOKS, LOOKS, WALL_PATTERNS, drawFloor, drawWallpaper, findLook, lookById,
 } from '../../src/home/looks';
 
 const HEX = /^#[0-9a-f]{6}$/;
@@ -36,11 +36,11 @@ describe('wyglądy (tapety i podłogi)', () => {
     for (const p of FLOOR_PATTERNS) expect(LOOKS.some((l) => l.kind === 'floor' && l.pattern === p), p).toBe(true);
   });
 
-  it('dokładnie 6 domyślnych za 0, reszta płatna', () => {
+  it('dokładnie 8 domyślnych za 0 (po dwa na pokój), reszta płatna', () => {
     const free = LOOKS.filter((l) => l.price === 0).map((l) => l.id).sort();
     const defaults = Object.values(DEFAULT_LOOKS).flatMap((d) => [d.wallpaper, d.floor]).sort();
     expect(free).toEqual(defaults);
-    expect(free).toHaveLength(6);
+    expect(free).toHaveLength(8);
     for (const l of LOOKS) if (l.price > 0) expect(l.price).toBeGreaterThanOrEqual(30);
   });
 
@@ -52,11 +52,18 @@ describe('wyglądy (tapety i podłogi)', () => {
     expect(k(DEFAULT_LOOKS.bedroom.floor)).toMatchObject({ kind: 'floor', pattern: 'boards' });
     expect(k(DEFAULT_LOOKS.studio.wallpaper)).toMatchObject({ kind: 'wallpaper', pattern: 'plain' });
     expect(k(DEFAULT_LOOKS.studio.floor)).toMatchObject({ kind: 'floor', pattern: 'tiles' });
+    expect(k(DEFAULT_LOOKS.bathroom.wallpaper)).toMatchObject({ kind: 'wallpaper', pattern: 'tiles' });
+    expect(k(DEFAULT_LOOKS.bathroom.floor)).toMatchObject({ kind: 'floor', pattern: 'tiles' });
   });
 
   it('salon odtwarza obecny wygląd: lawendowe paski i fioletowe deski', () => {
     expect(lookById(DEFAULT_LOOKS.salon.wallpaper).colors.slice(0, 3)).toEqual(['#cdb8f0', '#c2abea', '#7a4fb3']);
     expect(lookById(DEFAULT_LOOKS.salon.floor).colors.slice(0, 2)).toEqual(['#8d68c4', '#7f5bb6']);
+  });
+
+  it('wyglądy dodane później (łazienka) są darmowe i domyślne', () => {
+    expect([...LATER_DEFAULT_LOOKS].sort()).toEqual([DEFAULT_LOOKS.bathroom.wallpaper, DEFAULT_LOOKS.bathroom.floor].sort());
+    for (const id of LATER_DEFAULT_LOOKS) expect(lookById(id).price).toBe(0);
   });
 
   it('findLook / lookById', () => {
