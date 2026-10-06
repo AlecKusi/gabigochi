@@ -1,0 +1,26 @@
+export const content = {
+  name: 'Gabriela',
+  nameGenitive: 'Gabrieli',
+  shortName: 'Gabi',
+  appName: 'Gabigochi',
+  age: 26,
+  wishesTitle: 'Sto lat, Gabi!',
+  wishes: [
+    'Wszystkiego najlepszego z okazji 26. urodzin!',
+    'Niech ten rok będzie pełen radości, przygód i ulubionych KitKatów.',
+    'A teraz masz własną, małą Gabi w telefonie. Karm ją, baw się z nią i nie zapominaj gasić jej światła na noc!',
+  ],
+  signature: 'Z całego serca!',
+  lines: {
+    greeting: ['Cześć!', 'Hej, tęskniłam!', 'O, jesteś!'],
+    happy: ['Ale fajny dzień!', 'Lubię ten pokój.', 'Zagramy w coś?', 'Sto lat dla mnie!', 'Mam ochotę na KitKata…'],
+    hungry: ['Zjadłabym coś…', 'Burczy mi w brzuchu!', 'Może KitKat?'],
+    sleepy: ['Ziew… jestem śpiąca.', 'Zgasisz światło?'],
+    bored: ['Pobawisz się ze mną?', 'Nudzę się…'],
+    eat: ['Mniam!', 'Pyszne!', 'Dziękuję!'],
+    kitkat: ['KITKAT! Kocham!', 'Mój ulubiony!!!', 'Najlepszy prezent!'],
+    pet: ['Hihi!', 'To łaskocze!', 'Miło!'],
+    goodNight: ['Dobranoc!', 'Słodkich snów…'],
+    wakeUp: ['Dzień dobry!', 'Już nie śpię!', 'Ziew… co się dzieje?'],
+  },
+} as const;
