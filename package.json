@@ -1,0 +1,22 @@
+{
+  "name": "gabigochi",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "test": "vitest run",
+    "sprites": "tools/.venv/Scripts/python tools/extract_sprites.py && tools/.venv/Scripts/python tools/make_icons.py"
+  },
+  "dependencies": {
+    "@fontsource/pixelify-sans": "^5.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.3",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^4.1.11"
+  }
+}
