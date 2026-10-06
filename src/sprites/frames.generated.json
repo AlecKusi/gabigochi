@@ -66,7 +66,7 @@
     },
     "drag_4": {
       "w": 67,
-      "h": 44,
+      "h": 43,
       "anchorX": 16.02,
       "foot": 43,
       "scale": 0.9032
@@ -74,14 +74,14 @@
     "drag_5": {
       "w": 50,
       "h": 58,
-      "anchorX": 25.54,
+      "anchorX": 25.93,
       "foot": 58,
       "scale": 0.9032
     },
     "fun_eat": {
-      "w": 24,
+      "w": 23,
       "h": 67,
-      "anchorX": 11.37,
+      "anchorX": 10.37,
       "foot": 67,
       "scale": 0.8358
     },
@@ -141,26 +141,12 @@
       "foot": 42,
       "scale": 0.8889
     },
-    "idle_back": {
-      "w": 22,
-      "h": 54,
-      "anchorX": 10.85,
-      "foot": 54,
-      "scale": 1.037
-    },
     "idle_front": {
       "w": 23,
       "h": 55,
       "anchorX": 11.08,
       "foot": 55,
       "scale": 1.0182
-    },
-    "idle_side": {
-      "w": 19,
-      "h": 54,
-      "anchorX": 8.07,
-      "foot": 54,
-      "scale": 1.037
     },
     "sad_cry": {
       "w": 25,
@@ -238,48 +224,6 @@
       "anchorX": 8.88,
       "foot": 43,
       "scale": 1.3333
-    },
-    "walk_a5": {
-      "w": 21,
-      "h": 43,
-      "anchorX": 9.15,
-      "foot": 43,
-      "scale": 1.3333
-    },
-    "walk_b1": {
-      "w": 24,
-      "h": 49,
-      "anchorX": 11.96,
-      "foot": 49,
-      "scale": 1.1429
-    },
-    "walk_b2": {
-      "w": 22,
-      "h": 48,
-      "anchorX": 10.49,
-      "foot": 48,
-      "scale": 1.1429
-    },
-    "walk_b3": {
-      "w": 22,
-      "h": 50,
-      "anchorX": 10.7,
-      "foot": 50,
-      "scale": 1.1429
-    },
-    "walk_b4": {
-      "w": 20,
-      "h": 49,
-      "anchorX": 10.82,
-      "foot": 49,
-      "scale": 1.1429
-    },
-    "walk_b5": {
-      "w": 21,
-      "h": 47,
-      "anchorX": 10.32,
-      "foot": 47,
-      "scale": 1.1429
     }
   },
   "body": [
@@ -303,9 +247,7 @@
     "hunger_3",
     "hunger_4",
     "hunger_5",
-    "idle_back",
     "idle_front",
-    "idle_side",
     "sad_cry",
     "scared",
     "tired_1",
@@ -316,13 +258,7 @@
     "walk_a1",
     "walk_a2",
     "walk_a3",
-    "walk_a4",
-    "walk_a5",
-    "walk_b1",
-    "walk_b2",
-    "walk_b3",
-    "walk_b4",
-    "walk_b5"
+    "walk_a4"
   ],
   "portraits": {
     "portrait_a": [

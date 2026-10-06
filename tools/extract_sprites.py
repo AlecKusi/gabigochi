@@ -8,7 +8,23 @@ Wpis klatki: [x0,y0,x1,y1] (arkusz main) albo {"sheet": nazwa, "rect": [...], "e
 `erase` — prostokąty [x0,y0,x1,y1] albo wielokąty [[x,y],...] w px arkusza, wymazywane do przezroczystości.
 `paint` — [[x0,y0,x1,y1,[r,g,b]], ...]: komórki ze środkiem w prostokącie (px arkusza) dostają ten kolor
           (po dopasowaniu do palety) i są nieprzezroczyste — drobne poprawki po wymazaniu (np. odsłonięta noga łóżka).
-`like` — nazwa innej klatki: przejmuje jej wpis (rect, erase, paint), a własne `erase`/`paint` dopisuje na końcu.
+`like` — nazwa innej klatki: przejmuje jej wpis, a własne listy (`erase`, `paint` i klucze retuszu)
+          dopisuje na końcu.
+
+Retusz (po kwantyzacji do palety, w komórkach natywnych; kształty jak w `erase`, w px arkusza) — usuwa torbę:
+`bag`  — obszar torby i paska na ciele: komórki w kolorach torby (`bagColor`: ciepły, mało nasycony, jasny beż)
+         są zamalowywane od brzegów kolorami sąsiadów (koszula, dżinsy, skóra) — patrz `inpaint`.
+`wipe` — jak `bag`, ale zamalowuje wszystkie komórki obszaru (np. ciemny kontur torby na koszuli).
+`cut`  — obszar torby poza ciałem: komórki stają się przezroczyste, a te z nich, które dotykają pozostałej
+         postaci, dostają kolor obrysu (najciemniejszy z palety), żeby sylwetka miała ciągły kontur.
+`copy` — [{"from": klatka, "rect": [x0,y0,x1,y1], "to": [x,y]}, ...]: komórki z prostokąta (px arkusza) innej
+         klatki z tego samego arkusza, przeniesione tak, że lewy górny róg prostokąta trafia w `to` — np. nadruk
+         koszulki, przez który szedł pasek, odtworzony z klatki bez paska.
+`fix`  — [[x0,y0,x1,y1,[r,g,b] | null], ...]: ręczne poprawki po retuszu (kolor z palety albo przezroczystość).
+Podgląd przed/po: tools/out/bag_before_after.png.
+
+Paleta (k-means wszystkich klatek) jest zamrożona w tools/palette.json — usunięcie albo dodanie klatki nie
+przebarwia pozostałych. `--palette` liczy ją od nowa z bieżących klatek.
 
 Arkusz z `"align": wzorzec` — po wycięciu każda klatka arkusza jest przesuwana (całkowite px natywne) tak,
 żeby jej łóżko pokryło się z łóżkiem wzorca; przesunięcie trafia do `anchorX`/`foot` (patrz `align_sheet`).
@@ -16,7 +32,8 @@ Arkusz z `"align": wzorzec` — po wycięciu każda klatka arkusza jest przesuwa
 import colorsys
 import json
 import re
-from collections import deque
+import sys
+from collections import Counter, deque
 from pathlib import Path
 
 import numpy as np
@@ -30,6 +47,10 @@ PREVIEW = ROOT / 'tools' / 'out' / 'preview.png'
 PREVIEW_NEW = ROOT / 'tools' / 'out' / 'preview_new.png'
 DRAG_X4 = ROOT / 'tools' / 'out' / 'drag_x4.png'
 BED_ALIGNED = ROOT / 'tools' / 'out' / 'bed_aligned.png'
+BAG_PREVIEW = ROOT / 'tools' / 'out' / 'bag_before_after.png'
+PALETTE_PATH = ROOT / 'tools' / 'palette.json'
+RETOUCH_KEYS = ('bag', 'wipe', 'cut', 'copy', 'fix')
+LIST_KEYS = ('erase', 'paint') + RETOUCH_KEYS
 ALIGN_SEARCH = 20
 NEIGH4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 NEIGH8 = tuple((dy, dx) for dy in (-1, 0, 1) for dx in (-1, 0, 1) if dy or dx)
@@ -43,14 +64,12 @@ def sheet(path):
 
 
 def entry(spec, group):
-    """Wpis klatki jako słownik: path, rect, background, period, keep, erase, sheet, anchor."""
+    """Wpis klatki jako słownik: path, rect, background, period, keep, sheet, anchor + listy LIST_KEYS."""
     if isinstance(spec, list):
         spec = {'rect': spec}
     if 'like' in spec:
         base = CFG[group][spec['like']]
-        spec = {**base, **spec,
-                'erase': base.get('erase', []) + spec.get('erase', []),
-                'paint': base.get('paint', []) + spec.get('paint', [])}
+        spec = {**base, **spec, **{k: base.get(k, []) + spec.get(k, []) for k in LIST_KEYS}}
     name = spec.get('sheet', 'main')
     sh = CFG.get('sheets', {}).get(name, {})
     default_period = CFG['gridPeriod'] if group == 'body' else CFG['portraitPeriod']
@@ -60,10 +79,9 @@ def entry(spec, group):
         'background': spec.get('background', sh.get('background', CFG['background'])),
         'period': sh.get('gridPeriod', default_period),
         'keep': sh.get('keep', 'largest'),
-        'erase': spec.get('erase', []),
-        'paint': spec.get('paint', []),
         'sheet': name,
         'anchor': sh.get('anchor', 'head'),
+        **{k: spec.get(k, []) for k in LIST_KEYS},
     }
 
 
@@ -209,12 +227,131 @@ def kmeans(px, k, iters=15):
     return centers
 
 
-def to_rgba(cells, mask, palette):
-    idx = ((cells[:, :, None, :] - palette[None, None]) ** 2).sum(axis=3).argmin(axis=2)
+def load_palette(pixels):
+    """Wspólna paleta: zamrożona w PALETTE_PATH; liczona (k-means) i zapisywana, gdy jej brak albo `--palette`."""
+    if PALETTE_PATH.exists() and '--palette' not in sys.argv:
+        return np.array(json.loads(PALETTE_PATH.read_text(encoding='utf-8')), float)
+    palette = kmeans(pixels, CFG['paletteSize'])
+    rows = ',\n'.join('  ' + json.dumps([float(v) for v in c]) for c in palette)
+    PALETTE_PATH.write_text(f'[\n{rows}\n]\n', encoding='utf-8')
+    print(f'Nowa paleta: {PALETTE_PATH}')
+    return palette
+
+
+def quantise(cells, palette):
+    """Indeks najbliższego koloru palety dla każdej komórki."""
+    return ((cells[:, :, None, :] - palette[None, None]) ** 2).sum(axis=3).argmin(axis=2)
+
+
+def to_rgba(idx, mask, palette):
     rgb = palette[idx].round().astype(np.uint8)
     alpha = np.where(mask, 0, 255).astype(np.uint8)
     img = Image.fromarray(np.dstack([rgb, alpha]), 'RGBA')
     return img.crop(img.getbbox())
+
+
+def palette_hsv(palette):
+    """(odcień w stopniach, nasycenie, jasność) każdego koloru palety."""
+    hsv = [colorsys.rgb_to_hsv(*(np.clip(c, 0, 255) / 255.0)) for c in palette]
+    return [(h * 360, s, v) for h, s, v in hsv]
+
+
+def bag_colours(palette):
+    """Indeksy palety w kolorach torby (`bagColor`): odcień w zakresie `hue` (może przechodzić przez 0°),
+    nasycenie < satMax, jasność >= valMin — krem, beż i jego cienie. Skóra jest bardziej nasycona,
+    włosy fioletowe, koszula i dżinsy ciemne, więc w obszarze `bag` łapie się tylko torba."""
+    rule = CFG['bagColor']
+    lo, hi = rule['hue']
+    return [i for i, (h, s, v) in enumerate(palette_hsv(palette))
+            if (lo <= h <= hi if lo <= hi else h >= lo or h <= hi) and s < rule['satMax'] and v >= rule['valMin']]
+
+
+def outline_colours(palette):
+    """Indeksy palety ciemne jak obrys (jasność < outlineValMax) i najciemniejszy z nich."""
+    hsv = palette_hsv(palette)
+    dark = [i for i, (_, _, v) in enumerate(hsv) if v < CFG['outlineValMax']]
+    return dark, min(range(len(palette)), key=lambda i: hsv[i][2])
+
+
+def inpaint(idx, hole, known, outline):
+    """Zamalowuje `hole` warstwami od brzegu: w każdym przebiegu komórka dostaje najczęstszy kolor znanych
+    bezpośrednich sąsiadów (4-sąsiedztwo — ukośnie kolor przeciekałby przez kontur, np. skóra ręki na koszulę;
+    ukośni rozstrzygają tylko remis).
+    Kolory obrysu głosują tylko wtedy, gdy nie ma innych, a takie komórki czekają, aż w przebiegu nie da się
+    zamalować żadnej innej — pasek przez koszulę staje się koszulą, a nie czarną kreską."""
+    h, w = idx.shape
+    hole, known = hole.copy(), known.copy()
+    while hole.any():
+        fill, fill_dark = {}, {}
+        for y, x in zip(*np.nonzero(hole)):
+            votes, dark_votes, around = Counter(), Counter(), Counter()
+            for dy, dx in NEIGH8:
+                ny, nx = y + dy, x + dx
+                if 0 <= ny < h and 0 <= nx < w and known[ny, nx]:
+                    around[idx[ny, nx]] += 1
+                    if not (dy and dx):
+                        (dark_votes if idx[ny, nx] in outline else votes)[idx[ny, nx]] += 1
+            # Remis: więcej takich komórek w 8-sąsiedztwie, potem niższy indeks palety — wynik nie zależy
+            # od kolejności przeglądania.
+            if votes:
+                fill[y, x] = min(votes, key=lambda c: (-votes[c], -around[c], c))
+            elif dark_votes:
+                fill_dark[y, x] = min(dark_votes, key=lambda c: (-dark_votes[c], -around[c], c))
+        fill = fill or fill_dark
+        if not fill:
+            break  # dziura bez żadnego znanego sąsiada — zostaje (nie powinno się zdarzyć)
+        for (y, x), c in fill.items():
+            idx[y, x] = c
+            hole[y, x] = False
+            known[y, x] = True
+
+
+def copy_cells(idx, mask, xs, ys, spec, sources):
+    """`copy`: każda komórka celu, której środek po cofnięciu przesunięcia leży w `rect`, dostaje najbliższą
+    komórkę źródła (przed retuszem); przezroczyste komórki źródła nie są kopiowane."""
+    src_idx, src_mask, src_xs, src_ys = sources[spec['from']]
+    x0, y0, x1, y1 = spec['rect']
+    dx, dy = spec['to'][0] - x0, spec['to'][1] - y0
+    for j, y in enumerate(ys):
+        for i, x in enumerate(xs):
+            sx, sy = x - dx, y - dy
+            if x0 <= sx <= x1 and y0 <= sy <= y1:
+                si, sj = np.abs(src_xs - sx).argmin(), np.abs(src_ys - sy).argmin()
+                if not src_mask[sj, si]:
+                    idx[j, i] = src_idx[sj, si]
+                    mask[j, i] = False
+
+
+def retouch(idx, mask, xs, ys, e, palette, sources):
+    """Usuwa torbę wg `bag`/`wipe`/`cut`/`copy`/`fix` wpisu (patrz opis modułu). Zwraca nowe (idx, mask).
+
+    Kolejność: wycięcie `cut` → zamalowanie `bag`/`wipe` → `copy` → ręczne `fix` → kontur na brzegu wycięcia.
+    `sources`: nazwa klatki → (idx, mask, xs, ys) przed retuszem (dla `copy`)."""
+    idx, mask = idx.copy(), mask.copy()
+    outline, darkest = outline_colours(palette)
+    cut = erase_mask(xs, ys, e['cut']) & ~mask
+    hole = erase_mask(xs, ys, e['bag']) & np.isin(idx, bag_colours(palette))
+    hole = (hole | erase_mask(xs, ys, e['wipe'])) & ~mask & ~cut
+    mask |= cut
+    inpaint(idx, hole, ~mask & ~hole, set(outline))
+    for spec in e['copy']:
+        copy_cells(idx, mask, xs, ys, spec, sources)
+    for *rect, color in e['fix']:
+        cells = erase_mask(xs, ys, [rect])
+        if color is None:
+            mask[cells] = True
+        else:
+            idx[cells] = quantise(np.array([[color]], float), palette)[0, 0]
+            mask[cells] = False
+    # Kontur w miejscu wyciętej torby: wycięte (i nie zamalowane ręcznie) komórki stykające się z postacią,
+    # o ile sąsiad nie jest już konturem — sylwetka dostaje ciągły obrys o grubości 1 komórki.
+    h, w = mask.shape
+    for y, x in zip(*np.nonzero(cut & mask)):
+        if any(0 <= y + dy < h and 0 <= x + dx < w and not mask[y + dy, x + dx]
+               and idx[y + dy, x + dx] not in outline for dy, dx in NEIGH4):
+            idx[y, x] = darkest
+            mask[y, x] = False
+    return idx, mask
 
 
 def largest_shape(img):
@@ -289,6 +426,35 @@ def save_preview_new(items):
 def save_drag_x4(images):
     items = [(im.resize((im.width * 4, im.height * 4), Image.NEAREST), im.height * 4) for im in images]
     compose(items, checker=True).save(DRAG_X4)
+
+
+def save_bag_preview(pairs, f=6, max_width=1600):
+    """Retusz ×f: para przed | po dla każdej klatki na szachownicy, pary zawijane w rzędy (wspólny dół w rzędzie)."""
+    tiles = []
+    for _, before, after in pairs:
+        items = [(im.resize((im.width * f, im.height * f), Image.NEAREST), im.height * f) for im in (before, after)]
+        tiles.append(compose(items, checker=True))
+    rows, row = [], []
+    for t in tiles:
+        if row and sum(r.width for r in row) + t.width > max_width:
+            rows.append(row)
+            row = []
+        row.append(t)
+    if row:
+        rows.append(row)
+    gap = 12
+    width = max((sum(t.width + gap for t in r) for r in rows), default=1)
+    height = sum(max(t.height for t in r) + gap for r in rows) or 1
+    out = Image.new('RGBA', (width, height), (60, 60, 70, 255))
+    y = 0
+    for r in rows:
+        x = 0
+        for t in r:
+            out.alpha_composite(t, (x, y + max(u.height for u in r) - t.height))
+            x += t.width + gap
+        y += max(t.height for t in r) + gap
+    BAG_PREVIEW.parent.mkdir(parents=True, exist_ok=True)
+    out.save(BAG_PREVIEW)
 
 
 def bed_classes(im):
@@ -422,12 +588,21 @@ def main():
                 painted = erase_mask(xs, ys, [rect])
                 cells[painted] = color
                 mask[painted] = False
-            raw[name] = (group, e, cells, mask)
+            raw[name] = (group, e, cells, mask, xs, ys)
             print(f'{name:12s} arkusz={e["sheet"]:6s} okres={period:.2f} komórki={cells.shape[1]}x{cells.shape[0]}')
 
-    pixels = np.concatenate([c[~m] for _, _, c, m in raw.values()])
-    palette = kmeans(pixels, CFG['paletteSize'])
-    images = {name: (group, e, to_rgba(c, m, palette)) for name, (group, e, c, m) in raw.items()}
+    palette = load_palette(np.concatenate([c[~m] for _, _, c, m, _, _ in raw.values()]))
+    quantised = {name: (quantise(cells, palette), mask, xs, ys) for name, (_, _, cells, mask, xs, ys) in raw.items()}
+    images = {}
+    retouched = []
+    for name, (group, e, *_) in raw.items():
+        idx, mask, xs, ys = quantised[name]
+        if any(e[k] for k in RETOUCH_KEYS):
+            before = to_rgba(idx, mask, palette)
+            idx, mask = retouch(idx, mask, xs, ys, e, palette, quantised)
+            retouched.append((name, before, to_rgba(idx, mask, palette)))
+        images[name] = (group, e, to_rgba(idx, mask, palette))
+    save_bag_preview(retouched)
 
     # Największy kształt każdej klatki ciała: wysokość ciała, stopy, kotwica.
     body = {}
@@ -491,7 +666,7 @@ def main():
     save_preview(preview)
     save_preview_new(preview_new)
     save_drag_x4([body[n]['im'] for n in ('drag_2', 'drag_3', 'drag_4', 'drag_5')])
-    print(f'Podgląd: {PREVIEW}, {PREVIEW_NEW}, {DRAG_X4}, {BED_ALIGNED}')
+    print(f'Podgląd: {PREVIEW}, {PREVIEW_NEW}, {DRAG_X4}, {BED_ALIGNED}, {BAG_PREVIEW}')
 
 
 if __name__ == '__main__':
