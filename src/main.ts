@@ -5,7 +5,7 @@ import './styles/components.css';
 import './styles/screens.css';
 import './styles/games.css';
 import { registerSW } from 'virtual:pwa-register';
-import { createApp, type ScreenFactory, type ScreenName } from './app';
+import { createApp, type App, type ScreenFactory, type ScreenName } from './app';
 import { CONFIG } from './core/config';
 import { claimDailyBonus } from './core/economy';
 import { applyElapsed } from './core/needs';
@@ -14,6 +14,7 @@ import { Store } from './core/store';
 import { ANIMATIONS, allFrameNames } from './sprites/animations';
 import framesMeta from './sprites/frames.generated.json';
 import { loadSprites } from './sprites/loader';
+import { h } from './ui/dom';
 import { mountInstall } from './ui/install';
 import { birthdayScreen } from './ui/screens/birthday';
 import { gamesScreen } from './ui/screens/games';
@@ -36,64 +37,94 @@ function isStandalone(): boolean {
   return nav.standalone === true || matchMedia('(display-mode: standalone)').matches;
 }
 
+function showBootError(): void {
+  const root = document.getElementById('app');
+  if (!root) return;
+  root.replaceChildren(
+    h(
+      'div',
+      { class: 'screen install' },
+      h('h1', {}, 'Coś poszło nie tak…'),
+      h('button', { class: 'px-btn big', onclick: () => location.reload() }, 'Spróbuj ponownie'),
+    ),
+  );
+}
+
 async function boot(): Promise<void> {
-  // iOS Safari uruchamia :active tylko, gdy na dokumencie jest nasłuch dotyku.
-  document.addEventListener('touchstart', () => {}, { passive: true });
-  const root = document.getElementById('app')!;
-  const browserAllowed = import.meta.env.DEV || new URLSearchParams(location.search).has('play');
-  if (!isStandalone() && !browserAllowed) {
-    mountInstall(root);
-    return;
-  }
-  void navigator.storage?.persist?.();
-
-  const now = Date.now();
-  const loaded = loadState(localStorage, now);
-  const bonus = claimDailyBonus(applyElapsed(loaded.state, now), now);
-  const store = new Store(bonus.state, localStorage);
-  saveState(localStorage, bonus.state);
-
-  const names = new Set([...allFrameNames(ANIMATIONS), ...framesMeta.body, ...Object.keys(framesMeta.portraits)]);
-  const sprites = await loadSprites([...names]);
-  const app = createApp(root, store, sprites, SCREENS);
-  try {
-    // Gry rysują tekst na canvasie – font musi być gotowy przed pierwszym użyciem.
-    await Promise.all([document.fonts.load('400 10px "Pixelify Sans"'), document.fonts.load('700 12px "Pixelify Sans"')]);
-  } catch {
-    /* brak fontu nie blokuje startu */
-  }
-  await app.go(store.get().seenBirthday ? 'room' : 'birthday');
-
-  if (loaded.recovered) app.toast('Nie udało się wczytać zapisu, zaczynamy od nowa.');
-  else if (bonus.granted) app.toast(`Codzienny bonus: +${CONFIG.coins.dailyBonus} monet!`);
-
-  const tick = () => {
-    const t = Date.now();
-    let granted = false;
-    store.update((s) => {
-      const r = claimDailyBonus(applyElapsed(s, t), t);
-      granted = r.granted;
-      return r.state;
-    });
-    if (granted) app.toast(`Codzienny bonus: +${CONFIG.coins.dailyBonus} monet!`);
-  };
-  setInterval(tick, 10_000);
-
+  // Service worker rejestrujemy na samym początku: błąd dalszego startu nie może odciąć aktualizacji,
+  // dzięki którym da się naprawić zepsutą wersję.
+  let app: App | null = null;
   let pendingUpdate = false;
   const updateSW = registerSW({
+    onRegisteredSW(_url, registration) {
+      // Aplikacja z ekranu początkowego rzadko się przeładowuje – sprawdzamy aktualizacje po powrocie na pierwszy plan.
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) void registration?.update();
+      });
+    },
     onNeedRefresh() {
       pendingUpdate = true;
-      app.toast('Jest nowa wersja! Uruchom aplikację ponownie.');
+      app?.toast('Jest nowa wersja! Uruchom aplikację ponownie.');
     },
   });
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      saveState(localStorage, store.get());
-      if (pendingUpdate) void updateSW(true);
-    } else {
-      tick();
+
+  try {
+    // iOS Safari uruchamia :active tylko, gdy na dokumencie jest nasłuch dotyku.
+    document.addEventListener('touchstart', () => {}, { passive: true });
+    const root = document.getElementById('app')!;
+    const browserAllowed = import.meta.env.DEV || new URLSearchParams(location.search).has('play');
+    if (!isStandalone() && !browserAllowed) {
+      mountInstall(root);
+      return;
     }
-  });
+    void navigator.storage?.persist?.();
+
+    const now = Date.now();
+    const loaded = loadState(localStorage, now);
+    const bonus = claimDailyBonus(applyElapsed(loaded.state, now), now);
+    const store = new Store(bonus.state, localStorage);
+    saveState(localStorage, bonus.state);
+
+    const names = new Set([...allFrameNames(ANIMATIONS), ...framesMeta.body, ...Object.keys(framesMeta.portraits)]);
+    const sprites = await loadSprites([...names]);
+    app = createApp(root, store, sprites, SCREENS);
+    try {
+      // Gry rysują tekst na canvasie – font musi być gotowy przed pierwszym użyciem.
+      await Promise.all([document.fonts.load('400 10px "Pixelify Sans"'), document.fonts.load('700 12px "Pixelify Sans"')]);
+    } catch {
+      /* brak fontu nie blokuje startu */
+    }
+    await app.go(store.get().seenBirthday ? 'room' : 'birthday');
+    if (pendingUpdate) app.toast('Jest nowa wersja! Uruchom aplikację ponownie.');
+
+    if (loaded.recovered) app.toast('Nie udało się wczytać zapisu, zaczynamy od nowa.');
+    else if (bonus.granted) app.toast(`Codzienny bonus: +${CONFIG.coins.dailyBonus} monet!`);
+
+    const running = app;
+    const tick = () => {
+      const t = Date.now();
+      let granted = false;
+      store.update((s) => {
+        const r = claimDailyBonus(applyElapsed(s, t), t);
+        granted = r.granted;
+        return r.state;
+      });
+      if (granted) running.toast(`Codzienny bonus: +${CONFIG.coins.dailyBonus} monet!`);
+    };
+    setInterval(tick, 10_000);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        saveState(localStorage, store.get());
+        if (pendingUpdate) void updateSW(true);
+      } else {
+        tick();
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    showBootError();
+  }
 }
 
 void boot();
