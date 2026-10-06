@@ -1,6 +1,7 @@
 import type { MoodLevel } from '../core/types';
+import type { StatusAnim } from './status';
 
-export type PetAction = 'idle' | 'walk' | 'eat' | 'wave' | 'talk' | 'jump';
+export type PetAction = 'idle' | 'walk' | 'eat' | 'wave' | 'talk' | 'happy' | 'angry' | 'scared' | 'crazy';
 export type TimedAction = Exclude<PetAction, 'idle' | 'walk'>;
 
 export interface Brain {
@@ -17,13 +18,15 @@ export interface BrainCtx {
   mood: MoodLevel;
   sleeping: boolean;
   rng: () => number;
+  /** Czy wolno ruszyć w drogę (domyślnie tak). */
+  canWalk?: boolean;
 }
 
 /** Współrzędne w pikselach logicznych pokoju (128 px szerokości). */
 export const ROOM_BOUNDS = { minX: 24, maxX: 104, walkSpeed: 14 } as const;
 /** Po przebudzeniu postać stoi (macha) co najmniej tyle, zanim ruszy w drogę. */
 export const WAKE_PAUSE_MS = 2500;
-export const ACTION_MS: Record<TimedAction, number> = { eat: 1600, wave: 1200, talk: 2500, jump: 700 };
+export const ACTION_MS: Record<TimedAction, number> = { eat: 1600, wave: 1200, talk: 2500, happy: 900, angry: 2000, scared: 1800, crazy: 2500 };
 const WALK_CHANCE: Record<MoodLevel, number> = { happy: 0.7, ok: 0.45, sad: 0.15 };
 const PAUSE_MS: Record<MoodLevel, number> = { happy: 2000, ok: 3500, sad: 6000 };
 
@@ -53,7 +56,7 @@ export function stepBrain(b: Brain, dtMs: number, ctx: BrainCtx): Brain {
     return { ...b, x: b.x + Math.sign(diff) * step, facing: diff < 0 ? 'left' : 'right' };
   }
   if (ctx.now < b.nextDecisionAt) return b;
-  if (ctx.rng() < WALK_CHANCE[ctx.mood]) {
+  if ((ctx.canWalk ?? true) && ctx.rng() < WALK_CHANCE[ctx.mood]) {
     const targetX = ROOM_BOUNDS.minX + ctx.rng() * (ROOM_BOUNDS.maxX - ROOM_BOUNDS.minX);
     return { ...b, action: 'walk', targetX };
   }
@@ -69,11 +72,9 @@ export function wakeBrain(b: Brain, now: number): Brain {
   return { ...triggerBrain(b, 'wave', now), nextDecisionAt: now + WAKE_PAUSE_MS };
 }
 
-export function animationName(b: Brain, s: { sleeping: boolean; hungry: boolean; mood: MoodLevel }): string {
+export function animationName(b: Brain, s: { sleeping: boolean; status: StatusAnim }): string {
   if (s.sleeping) return 'sleep';
-  if (b.action === 'walk' || b.action === 'eat' || b.action === 'wave' || b.action === 'talk') return b.action;
-  if (b.action === 'jump') return 'wave';
-  if (s.hungry) return 'hungry';
-  if (s.mood === 'sad') return 'sad';
-  return 'idle';
+  if (b.action !== 'idle' && b.action !== 'walk') return b.action;
+  if (b.action === 'walk') return 'walk';
+  return s.status ?? 'idle';
 }

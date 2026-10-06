@@ -59,15 +59,19 @@ describe('stepBrain', () => {
 
 describe('animationName', () => {
   const b = createBrain(0);
-  const st = { sleeping: false, hungry: false, mood: 'happy' as const };
-  it('mapuje stany na animacje', () => {
-    expect(animationName(b, { ...st, sleeping: true })).toBe('sleep');
-    expect(animationName({ ...b, action: 'walk' }, st)).toBe('walk');
-    expect(animationName({ ...b, action: 'jump' }, st)).toBe('wave');
-    expect(animationName(b, { ...st, hungry: true })).toBe('hungry');
-    expect(animationName(b, { ...st, mood: 'sad' })).toBe('sad');
-    expect(animationName(b, st)).toBe('idle');
+  it('sen > akcja > chód > stan > spoczynek', () => {
+    expect(animationName(b, { sleeping: true, status: 'hungry' })).toBe('sleep');
+    expect(animationName({ ...b, action: 'angry' }, { sleeping: false, status: 'starving' })).toBe('angry');
+    expect(animationName({ ...b, action: 'happy' }, { sleeping: false, status: null })).toBe('happy');
+    expect(animationName({ ...b, action: 'walk' }, { sleeping: false, status: null })).toBe('walk');
+    expect(animationName(b, { sleeping: false, status: 'tired' })).toBe('tired');
+    expect(animationName(b, { sleeping: false, status: null })).toBe('idle');
   });
+});
+
+it('bez pozwolenia na chód (canWalk=false) nie rusza w drogę', () => {
+  const next = stepBrain(createBrain(0), 16, { now: 10_000, mood: 'happy', sleeping: false, rng: () => 0, canWalk: false });
+  expect(next.action).toBe('idle');
 });
 
 describe('wakeBrain', () => {

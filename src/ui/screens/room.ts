@@ -12,6 +12,7 @@ import { animationName, createBrain, stepBrain, triggerBrain, wakeBrain, type Br
 import { drawShadow } from '../../pet/petRenderer';
 import { FEET_Y, ROOM_H, ROOM_W, drawRoom } from '../../pet/room';
 import { pick, pickLine } from '../../pet/speech';
+import { statusAnimation } from '../../pet/status';
 import { ANIMATIONS, frameAt, resolveAnimation, type OverlayName } from '../../sprites/animations';
 import { DISPLAY_HEIGHT, FRAMES, spriteUrl } from '../../sprites/loader';
 import { coinCounter } from '../coinCounter';
@@ -113,7 +114,7 @@ export function roomScreen(app: App): Screen {
 
   function jump(now: number): void {
     jumpStart = now;
-    brain = triggerBrain(brain, 'jump', now);
+    brain = triggerBrain(brain, 'happy', now);
   }
 
   function sync(s: GameState): void {
@@ -226,7 +227,7 @@ export function roomScreen(app: App): Screen {
     const mood = moodLevel(s.needs);
     const status = needStatus(s.needs);
     brain = stepBrain(brain, dt, { now: t, mood, sleeping: s.sleeping, rng: Math.random });
-    const name = animationName(brain, { sleeping: s.sleeping, hungry: status.hungry, mood });
+    const name = animationName(brain, { sleeping: s.sleeping, status: statusAnimation(s.needs) });
     if (name !== lastAnim) {
       lastAnim = name;
       animStart = t;
