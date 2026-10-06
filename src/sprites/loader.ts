@@ -1,3 +1,5 @@
+import framesMeta from './frames.generated.json';
+
 export type SpriteMap = Map<string, HTMLImageElement>;
 
 export const spriteUrl = (name: string): string => `${import.meta.env.BASE_URL}sprites/${name}.png`;
@@ -17,3 +19,15 @@ export async function loadSprites(names: string[]): Promise<SpriteMap> {
   );
   return new Map(entries.filter((e): e is [string, HTMLImageElement] => e !== null));
 }
+
+/** Metadane klatki postaci (piksele natywne arkusza); `scale` wyrównuje wysokość do `DISPLAY_HEIGHT`. */
+export interface FrameMeta {
+  w: number;
+  h: number;
+  anchorX: number;
+  scale: number;
+}
+
+export const FRAMES: Record<string, FrameMeta | undefined> = framesMeta.frames;
+/** Wysokość postaci w pikselach logicznych. */
+export const DISPLAY_HEIGHT = framesMeta.displayHeight;

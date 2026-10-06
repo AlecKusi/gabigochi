@@ -52,3 +52,5 @@ body {
 h1, h2, h3, p { margin: 0; }
 button { font: inherit; color: inherit; -webkit-appearance: none; appearance: none; }
 img.px, canvas.px, .px-icon { image-rendering: pixelated; image-rendering: crisp-edges; }
+/* Scena pikselowa: bufor w rozdzielczości urządzenia, proporcje z `aspect-ratio` ustawianego w JS. */
+.px-stage { display: block; width: 100%; height: auto; touch-action: none; }
