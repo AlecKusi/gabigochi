@@ -21,6 +21,7 @@ export const content = {
     kitkat: ['KITKAT! Kocham!', 'Mój ulubiony!!!', 'Najlepszy prezent!'],
     pet: ['Hihi!', 'To łaskocze!', 'Miło!'],
     goodNight: ['Dobranoc!', 'Słodkich snów…'],
+    notSleepy: ['Nie jestem śpiąca!', 'Jeszcze nie chcę spać!'],
     wakeUp: ['Dzień dobry!', 'Już nie śpię!', 'Ziew… co się dzieje?'],
   },
 } as const;

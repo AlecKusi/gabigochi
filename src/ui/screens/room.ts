@@ -31,6 +31,8 @@ interface Particle {
 const HEAD_Y = FEET_Y - DISPLAY_HEIGHT;
 /** Połowa szerokości pola dotyku postaci (px logiczne). */
 const HIT_HALF_W = 12;
+/** Od tej energii Gabi nie chce spać (inaczej tick od razu by ją obudził). */
+const NOT_SLEEPY_ENERGY = 95;
 
 export function roomScreen(app: App): Screen {
   const { store } = app;
@@ -120,6 +122,11 @@ export function roomScreen(app: App): Screen {
     bars.energy.set(s.needs.energy);
     coins.set(s.coins);
     if (s.sleeping !== shownSleeping) {
+      // Przejście spanie → czuwanie (przycisk, dotyk, jedzenie albo automatyczne wybudzenie przez tick).
+      if (shownSleeping === true && !s.sleeping) {
+        brain = wakeBrain(brain, performance.now());
+        say(pick(content.lines.wakeUp));
+      }
       shownSleeping = s.sleeping;
       lightIcon.replaceChildren(icon(s.sleeping ? 'moon' : 'bulb', 3));
     }
@@ -147,12 +154,15 @@ export function roomScreen(app: App): Screen {
   }
 
   function toggleLight(): void {
-    const wasSleeping = store.get().sleeping;
-    store.update((s) => setSleeping(s, !wasSleeping));
-    if (wasSleeping) {
-      brain = wakeBrain(brain, performance.now());
-      say(pick(content.lines.wakeUp));
+    const s = store.get();
+    if (s.sleeping) {
+      // Budzenie (animacja i kwestia) robi sync() — tak samo przy automatycznym wybudzeniu przez tick.
+      store.update((cur) => setSleeping(cur, false));
+    } else if (s.needs.energy >= NOT_SLEEPY_ENERGY) {
+      // Przy pełnej energii tick i tak od razu by ją obudził.
+      say(pick(content.lines.notSleepy), 2400);
     } else {
+      store.update((cur) => setSleeping(cur, true));
       say(pick(content.lines.goodNight), 2000);
     }
   }
@@ -162,9 +172,7 @@ export function roomScreen(app: App): Screen {
     if (Math.abs(x - brain.x) > HIT_HALF_W || y < HEAD_Y || y > FEET_Y) return;
     const now = performance.now();
     if (store.get().sleeping) {
-      store.update((s) => setSleeping(s, false));
-      brain = wakeBrain(brain, now);
-      say(pick(content.lines.wakeUp));
+      store.update((s) => setSleeping(s, false)); // sync() budzi postać i mówi kwestię
       return;
     }
     squashUntil = now + 220;
