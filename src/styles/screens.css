@@ -5,6 +5,8 @@
 .profile-btn { display: flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; color: var(--text-light); font-size: 18px; cursor: pointer; }
 .avatar { width: 44px; height: 44px; object-fit: cover; object-position: 50% 30%; background: var(--bg-2); box-shadow: 0 0 0 2px var(--ink); }
 img.px.avatar { image-rendering: auto; }
+/* Miny stanów to małe wycinki powiększane w ramce — ostre piksele zamiast rozmycia. */
+img.px.avatar.crisp { image-rendering: pixelated; image-rendering: crisp-edges; }
 .needs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 6px 14px; }
 .stage-wrap { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; padding: 6px 14px; }
 .stage {

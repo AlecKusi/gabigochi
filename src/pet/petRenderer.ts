@@ -1,6 +1,6 @@
-/** Cień pod postacią (px logiczne); przy skoku węższy. */
+/** Cień pod postacią (px logiczne); przy skoku węższy, im wyżej (np. trzymana palcem), tym mniejszy. */
 export function drawShadow(ctx: CanvasRenderingContext2D, x: number, feetY: number, jump: number): void {
-  const w = jump > 4 ? 14 : 20;
+  const w = jump > 4 ? Math.max(8, 14 - Math.floor(jump / 12)) : 20;
   ctx.fillStyle = 'rgba(42, 31, 61, 0.3)';
   ctx.fillRect(Math.round(x - w / 2), feetY - 1, w, 2);
 }

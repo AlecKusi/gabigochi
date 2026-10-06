@@ -23,5 +23,10 @@ export const content = {
     goodNight: ['Dobranoc!', 'Słodkich snów…'],
     notSleepy: ['Nie jestem śpiąca!', 'Jeszcze nie chcę spać!'],
     wakeUp: ['Dzień dobry!', 'Już nie śpię!', 'Ziew… co się dzieje?'],
+    angry: ['Hej! Przestań!', 'Nie zaczepiaj mnie!'],
+    scared: ['Aaa! Ostrożnie!', 'Kręci mi się w głowie…'],
+    crazy: ['Cukier! Cukieeer!', 'Wiiiii!'],
+    drag: ['Łiii!', 'Postaw mnie!', 'Lecę!'],
+    landHappy: ['Jeszcze raz!', 'Hihi!'],
   },
 } as const;
