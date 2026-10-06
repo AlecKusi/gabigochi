@@ -75,6 +75,8 @@ async function boot(): Promise<void> {
   try {
     // iOS Safari uruchamia :active tylko, gdy na dokumencie jest nasłuch dotyku.
     document.addEventListener('touchstart', () => {}, { passive: true });
+    // iOS ignoruje user-scalable=no — pinch-zoom blokujemy tutaj.
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
     const root = document.getElementById('app')!;
     const browserAllowed = import.meta.env.DEV || new URLSearchParams(location.search).has('play');
     if (!isStandalone() && !browserAllowed) {

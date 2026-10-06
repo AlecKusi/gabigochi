@@ -6,7 +6,6 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['icons/*.png', 'sprites/*.png'],
       manifest: {
         name: 'Gabigochi',
         short_name: 'Gabigochi',

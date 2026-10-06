@@ -113,7 +113,7 @@ img.px.avatar { image-rendering: auto; }
 .wardrobe-preview { height: 192px; width: auto; }
 
 /* Instalacja */
-.install { overflow-y: auto; align-items: center; text-align: center; gap: 14px; padding: calc(var(--safe-top) + 24px) 20px 24px; color: var(--text-light); }
+.install { overflow-y: auto; align-items: center; text-align: center; gap: 14px; padding: calc(var(--safe-top) + 24px) 20px calc(var(--safe-bottom) + 24px); color: var(--text-light); }
 .install h1 { font-size: 34px; text-shadow: 3px 3px 0 var(--ink); }
 .install p { font-size: 17px; line-height: 1.35; }
 .install-steps { text-align: left; color: var(--text); padding: 14px 16px 14px 36px; font-size: 16px; line-height: 1.4; display: grid; gap: 8px; max-width: 360px; }
