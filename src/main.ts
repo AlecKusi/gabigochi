@@ -37,6 +37,8 @@ function isStandalone(): boolean {
 }
 
 async function boot(): Promise<void> {
+  // iOS Safari uruchamia :active tylko, gdy na dokumencie jest nasłuch dotyku.
+  document.addEventListener('touchstart', () => {}, { passive: true });
   const root = document.getElementById('app')!;
   const browserAllowed = import.meta.env.DEV || new URLSearchParams(location.search).has('play');
   if (!isStandalone() && !browserAllowed) {
@@ -54,6 +56,12 @@ async function boot(): Promise<void> {
   const names = new Set([...allFrameNames(ANIMATIONS), ...framesMeta.body, ...Object.keys(framesMeta.portraits)]);
   const sprites = await loadSprites([...names]);
   const app = createApp(root, store, sprites, SCREENS);
+  try {
+    // Gry rysują tekst na canvasie – font musi być gotowy przed pierwszym użyciem.
+    await Promise.all([document.fonts.load('400 10px "Pixelify Sans"'), document.fonts.load('700 12px "Pixelify Sans"')]);
+  } catch {
+    /* brak fontu nie blokuje startu */
+  }
   await app.go(store.get().seenBirthday ? 'room' : 'birthday');
 
   if (loaded.recovered) app.toast('Nie udało się wczytać zapisu, zaczynamy od nowa.');

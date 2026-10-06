@@ -13,7 +13,7 @@ export function shopScreen(app: App): Screen {
   let tab: Tab = 'food';
 
   const tabButton = (label: string, id: Tab) =>
-    h('button', { class: 'tab', 'data-tab': id, onclick: () => { tab = id; render(); } }, label);
+    h('button', { class: 'tab', role: 'tab', 'aria-selected': 'false', 'data-tab': id, onclick: () => { tab = id; render(); } }, label);
   const tabs = h('div', { class: 'tabs', role: 'tablist' }, tabButton('Jedzenie', 'food'), tabButton('Dodatki', 'extras'));
 
   function foodRow(food: FoodDef): HTMLElement {
@@ -37,7 +37,7 @@ export function shopScreen(app: App): Screen {
       }
       app.store.update(() => res.state);
       app.toast(`${food.name} jest w lodówce!`);
-      if (food.id === 'kitkat' || food.id === 'cake') app.celebrate();
+      app.celebrate();
       render();
     });
     const fav = food.id === 'kitkat';
@@ -57,12 +57,18 @@ export function shopScreen(app: App): Screen {
   }
 
   function render(): void {
-    tabs.querySelectorAll<HTMLElement>('.tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
+    tabs.querySelectorAll<HTMLElement>('.tab').forEach((b) => {
+      const active = b.dataset.tab === tab;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-selected', String(active));
+    });
     body.replaceChildren(
       ...(tab === 'food' ? FOODS.map(foodRow) : [comingSoon('Czapki, sukienki i nowe tła już wkrótce!')]),
     );
   }
 
   render();
+  // Po wejściu wierszy wyłącz animację, żeby kolejne renderowania (zakupy) jej nie powtarzały.
+  setTimeout(() => body.classList.add('settled'), 600);
   return { el: h('div', { class: 'screen shop' }, header.el, tabs, body), destroy: header.destroy };
 }

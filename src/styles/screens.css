@@ -49,6 +49,7 @@
 .shop-row:nth-child(3) { animation-delay: 80ms; }
 .shop-row:nth-child(4) { animation-delay: 120ms; }
 .shop-row:nth-child(5) { animation-delay: 160ms; }
+.shop-body.settled .shop-row { animation: none; }
 .shop-row.fav { background: #ffe3ef; }
 .shop-info { display: flex; flex-direction: column; gap: 2px; }
 .shop-info strong { font-size: 17px; }

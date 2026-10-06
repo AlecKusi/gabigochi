@@ -51,12 +51,27 @@ export function openFridge(app: App, host: HTMLElement, target: HTMLElement, onF
   }
 
   function startDrag(e: PointerEvent, food: FoodDef): void {
+    if (!e.isPrimary || e.button !== 0) return;
     e.preventDefault();
+    const pointerId = e.pointerId;
     const sx = e.clientX;
     const sy = e.clientY;
     let dragging = false;
     const ghost = icon(food.id, 5, 'px-icon drag-ghost');
+    try {
+      (e.currentTarget as Element | null)?.setPointerCapture?.(pointerId);
+    } catch {
+      /* przechwycenie wskaźnika jest opcjonalne */
+    }
+    const cleanup = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', cancel);
+      ghost.remove();
+      sheet.classList.remove('peek');
+    };
     const move = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
       if (!dragging && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 8) {
         dragging = true;
         document.body.append(ghost);
@@ -68,11 +83,8 @@ export function openFridge(app: App, host: HTMLElement, target: HTMLElement, onF
       }
     };
     const up = (ev: PointerEvent) => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-      window.removeEventListener('pointercancel', up);
-      ghost.remove();
-      sheet.classList.remove('peek');
+      if (ev.pointerId !== pointerId) return;
+      cleanup();
       const r = target.getBoundingClientRect();
       const onTarget = ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom;
       if (!dragging || onTarget) {
@@ -80,8 +92,12 @@ export function openFridge(app: App, host: HTMLElement, target: HTMLElement, onF
         onFeed(food.id);
       }
     };
+    const cancel = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      cleanup();
+    };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
-    window.addEventListener('pointercancel', up);
+    window.addEventListener('pointercancel', cancel);
   }
 }
