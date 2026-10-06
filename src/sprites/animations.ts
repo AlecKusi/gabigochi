@@ -35,7 +35,8 @@ export function resolveAnimation(m: Record<string, AnimDef>, name: string): Reso
 }
 
 export function frameAt(anim: ResolvedAnim, elapsedMs: number): string {
-  const index = Math.floor((elapsedMs / 1000) * anim.fps) % anim.frames.length;
+  const n = anim.frames.length;
+  const index = ((Math.floor((elapsedMs / 1000) * anim.fps) % n) + n) % n;
   return anim.frames[index];
 }
 

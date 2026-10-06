@@ -31,6 +31,11 @@ describe('frameAt', () => {
     expect(frameAt(walk, 250)).toBe('w2');
     expect(frameAt(walk, 500)).toBe('w1');
   });
+  it('ujemny czas daje poprawną klatkę', () => {
+    const walk = resolveAnimation(M, 'walk');
+    expect(['w1', 'w2']).toContain(frameAt(walk, -100));
+    expect(frameAt(walk, -250)).toBe('w2');
+  });
 });
 
 describe('prawdziwy manifest', () => {

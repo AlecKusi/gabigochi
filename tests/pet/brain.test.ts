@@ -37,6 +37,14 @@ describe('stepBrain', () => {
     expect(next.x).toBe(50);
   });
 
+  it('po przebudzeniu nie rusza od razu w drogę', () => {
+    const walking = { ...createBrain(0), action: 'walk' as const, x: 50, targetX: 90 };
+    const asleep = stepBrain(walking, 16, ctx({ sleeping: true }));
+    expect(asleep.nextDecisionAt).toBeGreaterThan(10_000);
+    const awake = stepBrain(asleep, 16, ctx());
+    expect(awake.action).toBe('idle');
+  });
+
   it('akcja czasowa trwa ACTION_MS, potem idle', () => {
     const b = triggerBrain(createBrain(0), 'eat', 1000);
     expect(stepBrain(b, 16, ctx({ now: 1000 + ACTION_MS.eat - 1 }))).toBe(b);

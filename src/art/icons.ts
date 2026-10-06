@@ -206,7 +206,7 @@ export const ICONS = {
     '..kkkkkkkk..',
     '.kppppppppk.',
     'kppkppppippk',
-    'kpkkkppippik',
+    'kpkkkppipipk',
     'kppkppppippk',
     'kppppkkppppk',
     '.kpppk.kpppk',

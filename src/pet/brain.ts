@@ -34,7 +34,9 @@ export function createBrain(now: number): Brain {
 
 export function stepBrain(b: Brain, dtMs: number, ctx: BrainCtx): Brain {
   if (ctx.sleeping) {
-    return b.action === 'idle' && b.targetX === b.x ? b : { ...b, action: 'idle', targetX: b.x };
+    // Pauza po przebudzeniu: postać nie rusza w drogę w tej samej chwili, w której wstaje.
+    if (b.action === 'idle' && b.targetX === b.x && b.nextDecisionAt >= ctx.now) return b;
+    return { ...b, action: 'idle', targetX: b.x, nextDecisionAt: ctx.now + pause(ctx) };
   }
   if (isTimed(b.action)) {
     if (ctx.now < b.actionEndsAt) return b;
