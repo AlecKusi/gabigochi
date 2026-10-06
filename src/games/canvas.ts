@@ -1,8 +1,15 @@
-import { h } from '../ui/dom';
+import { createPixelStage, type SpriteStep } from '../ui/pixelStage';
 
 export interface GameCanvas {
   canvas: HTMLCanvasElement;
+  /** Warstwa tła w pikselach logicznych (dotychczasowy kod gier rysuje tutaj). */
   ctx: CanvasRenderingContext2D;
+  /** Warstwa efektów nad postacią, w pikselach logicznych. */
+  fx: CanvasRenderingContext2D;
+  /** Pikseli urządzenia na piksel logiczny. */
+  readonly k: number;
+  /** Pokazuje klatkę: tło, `drawSprites` (w pikselach urządzenia), efekty. */
+  present(drawSprites?: SpriteStep): void;
   toLogical(e: PointerEvent): { x: number; y: number };
   dispose(): void;
 }
@@ -15,33 +22,41 @@ export function fitScale(s: number): number {
   return Math.max(1, Math.floor(s * 2) / 2);
 }
 
-/** Canvas w rozdzielczości logicznej, skalowany do miejsca (całkowicie, gdy się da). */
+/**
+ * Scena gry w rozdzielczości urządzenia, wpasowana w `body`. Skala (px urządzenia na px logiczny)
+ * jest całkowita, gdy się da — wtedy tło rysowane w pikselach logicznych zostaje równe.
+ */
 export function makeCanvas(body: HTMLElement, w: number, hgt: number): GameCanvas {
-  const canvas = h('canvas', { class: 'px game-canvas', width: w, height: hgt });
+  const stage = createPixelStage(w, hgt);
+  const { canvas } = stage;
+  canvas.classList.add('game-canvas');
   body.append(canvas);
-  const ctx = canvas.getContext('2d')!;
-  ctx.imageSmoothingEnabled = false;
   const fit = () => {
     // Pole robocze to wnętrze elementu (bez paddingu).
     const cs = getComputedStyle(body);
     const availW = body.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
     const availH = body.clientHeight - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0);
-    const s = Math.min(availW / w, availH / hgt);
-    const scale = fitScale(s);
-    canvas.style.width = `${w * scale}px`;
-    canvas.style.height = `${hgt * scale}px`;
+    if (availW <= 0 || availH <= 0) return;
+    const dpr = window.devicePixelRatio || 1;
+    const scale = fitScale(Math.min(availW / w, availH / hgt) * dpr);
+    canvas.style.width = `${(w * scale) / dpr}px`;
   };
   fit();
   const observer = new ResizeObserver(fit);
   observer.observe(body);
   return {
     canvas,
-    ctx,
-    toLogical(e) {
-      const r = canvas.getBoundingClientRect();
-      return { x: ((e.clientX - r.left) * w) / r.width, y: ((e.clientY - r.top) * hgt) / r.height };
+    ctx: stage.bg,
+    fx: stage.fx,
+    get k() {
+      return stage.k;
     },
-    dispose: () => observer.disconnect(),
+    present: stage.compose,
+    toLogical: stage.toLogical,
+    dispose() {
+      observer.disconnect();
+      stage.dispose();
+    },
   };
 }
 

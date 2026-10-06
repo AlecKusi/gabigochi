@@ -1,7 +1,8 @@
 import { ICONS } from '../art/icons';
 import { artCanvas } from '../art/pixels';
-import { drawPet } from '../pet/petRenderer';
 import { ANIMATIONS, frameAt, resolveAnimation } from '../sprites/animations';
+import { FRAMES } from '../sprites/loader';
+import { drawSprite } from '../ui/pixelStage';
 import { makeCanvas, runLoop } from './canvas';
 import { CATCH, createCatch, stepCatch } from './catchLogic';
 import { catchReward } from './rewards';
@@ -15,7 +16,7 @@ export const catchGame: MiniGame = {
   category: 'arcade',
   reward: catchReward,
   async play(env) {
-    const { canvas, ctx, toLogical, dispose } = makeCanvas(env.body, CATCH.W, CATCH.H);
+    const { canvas, ctx, fx, present, toLogical, dispose } = makeCanvas(env.body, CATCH.W, CATCH.H);
     let s = createCatch();
     const aim = (e: PointerEvent) => {
       s = { ...s, targetX: toLogical(e).x };
@@ -23,7 +24,6 @@ export const catchGame: MiniGame = {
     canvas.addEventListener('pointerdown', aim);
     canvas.addEventListener('pointermove', aim);
     const walk = resolveAnimation(ANIMATIONS, 'walk');
-    const idle = env.sprites.get('idle_front');
     let walkT = 0;
     let flash = 0;
 
@@ -35,15 +35,20 @@ export const catchGame: MiniGame = {
       ctx.fillStyle = '#8d68c4';
       ctx.fillRect(0, CATCH.playerY, CATCH.W, CATCH.H - CATCH.playerY);
       for (const it of s.items) ctx.drawImage(artCanvas(ICONS[it.kind]), Math.round(it.x), Math.round(it.y));
-      const img = s.moving !== 0 ? env.sprites.get(frameAt(walk, walkT)) : idle;
-      if (img) drawPet(ctx, { frame: img, x: s.playerX, feetY: CATCH.playerY, flip: walk.flipForRight && s.moving > 0, bob: 0, squash: 0, jump: 0 });
+      fx.clearRect(0, 0, CATCH.W, CATCH.H);
       for (let i = 0; i < CATCH.lives; i++) {
-        ctx.drawImage(artCanvas(i < s.lives ? ICONS.heartSmall : ICONS.heartEmpty), 3 + i * 7, 3);
+        fx.drawImage(artCanvas(i < s.lives ? ICONS.heartSmall : ICONS.heartEmpty), 3 + i * 7, 3);
       }
       if (flash > 0) {
-        ctx.fillStyle = `rgba(224, 56, 79, ${flash / 600})`;
-        ctx.fillRect(0, 0, CATCH.W, CATCH.H);
+        fx.fillStyle = `rgba(224, 56, 79, ${flash / 600})`;
+        fx.fillRect(0, 0, CATCH.W, CATCH.H);
       }
+      const name = s.moving !== 0 ? frameAt(walk, walkT) : 'idle_front';
+      const img = env.sprites.get(name);
+      const meta = FRAMES[name];
+      present((d, k) => {
+        if (img && meta) drawSprite(d, k, img, meta, { x: s.playerX, feetY: CATCH.playerY, flip: walk.flipForRight && s.moving > 0, bob: 0, squash: 0, jump: 0 });
+      });
     };
 
     await runLoop(env.signal, (dt) => {

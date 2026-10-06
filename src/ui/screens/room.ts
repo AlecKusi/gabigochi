@@ -9,16 +9,16 @@ import { moodLevel, needStatus } from '../../core/needs';
 import { dayNumber } from '../../core/time';
 import type { GameState } from '../../core/types';
 import { animationName, createBrain, stepBrain, triggerBrain, wakeBrain, type Brain } from '../../pet/brain';
-import { drawPet, drawShadow } from '../../pet/petRenderer';
+import { drawShadow } from '../../pet/petRenderer';
 import { FEET_Y, ROOM_H, ROOM_W, drawRoom } from '../../pet/room';
 import { pick, pickLine } from '../../pet/speech';
 import { ANIMATIONS, frameAt, resolveAnimation, type OverlayName } from '../../sprites/animations';
-import framesMeta from '../../sprites/frames.generated.json';
-import { spriteUrl } from '../../sprites/loader';
+import { DISPLAY_HEIGHT, FRAMES, spriteUrl } from '../../sprites/loader';
 import { coinCounter } from '../coinCounter';
 import { h, icon } from '../dom';
 import { openFridge } from '../fridge';
 import { needBar } from '../needBar';
+import { createPixelStage, drawSprite } from '../pixelStage';
 
 interface Particle {
   kind: 'heart' | 'zzz';
@@ -28,16 +28,16 @@ interface Particle {
   life: number;
 }
 
-const [FRAME_W, FRAME_H] = framesMeta.canvas;
-const HEAD_Y = FEET_Y - FRAME_H;
+const HEAD_Y = FEET_Y - DISPLAY_HEIGHT;
+/** Połowa szerokości pola dotyku postaci (px logiczne). */
+const HIT_HALF_W = 12;
 
 export function roomScreen(app: App): Screen {
   const { store } = app;
   const s0 = store.get();
 
-  const canvas = h('canvas', { class: 'px stage-canvas', width: ROOM_W, height: ROOM_H });
-  const ctx = canvas.getContext('2d')!;
-  ctx.imageSmoothingEnabled = false;
+  const px = createPixelStage(ROOM_W, ROOM_H);
+  const { canvas, bg, fx } = px;
   const speech = h('div', { class: 'speech px-box hidden', 'aria-live': 'polite' });
   const coins = coinCounter(s0.coins);
   const dayLabel = h('span', {}, `Dzień ${dayNumber(s0.createdAt, Date.now())}`);
@@ -158,10 +158,8 @@ export function roomScreen(app: App): Screen {
   }
 
   canvas.addEventListener('pointerdown', (e) => {
-    const r = canvas.getBoundingClientRect();
-    const x = ((e.clientX - r.left) * ROOM_W) / r.width;
-    const y = ((e.clientY - r.top) * ROOM_H) / r.height;
-    if (Math.abs(x - brain.x) > FRAME_W / 2 || y < HEAD_Y || y > FEET_Y) return;
+    const { x, y } = px.toLogical(e);
+    if (Math.abs(x - brain.x) > HIT_HALF_W || y < HEAD_Y || y > FEET_Y) return;
     const now = performance.now();
     if (store.get().sleeping) {
       store.update((s) => setSleeping(s, false));
@@ -189,9 +187,9 @@ export function roomScreen(app: App): Screen {
         particles.push({ kind: 'zzz', x: brain.x + 8, y: HEAD_Y + 4, vy: 8, life: 2.2 });
       }
     } else if (kind === 'cloud') {
-      ctx.drawImage(artCanvas(ICONS.cloud), Math.round(brain.x - 6), HEAD_Y - 12 + (Math.floor(t / 500) % 2));
+      fx.drawImage(artCanvas(ICONS.cloud), Math.round(brain.x - 6), HEAD_Y - 12 + (Math.floor(t / 500) % 2));
     } else if (kind === 'food') {
-      ctx.drawImage(artCanvas(ICONS.foodBubble), Math.round(brain.x + 10), HEAD_Y - 4 + (Math.floor(t / 600) % 2));
+      fx.drawImage(artCanvas(ICONS.foodBubble), Math.round(brain.x + 10), HEAD_Y - 4 + (Math.floor(t / 600) % 2));
     }
   }
 
@@ -204,11 +202,11 @@ export function roomScreen(app: App): Screen {
         particles.splice(i, 1);
         continue;
       }
-      ctx.globalAlpha = Math.min(1, p.life * 2);
+      fx.globalAlpha = Math.min(1, p.life * 2);
       const art = artCanvas(p.kind === 'zzz' ? ICONS.zzz : ICONS.heartSmall);
       const sway = p.kind === 'zzz' ? Math.sin(p.life * 3) * 3 : 0;
-      ctx.drawImage(art, Math.round(p.x + sway), Math.round(p.y));
-      ctx.globalAlpha = 1;
+      fx.drawImage(art, Math.round(p.x + sway), Math.round(p.y));
+      fx.globalAlpha = 1;
     }
   }
 
@@ -226,22 +224,26 @@ export function roomScreen(app: App): Screen {
       animStart = t;
     }
     const anim = resolveAnimation(ANIMATIONS, name);
-    const img = app.sprites.get(frameAt(anim, t - animStart));
+    const frameName = frameAt(anim, t - animStart);
+    const img = app.sprites.get(frameName);
+    const meta = FRAMES[frameName];
 
-    drawRoom(ctx, s.sleeping, t);
+    px.clear();
+    drawRoom(bg, s.sleeping, t);
     const bob = brain.action === 'idle' && !s.sleeping ? Math.floor(t / 750) % 2 : 0;
     const squash = t < squashUntil ? 0.08 * Math.sin(((squashUntil - t) / 220) * Math.PI) : 0;
     const jumpH = jumpStart >= 0 && t - jumpStart < 600 ? Math.round(Math.sin(((t - jumpStart) / 600) * Math.PI) * 10) : 0;
-    drawShadow(ctx, brain.x, FEET_Y, jumpH);
-    if (img) {
-      drawPet(ctx, { frame: img, x: brain.x, feetY: FEET_Y, flip: anim.flipForRight && brain.facing === 'right', bob, squash, jump: jumpH });
-    }
+    drawShadow(bg, brain.x, FEET_Y, jumpH);
     if (anim.dim) {
-      ctx.fillStyle = 'rgba(20, 12, 45, 0.45)';
-      ctx.fillRect(0, 0, ROOM_W, ROOM_H);
+      fx.fillStyle = 'rgba(20, 12, 45, 0.45)';
+      fx.fillRect(0, 0, ROOM_W, ROOM_H);
     }
     drawOverlay(anim.overlay, t, dt);
     drawParticles(dt);
+    const flip = anim.flipForRight && brain.facing === 'right';
+    px.compose((ctx, k) => {
+      if (img && meta) drawSprite(ctx, k, img, meta, { x: brain.x, feetY: FEET_Y, flip, bob, squash, jump: jumpH });
+    });
 
     if (!s.sleeping && t >= nextChatAt) {
       nextChatAt = t + 20_000 + Math.random() * 10_000;
@@ -264,6 +266,7 @@ export function roomScreen(app: App): Screen {
     destroy() {
       destroyed = true;
       cancelAnimationFrame(raf);
+      px.dispose();
       clearTimeout(speechTimer);
       unsubscribe();
     },

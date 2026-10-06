@@ -16,7 +16,6 @@ img.px.avatar { image-rendering: auto; }
   overflow: hidden;
 }
 .room.night .stage { background: #4a3a72; }
-.stage-canvas { display: block; width: 100%; height: auto; touch-action: none; }
 .speech {
   position: absolute;
   top: 6%;
@@ -101,7 +100,7 @@ img.px.avatar { image-rendering: auto; }
 .bday-age { font-size: 72px; font-weight: 700; line-height: 1; color: var(--coin); text-shadow: 4px 4px 0 var(--ink); animation: pulse 1.6s ease-in-out infinite; }
 .bday-hero { position: relative; }
 .portrait-big { width: 264px; animation: portrait-in 600ms cubic-bezier(.2, 1.4, .4, 1); }
-.wave-sprite { position: absolute; right: -40px; bottom: -6px; width: 84px; animation: hop 1.2s steps(2) infinite; }
+.wave-sprite { position: absolute; right: -40px; bottom: -6px; height: 114px; width: auto; animation: hop 1.2s steps(2) infinite; }
 .bday-title { font-size: 30px; text-shadow: 3px 3px 0 var(--ink); }
 .bday-wishes { padding: 14px 16px; color: var(--text); text-align: left; font-size: 17px; line-height: 1.4; max-width: 360px; display: grid; gap: 8px; }
 .signature { text-align: right; color: var(--text-soft); }
@@ -111,7 +110,7 @@ img.px.avatar { image-rendering: auto; }
 
 /* Szafa */
 .wardrobe-body { flex: 1; display: grid; justify-items: center; align-content: center; gap: 16px; padding: 0 14px 20px; }
-.wardrobe-preview { width: 144px; }
+.wardrobe-preview { height: 192px; width: auto; }
 
 /* Instalacja */
 .install { overflow-y: auto; align-items: center; text-align: center; gap: 14px; padding: calc(var(--safe-top) + 24px) 20px 24px; color: var(--text-light); }

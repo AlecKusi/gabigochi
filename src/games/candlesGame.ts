@@ -1,5 +1,6 @@
 import { content } from '../content';
-import { drawPet } from '../pet/petRenderer';
+import { FRAMES } from '../sprites/loader';
+import { drawSprite } from '../ui/pixelStage';
 import { makeCanvas, runLoop } from './canvas';
 import { CANDLES, blowCandle, createCandles, stepCandles, type CandlesState } from './candlesLogic';
 import { candlesReward } from './rewards';
@@ -52,7 +53,7 @@ export const candlesGame: MiniGame = {
   category: 'arcade',
   reward: candlesReward,
   async play(env) {
-    const { canvas, ctx, toLogical, dispose } = makeCanvas(env.body, W, H);
+    const { canvas, ctx, present, toLogical, dispose } = makeCanvas(env.body, W, H);
     let s = createCandles();
     let clock = 0;
     const puffs: { x: number; y: number; life: number }[] = [];
@@ -132,6 +133,14 @@ export const candlesGame: MiniGame = {
       }
     };
 
+    /** Tekst rysowany w pikselach urządzenia (ostry); `size` i `y` w pikselach logicznych. */
+    const text = (d: CanvasRenderingContext2D, k: number, str: string, font: string, size: number, color: string, y: number) => {
+      d.fillStyle = color;
+      d.font = `${font} ${size * k}px "Pixelify Sans"`;
+      d.textAlign = 'center';
+      d.fillText(str, (W / 2) * k, y * k, (W - 6) * k);
+    };
+
     await runLoop(env.signal, (dt) => {
       clock += dt;
       s = stepCandles(s, dt, Math.random);
@@ -141,12 +150,9 @@ export const candlesGame: MiniGame = {
         env.setHud(`${s.score} pkt · ${Math.max(0, Math.ceil((CANDLES.mainDuration - s.phaseT) / 1000))} s`);
       } else if (s.phase === 'finale') {
         const left = s.finale.filter(Boolean).length;
-        ctx.fillStyle = '#ffd34d';
-        ctx.font = '700 10px "Pixelify Sans"';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Finał! Zdmuchnij ${content.age}!`, W / 2, 24, W - 6);
         env.setHud(`${s.score} pkt · zostało ${left} · ${Math.max(0, Math.ceil((CANDLES.finaleDuration - s.phaseT) / 1000))} s`);
       }
+      present(s.phase === 'finale' ? (d, k) => text(d, k, `Finał! Zdmuchnij ${content.age}!`, '700', 10, '#ffd34d', 24) : undefined);
       return s.phase !== 'done';
     });
 
@@ -156,14 +162,13 @@ export const candlesGame: MiniGame = {
       ctx.fillStyle = '#2a1f3d';
       ctx.fillRect(0, 0, W, H);
       const wave = env.sprites.get('fun_wave');
-      if (wave) drawPet(ctx, { frame: wave, x: W / 2, feetY: 150, flip: false, bob: Math.floor(party / 300) % 2, squash: 0, jump: 0 });
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#ffd34d';
-      ctx.font = '700 12px "Pixelify Sans"';
-      ctx.fillText(content.wishesTitle, W / 2, 30, W - 6);
-      ctx.fillStyle = '#f3ecff';
-      ctx.font = '8px "Pixelify Sans"';
-      ctx.fillText('Wszystkiego najlepszego!', W / 2, 46, W - 6);
+      const meta = FRAMES.fun_wave;
+      const bob = Math.floor(party / 300) % 2;
+      present((d, k) => {
+        if (wave && meta) drawSprite(d, k, wave, meta, { x: W / 2, feetY: 150, flip: false, bob, squash: 0, jump: 0 });
+        text(d, k, content.wishesTitle, '700', 12, '#ffd34d', 30);
+        text(d, k, 'Wszystkiego najlepszego!', '400', 8, '#f3ecff', 46);
+      });
       return party < 2200;
     });
 
