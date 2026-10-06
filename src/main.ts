@@ -11,6 +11,7 @@ import { claimDailyBonus } from './core/economy';
 import { applyElapsed } from './core/needs';
 import { NewerSaveError, loadState, saveState } from './core/save';
 import { Store } from './core/store';
+import { allActivityFrames } from './pet/activities';
 import { ANIMATIONS, allFrameNames } from './sprites/animations';
 import framesMeta from './sprites/frames.generated.json';
 import { loadSprites } from './sprites/loader';
@@ -93,7 +94,13 @@ async function boot(): Promise<void> {
     });
     saveState(localStorage, bonus.state);
 
-    const names = new Set([...allFrameNames(ANIMATIONS), ...framesMeta.body, ...Object.keys(framesMeta.portraits)]);
+    // Klatki zajęć i ich miny (face_study, face_phone) są w body/portraits; allActivityFrames() dla pewności, gdyby wypadły z listy.
+    const names = new Set([
+      ...allFrameNames(ANIMATIONS),
+      ...allActivityFrames(),
+      ...framesMeta.body,
+      ...Object.keys(framesMeta.portraits),
+    ]);
     const sprites = await loadSprites([...names]);
     app = createApp(root, store, sprites, SCREENS);
     try {

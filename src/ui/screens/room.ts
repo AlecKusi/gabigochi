@@ -4,17 +4,20 @@ import { ICONS } from '../../art/icons';
 import { artCanvas } from '../../art/pixels';
 import { content } from '../../content';
 import type { FoodId } from '../../core/config';
-import { feed, petCharacter, setSleeping } from '../../core/economy';
+import { feed, finishActivity, petCharacter, setSleeping } from '../../core/economy';
 import { moodLevel } from '../../core/needs';
 import { dayNumber } from '../../core/time';
 import type { GameState } from '../../core/types';
+import { pickActivity, type ActivityId } from '../../pet/activities';
 import { animationName, createBrain, stepBrain, triggerBrain, wakeBrain, type Brain } from '../../pet/brain';
 import { drawShadow } from '../../pet/petRenderer';
 import { FEET_Y, ROOM_H, ROOM_W, drawRoom } from '../../pet/room';
 import { pick, pickLine } from '../../pet/speech';
-import { ANGRY_TAPS, SUGAR_RUSH, avatarFor, countRecent, statusAnimation } from '../../pet/status';
+import { ANGRY_TAPS, SUGAR_RUSH, avatarFor, countRecent, statusAnimation, type StatusAnim } from '../../pet/status';
 import { ANIMATIONS, frameAt, resolveAnimation } from '../../sprites/animations';
 import { DISPLAY_HEIGHT, FRAMES, spriteUrl } from '../../sprites/loader';
+import { openActivities } from '../activitiesSheet';
+import { SCENE_AT, createActivityPlayer, drawActivity, hitsScene, type Placed } from '../activityPlayer';
 import { coinCounter } from '../coinCounter';
 import { h, icon } from '../dom';
 import { openFridge } from '../fridge';
@@ -92,6 +95,7 @@ export function roomScreen(app: App): Screen {
       h('button', { class: 'nav-btn', onclick: toggleLight }, lightIcon, lightLabel),
       navBtn('shopbag', 'Sklep', () => app.go('shop')),
       navBtn('dress', 'Szafa', () => app.go('wardrobe')),
+      navBtn('yarn', 'Zajęcia', openActivitySheet),
     ),
   );
 
@@ -113,6 +117,9 @@ export function roomScreen(app: App): Screen {
   /** Ostatnie stuknięcia w postać (performance.now()) — licznik złości. */
   const taps: number[] = [];
   let avatarName = 'portrait_a';
+  /** Zajęcia (nauka, praktyka, telefon…): ręcznie z panelu albo same co 60–120 s. */
+  const activity = createActivityPlayer(performance.now());
+  let closeSheet: (() => void) | null = null;
 
   function say(text: string, ms = 3200): void {
     speech.textContent = text;
@@ -123,9 +130,9 @@ export function roomScreen(app: App): Screen {
     speechTimer = window.setTimeout(() => speech.classList.add('hidden'), ms);
   }
 
-  function addHearts(n: number): void {
+  function addHearts(n: number, x = brain.x): void {
     for (let i = 0; i < n; i++) {
-      hearts.push({ x: brain.x - 8 + Math.random() * 16, y: HEAD_Y + 4 - Math.random() * 6, vy: 10 + Math.random() * 8, life: 1.4 + Math.random() * 0.5 });
+      hearts.push({ x: x - 8 + Math.random() * 16, y: HEAD_Y + 4 - Math.random() * 6, vy: 10 + Math.random() * 8, life: 1.4 + Math.random() * 0.5 });
     }
   }
 
@@ -141,6 +148,45 @@ export function roomScreen(app: App): Screen {
     avatar.classList.toggle('crisp', name !== 'portrait_a');
   }
 
+  /** Zaczyna zajęcie od razu (poprzednie przerywa bez bonusu); Gabi przestaje chodzić i stoi. */
+  function beginActivity(id: ActivityId, t: number): void {
+    stopActivity(t);
+    brain = { ...brain, action: 'idle', targetX: brain.x };
+    jumpStart = -1;
+    squashUntil = 0;
+    activity.start(id, t);
+  }
+
+  /** Po zajęciu: ze sceny na środku pokoju Gabi wychodzi na środku, a pogawędka nie zagłusza kwestii. */
+  function afterActivity(last: Placed, t: number): void {
+    if (last.centered) brain = { ...brain, x: SCENE_AT.x, targetX: SCENE_AT.x };
+    nextChatAt = Math.max(nextChatAt, t + 10_000);
+  }
+
+  /** Przerywa trwające zajęcie bez bonusu; false, gdy nic nie trwało. */
+  function stopActivity(t: number): boolean {
+    const last = activity.stop(t, brain.x);
+    if (!last) return false;
+    afterActivity(last, t);
+    return true;
+  }
+
+  function openActivitySheet(): void {
+    if (store.get().sleeping) {
+      app.toast('Gabi śpi');
+      return;
+    }
+    closeSheet = openActivities(el, (id) => {
+      if (destroyed) return;
+      if (store.get().sleeping || wakeUntil > 0) {
+        app.toast('Gabi śpi');
+        return;
+      }
+      drag.cancel();
+      beginActivity(id, performance.now());
+    });
+  }
+
   function sync(s: GameState): void {
     bars.hunger.set(s.needs.hunger);
     bars.mood.set(s.needs.mood);
@@ -148,9 +194,10 @@ export function roomScreen(app: App): Screen {
     coins.set(s.coins);
     if (s.sleeping !== shownSleeping) {
       if (s.sleeping) {
-        // Zasypia: łóżko zamiast postaci; przerwane trzymanie/spadanie po prostu znika.
+        // Zasypia: łóżko zamiast postaci; przerwane trzymanie/spadanie i zajęcie (bez bonusu) po prostu znikają.
         wakeUntil = 0;
         drag.cancel();
+        stopActivity(performance.now());
       } else if (shownSleeping === true) {
         // Przejście spanie → czuwanie (przycisk, dotyk, jedzenie albo tick): najpierw klatka `wake` w łóżku.
         wakeUntil = performance.now() + WAKE_MS;
@@ -170,6 +217,8 @@ export function roomScreen(app: App): Screen {
       return;
     }
     store.update(() => res.state);
+    // Jedzenie przerywa zajęcie (bez bonusu) — inaczej animacja jedzenia byłaby niewidoczna.
+    stopActivity(performance.now());
     brain = triggerBrain(brain, 'eat', performance.now());
     say(pick(id === 'kitkat' ? content.lines.kitkat : content.lines.eat), 2400);
     if (id !== 'kitkat') return;
@@ -181,6 +230,7 @@ export function roomScreen(app: App): Screen {
     treatTimer = window.setTimeout(() => {
       if (destroyed) return;
       const t = performance.now();
+      stopActivity(t);
       if (rush) {
         brain = triggerBrain(brain, 'crazy', t);
         say(pick(content.lines.crazy));
@@ -207,6 +257,11 @@ export function roomScreen(app: App): Screen {
 
   /** Stuknięcie w postać bez przesunięcia: głaskanie, a przy 5 stuknięciach w 3 s złość. */
   function tapPet(now: number): void {
+    if (stopActivity(now)) {
+      // Stuknięcie w trakcie zajęcia tylko je kończy — bez głaskania i bez liczenia do złości.
+      say(pick(content.lines.activityStop), 2000);
+      return;
+    }
     squashUntil = now + 220;
     taps.push(now);
     if (taps.length > 10) taps.splice(0, taps.length - 10);
@@ -229,9 +284,16 @@ export function roomScreen(app: App): Screen {
 
   const drag = createPetDrag(canvas, {
     toLogical: (e) => px.toLogical(e),
-    canGrab: (x, y) => !store.get().sleeping && wakeUntil === 0 && Math.abs(x - brain.x) <= HIT_HALF_W && y >= HEAD_Y && y <= FEET_Y,
+    canGrab: (x, y) => {
+      if (store.get().sleeping || wakeUntil !== 0) return false;
+      // Scena na środku pokoju (biurko, pacjent): dotyk w jej obrębie; inaczej zwykłe pole postaci.
+      const v = activity.view(performance.now(), brain.x);
+      if (v?.cur.centered) return hitsScene(v.cur, x, y);
+      return Math.abs(x - brain.x) <= HIT_HALF_W && y >= HEAD_Y && y <= FEET_Y;
+    },
     onTap: tapPet,
-    onGrab: () => {
+    onGrab: (now) => {
+      stopActivity(now); // złapanie kończy zajęcie bez bonusu
       brain = { ...brain, action: 'idle', targetX: brain.x };
       jumpStart = -1;
       squashUntil = 0;
@@ -269,6 +331,23 @@ export function roomScreen(app: App): Screen {
     }
   }
 
+  /**
+   * Postęp zajęcia (kwestie, koniec z bonusem) i samodzielny start: o czasie, bez stanu potrzeb
+   * i bez akcji czasowej (jedzenie, emocje, machanie…). Wołane tylko, gdy Gabi nie śpi i nie jest trzymana.
+   */
+  function stepActivity(t: number, status: StatusAnim): void {
+    const st = activity.step(t, brain.x);
+    if (st.finished) {
+      store.update(finishActivity);
+      addHearts(3, st.finished.x);
+      afterActivity(st.finished, t);
+    } else if (st.line) {
+      say(st.line);
+    }
+    const idle = brain.action === 'idle' || brain.action === 'walk';
+    if (!activity.current && t >= activity.nextAt && status === null && idle) beginActivity(pickActivity(Math.random), t);
+  }
+
   function frame(t: number): void {
     if (destroyed) return;
     const dt = Math.max(0, Math.min(50, t - last));
@@ -285,11 +364,30 @@ export function roomScreen(app: App): Screen {
     drag.step(dt, t); // lądowanie ustawia emocję w `brain`
     const inBed = s.sleeping || wakeUntil > 0;
     const held = inBed ? null : drag.pose(t);
-    if (!inBed && !held) {
+    const free = !inBed && !held;
+    if (free) stepActivity(t, status);
+    // W trakcie zajęcia Gabi stoi (mózg nie jest krokowany), a zamiast animacji rysujemy klatki zajęcia.
+    const act = free ? activity.view(t, brain.x) : null;
+    if (free && !act) {
       brain = stepBrain(brain, dt, { now: t, mood: moodLevel(s.needs), sleeping: false, rng: Math.random, canWalk: status === null });
     }
 
-    // Priorytet: sen (łóżko) > trzymanie/spadanie > emocja/akcja > stan potrzeb > chód > spoczynek.
+    const emotion = brain.action === 'crazy' ? 'crazy' : brain.action === 'scared' ? 'scared' : null;
+    const face = avatarFor(status, emotion, t);
+    setAvatar(act?.def.avatar && status === null && emotion === null ? act.def.avatar : face);
+
+    if (act) {
+      lastAnim = '';
+      px.clear();
+      drawRoom(bg, false, t);
+      if (!act.cur.centered) drawShadow(bg, act.cur.x, FEET_Y, 0);
+      drawHearts(dt);
+      px.compose((ctx, k) => drawActivity(ctx, k, app.sprites, act));
+      raf = requestAnimationFrame(frame);
+      return;
+    }
+
+    // Priorytet: sen (łóżko) > trzymanie/spadanie > zajęcie > emocja/akcja > stan potrzeb > chód > spoczynek.
     const name = s.sleeping ? 'sleep' : inBed ? 'wake' : (held ?? animationName(brain, { sleeping: false, status }));
     if (name !== lastAnim) {
       lastAnim = name;
@@ -308,7 +406,6 @@ export function roomScreen(app: App): Screen {
     } else if (held) {
       ({ x, feetY } = drag.place(meta));
     }
-    const free = !inBed && !held;
     const bob = name === 'idle' ? Math.floor(t / 750) % 2 : 0;
     const squash = free && t < squashUntil ? 0.08 * Math.sin(((squashUntil - t) / 220) * Math.PI) : 0;
     const jumping = free && brain.action === 'happy' && jumpStart >= 0 && t - jumpStart < JUMP_MS;
@@ -322,9 +419,6 @@ export function roomScreen(app: App): Screen {
     px.compose((ctx, k) => {
       if (img && meta) drawSprite(ctx, k, img, meta, { x, feetY, flip, bob, squash, jump: jumpH });
     });
-
-    const emotion = brain.action === 'crazy' ? 'crazy' : brain.action === 'scared' ? 'scared' : null;
-    setAvatar(avatarFor(status, emotion, t));
 
     if (free && t >= nextChatAt) {
       nextChatAt = t + 20_000 + Math.random() * 10_000;
@@ -352,6 +446,7 @@ export function roomScreen(app: App): Screen {
     destroy() {
       destroyed = true;
       cancelAnimationFrame(raf);
+      closeSheet?.();
       drag.destroy();
       canvas.removeEventListener('pointerdown', onBedDown);
       px.dispose();

@@ -28,5 +28,6 @@ export const content = {
     crazy: ['Cukier! Cukieeer!', 'Wiiiii!'],
     drag: ['Łiii!', 'Postaw mnie!', 'Lecę!'],
     landHappy: ['Jeszcze raz!', 'Hihi!'],
+    activityStop: ['Już, już!', 'Dobra, dobra…'],
   },
 } as const;

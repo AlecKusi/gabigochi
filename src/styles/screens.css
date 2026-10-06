@@ -30,14 +30,17 @@ img.px.avatar.crisp { image-rendering: pixelated; image-rendering: crisp-edges; 
 }
 .speech.hidden { display: none; }
 .speech.pop { animation: speech-pop 260ms cubic-bezier(.2, 1.6, .4, 1); }
-.room-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 6px 10px 12px; }
+/* 6 przycisków musi się zmieścić na telefonie 375 px: ~54 px na przycisk, etykiety w jednej linii. */
+.room-nav { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; padding: 6px 8px 12px; }
 .nav-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  min-width: 0;
   padding: 8px 0;
-  font-size: 13px;
+  font-size: clamp(10px, 3.1vw, 13px);
+  white-space: nowrap;
   color: var(--text-light);
   background: var(--bg-2);
   border: 0;
