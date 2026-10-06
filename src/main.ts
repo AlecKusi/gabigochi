@@ -113,6 +113,7 @@ async function boot(): Promise<void> {
     if (pendingUpdate) app.toast('Jest nowa wersja! Uruchom aplikację ponownie.');
 
     if (loaded.recovered) app.toast('Nie udało się wczytać zapisu, zaczynamy od nowa.');
+    else if (loaded.repaired) app.toast('Część mieszkania nie wczytała się — wróciła do ustawień początkowych.');
     else if (bonus.granted) app.toast(`Codzienny bonus: +${CONFIG.coins.dailyBonus} monet!`);
 
     const running = app;

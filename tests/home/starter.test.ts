@@ -1,0 +1,62 @@
+import { describe, expect, it } from 'vitest';
+import { GABI_BED, itemById } from '../../src/home/catalog';
+import { ROOMS, clampToLayer } from '../../src/home/layout';
+import { DEFAULT_LOOKS } from '../../src/home/looks';
+import { isPlant } from '../../src/home/plants';
+import { STARTER_LAYOUT, createHome } from '../../src/home/starter';
+
+const T0 = new Date(2026, 9, 6, 12).getTime();
+
+describe('dom startowy', () => {
+  const home = createHome(T0);
+
+  it('trzy pokoje z domyślnymi wyglądami, start w salonie', () => {
+    expect(Object.keys(home.rooms).sort()).toEqual([...ROOMS].sort());
+    for (const r of ROOMS) {
+      expect(home.rooms[r].wallpaper).toBe(DEFAULT_LOOKS[r].wallpaper);
+      expect(home.rooms[r].floor).toBe(DEFAULT_LOOKS[r].floor);
+    }
+    expect(home.currentRoom).toBe('salon');
+    expect(home.inventory).toEqual({});
+    expect(home.itemCooldowns).toEqual({});
+    expect([...home.ownedLooks].sort()).toEqual(Object.values(DEFAULT_LOOKS).flatMap((d) => [d.wallpaper, d.floor]).sort());
+  });
+
+  it('darmowe meble startowe w każdym pokoju', () => {
+    const ids = (r: keyof typeof home.rooms) => home.rooms[r].items.map((i) => i.itemId);
+    expect(ids('salon')).toEqual(['rug_round', 'window_flower', 'wall_shelves', 'monstera']);
+    expect(ids('bedroom')).toEqual([GABI_BED, 'window_curtains', 'poster_moon']);
+    expect(ids('studio')).toEqual(['window_blinds', 'writing_desk', 'office_chair', 'cactus_flower']);
+    expect(ids('bedroom').filter((i) => i.startsWith('nightstand'))).toEqual([]);
+  });
+
+  it('pozycje na siatce i w swoich warstwach; okno salonu po lewej jak dawniej', () => {
+    for (const r of ROOMS) {
+      for (const it of home.rooms[r].items) {
+        expect(clampToLayer(itemById(it.itemId), it), `${r}/${it.itemId}`).toEqual({ x: it.x, y: it.y });
+        expect(it.flip).toBe(false);
+      }
+    }
+    const win = home.rooms.salon.items.find((i) => i.itemId === 'window_flower')!;
+    expect(win.x).toBeLessThan(40);
+    const bed = home.rooms.bedroom.items.find((i) => i.itemId === GABI_BED)!;
+    expect(bed.x).toBe(64);
+    expect(STARTER_LAYOUT.salon.find((e) => e.itemId === 'rug_round')!.x).toBe(64);
+  });
+
+  it('unikalne uid, licznik za ostatnim; rośliny podlane teraz', () => {
+    const all = ROOMS.flatMap((r) => home.rooms[r].items);
+    expect(new Set(all.map((i) => i.uid)).size).toBe(all.length);
+    expect(home.nextUid).toBe(all.length + 1);
+    for (const it of all) {
+      if (isPlant(it.itemId)) expect(it.wateredAt).toBe(T0);
+      else expect(it).not.toHaveProperty('wateredAt');
+    }
+  });
+
+  it('każde wywołanie daje świeże obiekty', () => {
+    const a = createHome(T0);
+    a.rooms.salon.items.push({ uid: 'x', itemId: 'pouf', x: 64, y: 144, flip: false });
+    expect(createHome(T0).rooms.salon.items).toHaveLength(4);
+  });
+});

@@ -1,10 +1,11 @@
+import { createHome } from '../home/starter';
 import { CONFIG } from './config';
 import { dayKey } from './time';
 import type { GameState } from './types';
 
 export function createState(now: number): GameState {
   return {
-    version: 1,
+    version: 2,
     createdAt: now,
     lastUpdate: now,
     needs: { ...CONFIG.startNeeds },
@@ -16,5 +17,6 @@ export function createState(now: number): GameState {
     lastPetAt: 0,
     seenBirthday: false,
     records: {},
+    ...createHome(now),
   };
 }
