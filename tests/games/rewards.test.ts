@@ -9,7 +9,7 @@ describe('nagrody', () => {
   });
   it('Świeczki: 5–40 monet', () => {
     expect(candlesReward(0)).toEqual({ coins: 5, moodBoost: 15 });
-    expect(candlesReward(60).coins).toBe(21);
+    expect(candlesReward(60).coins).toBe(17);
     expect(candlesReward(500).coins).toBe(40);
   });
   it('Memory: 15–40 monet', () => {

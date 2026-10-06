@@ -7,6 +7,14 @@ export interface GameCanvas {
   dispose(): void;
 }
 
+/** Skala całkowita, o ile nie marnuje za dużo miejsca (>= 85%); inaczej kroki co pół piksela. */
+export function fitScale(s: number): number {
+  if (s < 1) return s;
+  const whole = Math.floor(s);
+  if (whole / s >= 0.85) return whole;
+  return Math.max(1, Math.floor(s * 2) / 2);
+}
+
 /** Canvas w rozdzielczości logicznej, skalowany do miejsca (całkowicie, gdy się da). */
 export function makeCanvas(body: HTMLElement, w: number, hgt: number): GameCanvas {
   const canvas = h('canvas', { class: 'px game-canvas', width: w, height: hgt });
@@ -14,8 +22,12 @@ export function makeCanvas(body: HTMLElement, w: number, hgt: number): GameCanva
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
   const fit = () => {
-    const s = Math.min(body.clientWidth / w, body.clientHeight / hgt);
-    const scale = s >= 2 ? Math.floor(s) : s;
+    // Pole robocze to wnętrze elementu (bez paddingu).
+    const cs = getComputedStyle(body);
+    const availW = body.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    const availH = body.clientHeight - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0);
+    const s = Math.min(availW / w, availH / hgt);
+    const scale = fitScale(s);
     canvas.style.width = `${w * scale}px`;
     canvas.style.height = `${hgt * scale}px`;
   };
@@ -42,7 +54,7 @@ export function runLoop(signal: AbortSignal, fn: (dtMs: number) => boolean): Pro
         resolve();
         return;
       }
-      const dt = Math.min(50, t - last);
+      const dt = Math.max(0, Math.min(50, t - last));
       last = t;
       if (fn(dt)) requestAnimationFrame(frame);
       else resolve();

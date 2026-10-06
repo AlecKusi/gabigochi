@@ -144,7 +144,7 @@ export const candlesGame: MiniGame = {
         ctx.fillStyle = '#ffd34d';
         ctx.font = '700 10px "Pixelify Sans"';
         ctx.textAlign = 'center';
-        ctx.fillText(`Finał! Zdmuchnij ${content.age}!`, W / 2, 24);
+        ctx.fillText(`Finał! Zdmuchnij ${content.age}!`, W / 2, 24, W - 6);
         env.setHud(`${s.score} pkt · zostało ${left} · ${Math.max(0, Math.ceil((CANDLES.finaleDuration - s.phaseT) / 1000))} s`);
       }
       return s.phase !== 'done';
@@ -160,10 +160,10 @@ export const candlesGame: MiniGame = {
       ctx.textAlign = 'center';
       ctx.fillStyle = '#ffd34d';
       ctx.font = '700 12px "Pixelify Sans"';
-      ctx.fillText(content.wishesTitle, W / 2, 30);
+      ctx.fillText(content.wishesTitle, W / 2, 30, W - 6);
       ctx.fillStyle = '#f3ecff';
       ctx.font = '8px "Pixelify Sans"';
-      ctx.fillText('Wszystkiego najlepszego!', W / 2, 46);
+      ctx.fillText('Wszystkiego najlepszego!', W / 2, 46, W - 6);
       return party < 2200;
     });
 

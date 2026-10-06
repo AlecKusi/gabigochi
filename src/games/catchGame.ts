@@ -36,7 +36,7 @@ export const catchGame: MiniGame = {
       ctx.fillRect(0, CATCH.playerY, CATCH.W, CATCH.H - CATCH.playerY);
       for (const it of s.items) ctx.drawImage(artCanvas(ICONS[it.kind]), Math.round(it.x), Math.round(it.y));
       const img = s.moving !== 0 ? env.sprites.get(frameAt(walk, walkT)) : idle;
-      if (img) drawPet(ctx, { frame: img, x: s.playerX, feetY: CATCH.playerY, flip: s.moving > 0, bob: 0, squash: 0, jump: 0 });
+      if (img) drawPet(ctx, { frame: img, x: s.playerX, feetY: CATCH.playerY, flip: walk.flipForRight && s.moving > 0, bob: 0, squash: 0, jump: 0 });
       for (let i = 0; i < CATCH.lives; i++) {
         ctx.drawImage(artCanvas(i < s.lives ? ICONS.heartSmall : ICONS.heartEmpty), 3 + i * 7, 3);
       }

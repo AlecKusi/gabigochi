@@ -7,7 +7,7 @@ export function catchReward(score: number): Reward {
 }
 
 export function candlesReward(score: number): Reward {
-  return { coins: clamp(Math.round(score * 0.35), 5, 40), moodBoost: 15 };
+  return { coins: clamp(Math.round(score * 0.28), 5, 40), moodBoost: 15 };
 }
 
 export function memoryReward(score: number): Reward {

@@ -11,7 +11,7 @@ export const memoryGame: MiniGame = {
   name: 'Memory',
   description: 'Znajdź wszystkie pary',
   icon: 'star',
-  category: 'arcade',
+  category: 'puzzle',
   reward: memoryReward,
   play(env) {
     return new Promise((resolve) => {
