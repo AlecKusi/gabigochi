@@ -69,3 +69,26 @@
 ### Task 6: Interakcje i rośliny — wg „Ustaleń” (dojście, poza zastępcza, efekty, dymki, bonus z cooldownem, podlewanie, ikony spragnionych, zwiędnięte z filtrem, dymek „Kwiatki chcą pić!”).
 
 ### Task 7: Weryfikacja w przeglądarce (kontroler).
+
+---
+
+## Uzupełnienia (decyzje użytkownika po starcie wdrożenia)
+
+### Łazienka (4. pokój) — zrobione w Task 3/4; wyposażenie z `assets/source/sheet-bathroom.jpg`
+- Przedmioty sklepu (kategoria „Łazienka”): toilet, sink (z lustrem), shower, bathtub, towel_rail, towel_hanging, hairdryer_shelf.
+- Klatki stanów przedmiotów (wyrównane z przedmiotem bazowym): toilet_open/flush/gabi, shower_drip/on/gabi, bathtub_fill/bubbles/gabi, sink_on/gabi, towel_rail_gabi; pozy Gabi: gabi_hairdryer, gabi_turban.
+- Interakcje: toaleta (klapa → Gabi spłukuje → wir → klapa), prysznic (woda → Gabi pod prysznicem ~6 s → turban), wanna (napełnianie → piana → kąpiel ~8 s → turban → suszenie), umywalka (woda → mycie rąk → wycieranie przy wieszaku z ręcznikiem, jeśli jest; inaczej przy umywalce), półka z suszarką (suszenie włosów). Bonus humoru jak inne (raz na godzinę na przedmiot).
+- Startowe w łazience: umywalka (zamiast lustra ściennego) i toaleta.
+
+### Zajęcia w wyznaczonych miejscach
+| Zajęcie | Miejsce | Rysowanie |
+|---|---|---|
+| Nauka | tylko przy `writing_desk` | Gabi idzie do biurka; sceny nauki rysowane w miejscu biurka (biurko ukryte na czas zajęcia) |
+| Praktyka | gdziekolwiek w pracowni (`studio`) | jak dotąd (sceny z rekwizytami na środku / Gabi w miejscu) |
+| Szydełko | na siedzisku w dowolnym pokoju: `pouf`, `bean_bag`, `office_chair`, `gaming_chair_purple`, `gaming_chair_pink` | klatki szydełkowania (ze stołeczkiem) rysowane w miejscu siedziska, siedzisko ukryte na czas zajęcia |
+| Muzyka | gdziekolwiek w salonie | jak dotąd |
+| Telefon | gdziekolwiek | jak dotąd |
+
+- Panel „Zajęcia”: zajęcie bez wymaganego miejsca w żadnym pokoju → wyszarzone z podpisem („Potrzebne: biurko do nauki” / „Potrzebne: siedzisko”); wymagane miejsce w innym pokoju → widok przechodzi do tego pokoju, Gabi idzie do mebla, start po dojściu.
+- Auto-start: losuje tylko spośród zajęć dostępnych w bieżącym pokoju (bez zmiany pokoju).
+- Interakcje mebli `study`/`crochet` (stuknięcie biurka/koszyka) → odpowiednio start zajęcia w tym miejscu (koszyk z włóczką: szydełko na najbliższym siedzisku w pokoju; brak siedziska → dymek „Brakuje mi siedziska…”).
