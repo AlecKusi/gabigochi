@@ -1,0 +1,10 @@
+{
+  "idle": { "frames": ["idle_front"], "fps": 1 },
+  "walk": { "frames": ["walk_a1", "walk_a2", "walk_a3", "walk_a4"], "fps": 6, "flipForRight": true },
+  "eat": { "frames": ["fun_eat", "idle_front"], "fps": 2.5 },
+  "wave": { "frames": ["fun_wave"], "fps": 1 },
+  "talk": { "frames": ["fun_talk"], "fps": 1 },
+  "sleep": { "fallback": "idle_front", "overlay": "zzz", "dim": true },
+  "sad": { "fallback": "idle_front", "overlay": "cloud" },
+  "hungry": { "fallback": "idle_front", "overlay": "food" }
+}
