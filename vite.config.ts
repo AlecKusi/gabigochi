@@ -6,6 +6,8 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: 'prompt',
+      // Ikony z manifestu łapie już globPatterns; bez tego trafiałyby do precache dwa razy.
+      includeManifestIcons: false,
       manifest: {
         name: 'Gabigochi',
         short_name: 'Gabigochi',
