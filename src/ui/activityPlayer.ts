@@ -20,9 +20,33 @@ export interface Placed {
   centered: boolean;
 }
 
-export function placeActivityFrame(def: ActivityDef, frame: string, petX: number): Placed {
+/** Miejsce zajęcia przy meblu (biurko, siedzisko): wszystkie klatki stają w nim jak sceny. */
+export interface ActivitySpot {
+  x: number;
+  feetY: number;
+}
+
+export function placeActivityFrame(def: ActivityDef, frame: string, petX: number, spot: ActivitySpot | null = null): Placed {
+  if (spot) return { frame, x: spot.x, feetY: spot.feetY, centered: true };
   const centered = def.centered.includes(frame);
   return centered ? { frame, ...SCENE_AT, centered } : { frame, x: petX, feetY: FEET_Y, centered };
+}
+
+/**
+ * Miejsce przy meblu przesunięte w poziomie tak, żeby każda klatka zajęcia zmieściła się w pokoju (scena nauki
+ * jest szersza niż biurko — przy biurku pod samą ścianą wypada odrobinę obok niego).
+ */
+export function fitSpot(def: ActivityDef, spot: ActivitySpot, roomW: number, frames: Record<string, FrameMeta | undefined> = FRAMES): ActivitySpot {
+  let left = 0;
+  let right = 0;
+  for (const name of [...(def.intro ?? []), ...def.frames, ...(def.outro ? [def.outro] : [])]) {
+    const m = frames[name];
+    if (!m) continue;
+    left = Math.max(left, m.anchorX * m.scale);
+    right = Math.max(right, (m.w - m.anchorX) * m.scale);
+  }
+  if (left + right > roomW) return spot;
+  return { ...spot, x: Math.max(left, Math.min(roomW - right, spot.x)) };
 }
 
 /** Prostokąt (px logiczne) zajmowany przez klatkę, której kotwica stoi w (x, feetY). */
@@ -63,6 +87,7 @@ interface Running {
   nextLineAt: number;
   /** Kwestie w losowej kolejności, każda raz. */
   lines: string[];
+  spot: ActivitySpot | null;
 }
 
 export interface ActivityPlayer {
@@ -70,7 +95,10 @@ export interface ActivityPlayer {
   readonly current: ActivityDef | null;
   /** Kiedy (performance.now()) pora na samodzielne zajęcie. */
   readonly nextAt: number;
-  start(id: ActivityId, now: number): void;
+  /** `spot` — zajęcie przy meblu: klatki rysowane w jego miejscu. */
+  start(id: ActivityId, now: number, spot?: ActivitySpot | null): void;
+  /** Odkłada samodzielny start (np. gdy w pokoju nie ma dostępnego zajęcia). */
+  postpone(now: number): void;
   /** Przerywa zajęcie bez bonusu; zwraca ostatnią klatkę (żeby Gabi została tam, gdzie była scena). */
   stop(now: number, petX: number): Placed | null;
   step(now: number, petX: number): ActivityStep;
@@ -93,7 +121,7 @@ export function createActivityPlayer(now: number, rng: () => number = Math.rando
 
   function frameNow(r: Running, t: number, petX: number) {
     const f = activityFrame(r.def, t - r.startedAt, r.totalMs);
-    return { f, cur: placeActivityFrame(r.def, f.frame, petX) };
+    return { f, cur: placeActivityFrame(r.def, f.frame, petX, r.spot) };
   }
 
   function end(t: number): void {
@@ -108,9 +136,12 @@ export function createActivityPlayer(now: number, rng: () => number = Math.rando
     get nextAt() {
       return nextAt;
     },
-    start(id, t) {
+    start(id, t, spot = null) {
       const def = ACTIVITIES[id];
-      run = { def, startedAt: t, totalMs: activityDuration(def, rng), nextLineAt: t + LINE_FIRST_MS, lines: shuffled(def.lines, rng) };
+      run = { def, startedAt: t, totalMs: activityDuration(def, rng), nextLineAt: t + LINE_FIRST_MS, lines: shuffled(def.lines, rng), spot };
+    },
+    postpone(t) {
+      nextAt = t + nextActivityDelay(rng);
     },
     stop(t, petX) {
       if (!run) return null;
@@ -136,7 +167,7 @@ export function createActivityPlayer(now: number, rng: () => number = Math.rando
     view(t, petX) {
       if (!run) return null;
       const { f, cur } = frameNow(run, t, petX);
-      return { def: run.def, cur, prev: f.prev ? placeActivityFrame(run.def, f.prev, petX) : null, blend: f.blend };
+      return { def: run.def, cur, prev: f.prev ? placeActivityFrame(run.def, f.prev, petX, run.spot) : null, blend: f.blend };
     },
   };
 }

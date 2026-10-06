@@ -7,7 +7,7 @@ import { DEFAULT_LOOKS, findLook } from '../../home/looks';
 import { NIGHT_TINT, ROOM_H, ROOM_W, drawRoomBase } from '../../pet/room';
 import { deviceRect, drawSprite } from '../pixelStage';
 import { itemSource } from './itemSprites';
-import { isLitLamp, itemAnchor, itemTints, needsWater } from './scene';
+import { isLitLamp, itemAnchor, itemFrameAnchor, itemTints, needsWater } from './scene';
 
 /** Gabi (albo scena zajęcia / snu) jako jeden element kolejności rysowania. */
 export interface GabiLayer {
@@ -29,8 +29,10 @@ export interface RoomFrame {
   now: number;
   /** performance.now() — animacje (kropla). */
   t: number;
-  /** Przedmiot zastąpiony przez Gabi (łóżko w czasie snu). */
-  hiddenUid: string | null;
+  /** Przedmioty zastąpione przez Gabi (łóżko w czasie snu, biurko/siedzisko w czasie zajęcia, wieszak przy wycieraniu rąk). */
+  hidden: ReadonlySet<string>;
+  /** Przedmioty rysowane klatką stanu (uid → sprite z `itemFrames`), np. prysznic z wodą. */
+  states: ReadonlyMap<string, string>;
   /** Zaznaczony w trybie urządzania. */
   selectedUid: string | null;
   gabi: GabiLayer | null;
@@ -74,7 +76,16 @@ export function createRoomRenderer(): RoomRenderer {
   function drawItem(ctx: CanvasRenderingContext2D, k: number, it: PlacedItem, f: RoomFrame): void {
     const def = findItem(it.itemId);
     if (!def) return;
-    const src = itemSource(def.sprite, itemTints(def, it, f.night, f.now));
+    const tints = itemTints(def, it, f.night, f.now);
+    const state = f.states.get(it.uid);
+    const stateSrc = state ? itemSource(state, tints) : null;
+    if (state && stateSrc) {
+      const a = itemFrameAnchor(it, def, state);
+      drawSprite(ctx, k, stateSrc, a.meta, { x: a.x, feetY: a.feetY, flip: it.flip, bob: 0, squash: 0, jump: 0 });
+      return;
+    }
+    // bez klatki stanu (albo jeszcze się wczytuje) — zwykły przedmiot
+    const src = itemSource(def.sprite, tints);
     if (!src) return;
     const a = itemAnchor(it, def);
     drawSprite(ctx, k, src, a.meta, { x: a.x, feetY: a.feetY, flip: it.flip, bob: 0, squash: 0, jump: 0 });
@@ -112,7 +123,7 @@ export function createRoomRenderer(): RoomRenderer {
   }
 
   function drawItems(ctx: CanvasRenderingContext2D, k: number, f: RoomFrame): void {
-    const visible = f.hiddenUid ? f.items.filter((i) => i.uid !== f.hiddenUid) : f.items;
+    const visible = f.hidden.size > 0 ? f.items.filter((i) => !f.hidden.has(i.uid)) : f.items;
     for (const e of drawOrder(visible, f.gabi?.orderY)) {
       if (e === GABI) {
         const g = f.gabi!;
@@ -133,7 +144,7 @@ export function createRoomRenderer(): RoomRenderer {
     const drop = artCanvas(ICONS.drop);
     const bob = Math.floor(f.t / 500) % 2;
     for (const it of f.items) {
-      if (it.uid === f.hiddenUid || !needsWater(it, f.now)) continue;
+      if (f.hidden.has(it.uid) || !needsWater(it, f.now)) continue;
       const b = itemBox(it);
       fx.drawImage(drop, Math.round(it.x - drop.width / 2), Math.max(0, Math.round(b.y) - drop.height - 2 - bob));
     }

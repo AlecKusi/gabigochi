@@ -8,9 +8,12 @@ import { feed, finishActivity, petCharacter, setSleeping } from '../../core/econ
 import { moodLevel } from '../../core/needs';
 import { dayNumber } from '../../core/time';
 import type { GameState, PlacedItem, RoomId } from '../../core/types';
+import { activityAllowedIn, activityAvailability, availabilityHint, pickActivityHere, seatNear, spotAnchor, type Spot } from '../../home/activitySpots';
 import { GABI_BED, findItem, itemById, itemFrames } from '../../home/catalog';
+import { interactionSteps, rewardInteraction, toggleLamp, type InteractionLine } from '../../home/interactionPlan';
 import { ROOMS, hitItem, itemBox } from '../../home/layout';
-import { pickActivity, type ActivityId } from '../../pet/activities';
+import { shouldNagPlants, water } from '../../home/plants';
+import { ACTIVITIES, ACTIVITY_IDS, type ActivityId } from '../../pet/activities';
 import { animationName, createBrain, stepBrain, triggerBrain, wakeBrain, type Brain } from '../../pet/brain';
 import { SHADOW_COLOR, shadowRect } from '../../pet/petRenderer';
 import { FEET_Y, ROOM_H, ROOM_W } from '../../pet/room';
@@ -19,17 +22,19 @@ import { ANGRY_TAPS, SUGAR_RUSH, avatarFor, countRecent, statusAnimation, type S
 import { ANIMATIONS, frameAt, resolveAnimation } from '../../sprites/animations';
 import { DISPLAY_HEIGHT, FRAMES, spriteUrl } from '../../sprites/loader';
 import { openActivities } from '../activitiesSheet';
-import { SCENE_AT, createActivityPlayer, drawActivity, hitsScene, type Placed } from '../activityPlayer';
+import { SCENE_AT, createActivityPlayer, drawActivity, fitSpot, hitsScene, type Placed } from '../activityPlayer';
 import { coinCounter } from '../coinCounter';
 import { h, icon } from '../dom';
 import { openFridge } from '../fridge';
 import { createEditMode } from '../home/editMode';
-import { preloadItems } from '../home/itemSprites';
+import { BUSTS, drawBust } from '../home/bustPose';
+import { createInteractionPlayer, drawWaterDrops, hasTowelRail, poseFrame, stageChanges, type InteractionRun, type InteractionView } from '../home/interactions';
+import { itemSource, preloadItems } from '../home/itemSprites';
 import { createRoomNav, slideStage } from '../home/roomNav';
 import { createRoomRenderer, type GabiLayer, type RoomFrame } from '../home/roomRenderer';
-import { entryWalk, findBed, itemAnchor, neighborRoom, wakeSpot } from '../home/scene';
+import { approachX, entryWalk, findBed, itemAnchor, itemFrameAnchor, neighborRoom, spotWalkX, wakeSpot } from '../home/scene';
 import { needBar } from '../needBar';
-import { createPetDrag } from '../petDrag';
+import { clampRoomX, createPetDrag } from '../petDrag';
 import { createPixelStage, deviceRect, drawSprite } from '../pixelStage';
 
 interface Heart {
@@ -53,6 +58,16 @@ const JUMP_MS = 600;
 const EDIT_GABI_ALPHA = 0.4;
 /** Trzymana albo spadająca Gabi jest przed wszystkimi meblami. */
 const ON_TOP = ROOM_H * 2;
+/** Dalej niż tyle px CSS od dotknięcia to już nie stuknięcie w przedmiot. */
+const ITEM_TAP_SLOP = 12;
+/** Szansa, że pogawędka przy spragnionej roślinie będzie o kwiatkach. */
+const PLANT_NAG_CHANCE = 0.5;
+/** Nocą (wg zegara) Gabi przy oknie mówi o gwiazdach. */
+const isNightHour = (d: Date) => d.getHours() >= 21 || d.getHours() < 6;
+
+/** Dokąd Gabi idzie i co zrobi po dojściu (do `x` w pokoju `room`). */
+type Errand = { kind: 'item'; uid: string } | { kind: 'activity'; id: ActivityId; spot: Spot | null };
+type Pending = Errand & { x: number; room: RoomId };
 
 /**
  * Zjedzone KitKaty (Date.now()) — poza ekranem, żeby wyjście do sklepu po kolejne nie zerowało licznika
@@ -128,6 +143,9 @@ export function roomScreen(app: App): Screen {
         drag.cancel();
         closeSheet?.();
         speech.classList.add('hidden');
+        // Przedmioty będą przestawiane: interakcje i zajęcia przy meblach się kończą (bez bonusu).
+        cancelErrands();
+        if (activitySpot) stopActivity(performance.now());
       }
     },
   });
@@ -178,6 +196,13 @@ export function roomScreen(app: App): Screen {
   let avatarName = 'portrait_a';
   /** Zajęcia (nauka, praktyka, telefon…): ręcznie z panelu albo same co 60–120 s. */
   const activity = createActivityPlayer(performance.now());
+  /** Mebel, przy którym trwa zajęcie (ukryty — scena rysowana w jego miejscu) albo null. */
+  let activitySpot: Spot | null = null;
+  /** Interakcje z przedmiotami (podlewanie, prysznic…): Gabi najpierw do nich idzie (`pending`). */
+  const interaction = createInteractionPlayer();
+  let pending: Pending | null = null;
+  let lastPlantNag: number | null = null;
+  let itemDown: { id: number; x: number; y: number; uid: string } | null = null;
   let closeSheet: (() => void) | null = null;
 
   function say(text: string, ms = 3200): void {
@@ -207,11 +232,29 @@ export function roomScreen(app: App): Screen {
     avatar.classList.toggle('crisp', name !== 'portrait_a');
   }
 
-  /** Czy punkt (px logiczne) trafia w postać — albo w scenę zajęcia na środku pokoju. */
+  /** Czy punkt (px logiczne) trafia w postać — albo w scenę zajęcia na środku pokoju / przy meblu. */
   function petAt(x: number, y: number): boolean {
-    const v = activity.view(performance.now(), brain.x);
+    const t = performance.now();
+    const v = activity.view(t, brain.x);
     if (v?.cur.centered) return hitsScene(v.cur, x, y);
+    // Gabi narysowana w klatce przedmiotu (pod prysznicem…) — dotyk trafia w przedmiot
+    if (interaction.view(t)?.step.gabi.kind === 'hidden') return false;
     return Math.abs(x - brain.x) <= HIT_HALF_W && y >= HEAD_Y && y <= FEET_Y;
+  }
+
+  /** Porzuca drogę do przedmiotu i trwającą interakcję (bez bonusu); true, gdy interakcja trwała. */
+  function cancelErrands(): boolean {
+    pending = null;
+    return interaction.cancel();
+  }
+
+  /** Gabi rusza do `x`; po dojściu (patrz `frame`) robi to, co w `p`. */
+  function walkTo(x: number, errand: Errand): void {
+    const target = clampRoomX(x);
+    brain = { ...brain, action: 'walk', targetX: target };
+    jumpStart = -1;
+    squashUntil = 0;
+    pending = { ...errand, x: target, room: viewRoom };
   }
 
   /**
@@ -220,6 +263,9 @@ export function roomScreen(app: App): Screen {
    */
   function goToRoom(room: RoomId, dir: -1 | 1, enter: boolean): void {
     if (room === viewRoom || destroyed) return;
+    // Interakcja zostaje w starym pokoju; zajęcie przy meblu albo „pokojowe” (muzyka w salonie…) się kończy.
+    cancelErrands();
+    if (activity.current && !activityAllowedIn(activity.current.id, room, activitySpot)) stopActivity(performance.now());
     slideStage(canvas, dir);
     viewRoom = room;
     roomNav.setRoom(room);
@@ -243,18 +289,28 @@ export function roomScreen(app: App): Screen {
     }
   }
 
-  /** Zaczyna zajęcie od razu (poprzednie przerywa bez bonusu); Gabi przestaje chodzić i stoi. */
-  function beginActivity(id: ActivityId, t: number): void {
+  /**
+   * Zaczyna zajęcie od razu (poprzednie zajęcie i interakcję przerywa bez bonusu); Gabi przestaje chodzić i stoi.
+   * `spot` — mebel w oglądanym pokoju: klatki zajęcia w jego miejscu, a mebel ukryty.
+   */
+  function beginActivity(id: ActivityId, t: number, spot: Spot | null = null): void {
     stopActivity(t);
+    cancelErrands();
     brain = { ...brain, action: 'idle', targetX: brain.x };
     jumpStart = -1;
     squashUntil = 0;
-    activity.start(id, t);
+    const it = spot && spot.room === viewRoom ? store.get().rooms[viewRoom].items.find((i) => i.uid === spot.uid) : undefined;
+    activitySpot = it ? spot : null;
+    activity.start(id, t, it ? fitSpot(ACTIVITIES[id], spotAnchor(it), ROOM_W) : null);
   }
 
-  /** Po zajęciu: ze sceny na środku pokoju Gabi wychodzi na środku, a pogawędka nie zagłusza kwestii. */
+  /** Po zajęciu: ze sceny (na środku pokoju / przy meblu) Gabi wychodzi w jej miejscu, a pogawędka nie zagłusza kwestii. */
   function afterActivity(last: Placed, t: number): void {
-    if (last.centered) brain = { ...brain, x: SCENE_AT.x, targetX: SCENE_AT.x };
+    activitySpot = null;
+    if (last.centered) {
+      const x = clampRoomX(last.x);
+      brain = { ...brain, x, targetX: x };
+    }
     nextChatAt = Math.max(nextChatAt, t + 10_000);
   }
 
@@ -266,20 +322,137 @@ export function roomScreen(app: App): Screen {
     return true;
   }
 
+  /**
+   * Zajęcie na życzenie (panel albo stuknięcie mebla): od razu, po dojściu do mebla, albo po przejściu do innego
+   * pokoju (i dojściu tam do mebla / w głąb pokoju). False, gdy w mieszkaniu nie ma potrzebnego mebla.
+   */
+  function requestActivity(id: ActivityId, t: number): boolean {
+    const a = activityAvailability(store.get(), id, viewRoom, brain.x);
+    if (a.status === 'missing') return false;
+    stopActivity(t);
+    cancelErrands();
+    activity.postpone(t);
+    if (a.status === 'elsewhere') goToRoom(a.room, dirBetween(viewRoom, a.room), true);
+    const item = a.spot ? store.get().rooms[a.spot.room].items.find((i) => i.uid === a.spot!.uid) : undefined;
+    if (a.spot && item) walkTo(spotWalkX(item), { kind: 'activity', id, spot: a.spot });
+    else if (a.status === 'elsewhere') walkTo(brain.targetX, { kind: 'activity', id, spot: null }); // start po wejściu w głąb pokoju
+    else beginActivity(id, t);
+    return true;
+  }
+
   function openActivitySheet(): void {
     if (store.get().sleeping) {
       app.toast('Gabi śpi');
       return;
     }
-    closeSheet = openActivities(el, (id) => {
-      if (destroyed) return;
-      if (store.get().sleeping || wakeUntil > 0) {
-        app.toast('Gabi śpi');
+    const s = store.get();
+    closeSheet = openActivities(
+      el,
+      (id) => {
+        const a = activityAvailability(s, id, viewRoom, brain.x);
+        return { enabled: a.status !== 'missing', hint: availabilityHint(a) };
+      },
+      (id) => {
+        if (destroyed) return;
+        if (store.get().sleeping || wakeUntil > 0) {
+          app.toast('Gabi śpi');
+          return;
+        }
+        drag.cancel();
+        requestActivity(id, performance.now());
+      },
+    );
+  }
+
+  /** Kwestia interakcji (kalendarz i okno zależą od dnia i pory). */
+  function interactionLine(key: InteractionLine): string {
+    const now = Date.now();
+    if (key === 'calendar') return `Dziś Dzień ${dayNumber(store.get().createdAt, now)}!`;
+    if (key === 'window') return pick(isNightHour(new Date(now)) ? content.lines.windowNight : content.lines.window);
+    return pick(content.lines[key]);
+  }
+
+  /**
+   * Stuknięcie przedmiotu z interakcją (poza trybem urządzania): Gabi idzie do niego i po dojściu coś z nim robi.
+   * Biurko → nauka przy nim, koszyk z włóczką → szydełko na najbliższym siedzisku, głośniki → muzyka.
+   */
+  function useItem(it: PlacedItem, t: number): void {
+    const kind = findItem(it.itemId)?.interaction ?? 'none';
+    if (kind === 'none') return;
+    // to samo jeszcze trwa albo Gabi już tam idzie
+    if (interaction.current?.uid === it.uid || (pending?.kind === 'item' && pending.uid === it.uid)) return;
+    const items = store.get().rooms[viewRoom].items;
+    if (kind === 'study' || kind === 'crochet') {
+      const seat = kind === 'study' ? it : seatNear(items, it.x);
+      if (!seat) {
+        say(pick(content.lines.noSeat), 2400);
         return;
       }
-      drag.cancel();
-      beginActivity(id, performance.now());
+      const id: ActivityId = kind;
+      if (activity.current?.id === id && activitySpot?.uid === seat.uid) return;
+      stopActivity(t);
+      cancelErrands();
+      activity.postpone(t);
+      walkTo(spotWalkX(seat), { kind: 'activity', id, spot: { room: viewRoom, uid: seat.uid } });
+      return;
+    }
+    if (kind === 'music') {
+      if (activity.current?.id === 'music') return;
+      stopActivity(t);
+      cancelErrands();
+      activity.postpone(t);
+      walkTo(approachX(it, brain.x), { kind: 'activity', id: 'music', spot: null });
+      return;
+    }
+    if (!interactionSteps(kind, { hasRail: false })) return;
+    stopActivity(t);
+    cancelErrands();
+    walkTo(approachX(it, brain.x), { kind: 'item', uid: it.uid });
+  }
+
+  /** Gabi doszła: zajęcie albo interakcja z przedmiotem (lampka przełącza się od razu). */
+  function arrive(p: Pending, t: number): void {
+    pending = null;
+    if (p.kind === 'activity') {
+      beginActivity(p.id, t, p.spot);
+      return;
+    }
+    const items = store.get().rooms[viewRoom].items;
+    const it = items.find((i) => i.uid === p.uid);
+    const kind = it ? findItem(it.itemId)?.interaction : undefined;
+    const steps = it && kind ? interactionSteps(kind, { hasRail: hasTowelRail(items) }) : null;
+    if (!it || !kind || !steps) return;
+    brain = { ...brain, action: 'idle', targetX: brain.x, facing: it.x < brain.x ? 'left' : 'right' };
+    if (kind === 'lamp') store.update((s) => {
+      const r = toggleLamp(s, viewRoom, it.uid);
+      return r.ok ? r.state : s;
     });
+    interaction.start(it, viewRoom, kind, steps, t);
+  }
+
+  /** Koniec interakcji: podlanie rośliny i bonus humoru (raz na godzinę na przedmiot). */
+  function finishInteraction(run: InteractionRun, t: number): void {
+    let rewarded = false;
+    store.update((s) => {
+      let st = s;
+      if (run.kind === 'water') {
+        const r = water(st, run.room, run.uid, Date.now());
+        if (r.ok) st = r.state;
+      }
+      const res = rewardInteraction(st, run.uid, run.kind, Date.now());
+      rewarded = res.rewarded;
+      return res.state;
+    });
+    if (rewarded) addHearts(3);
+    nextChatAt = Math.max(nextChatAt, t + 10_000);
+  }
+
+  /** Postęp interakcji: kwestia i efekt na starcie kroku, na końcu bonus. */
+  function stepInteraction(t: number): void {
+    const st = interaction.step(t);
+    if (st.entered?.line) say(interactionLine(st.entered.line), Math.min(3200, Math.max(1800, st.entered.ms)));
+    if (st.entered?.effect === 'hearts') addHearts(5);
+    if (st.finished) finishInteraction(st.finished, t);
   }
 
   function sync(s: GameState): void {

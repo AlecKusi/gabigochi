@@ -96,6 +96,30 @@ export function wakeSpot(bed: PlacedItem): number {
   return clampWalk(bed.x);
 }
 
+/** Odstęp Gabi od boku przedmiotu, przy którym coś robi. */
+const APPROACH_GAP = 2;
+
+/**
+ * Gdzie Gabi staje, żeby coś zrobić z przedmiotem: pod ściennym (w jego osi); obok podłogowego — po stronie bliższej
+ * Gabi, jeśli się tam mieści (inaczej po drugiej), żeby nie zasłaniać przedmiotu ani jego efektów; gdy nigdzie
+ * się nie mieści — na wprost. Zawsze w granicach chodzenia.
+ */
+export function approachX(item: PlacedItem, petX: number): number {
+  const def = findItem(item.itemId);
+  if (!def || def.layer !== 'floor') return clampWalk(item.x);
+  const b = itemBox(item);
+  const left = b.x - APPROACH_GAP;
+  const right = b.x + b.w + APPROACH_GAP;
+  const sides = [left, right].filter((x) => x >= ROOM_BOUNDS.minX && x <= ROOM_BOUNDS.maxX);
+  if (sides.length === 0) return clampWalk(item.x);
+  return sides.reduce((a, c) => (Math.abs(c - petX) < Math.abs(a - petX) ? c : a));
+}
+
+/** Gdzie Gabi idzie przed zajęciem przy meblu (scena zajęcia i tak zasłania mebel) — w jego osi. */
+export function spotWalkX(item: PlacedItem): number {
+  return clampWalk(item.x);
+}
+
 /** Minimalne przesunięcie palca (px CSS), które zmienia pokój. */
 export const SWIPE_MIN = 40;
 
