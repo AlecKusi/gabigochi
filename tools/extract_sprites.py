@@ -71,10 +71,14 @@ def best_offset(grad, period):
 
 
 def sample(img, box, period):
-    """Próbkuje siatkę pikseli o danym okresie: mediana środka każdej komórki."""
+    """Próbkuje siatkę pikseli o danym okresie: mediana środka każdej komórki.
+
+    Zwraca też środki komórek w pikselach arkusza: (xs, ys).
+    """
     x0, y0, x1, y1 = box
     pad = int(period * 2)
-    reg = img[max(0, y0 - pad):y1 + pad + 1, max(0, x0 - pad):x1 + pad + 1]
+    rx0, ry0 = max(0, x0 - pad), max(0, y0 - pad)
+    reg = img[ry0:y1 + pad + 1, rx0:x1 + pad + 1]
     gx = np.abs(np.diff(reg, axis=1)).sum(axis=(0, 2))
     gy = np.abs(np.diff(reg, axis=0)).sum(axis=(1, 2))
     ox = best_offset(gx, period) + 1
@@ -90,7 +94,18 @@ def sample(img, box, period):
             xa = int(round(ox + i * period + inset))
             xb = max(xa + 1, int(round(ox + (i + 1) * period - inset)))
             out[j, i] = np.median(reg[ya:yb, xa:xb].reshape(-1, 3), axis=0)
-    return out
+    xs = rx0 + ox + (np.arange(w) + 0.5) * period
+    ys = ry0 + oy + (np.arange(h) + 0.5) * period
+    return out, xs, ys
+
+
+def outside_box(xs, ys, box, period):
+    """Maska komórek, których środek leży poza ramką obiektu powiększoną o pół okresu."""
+    x0, y0, x1, y1 = box
+    margin = period / 2
+    out_x = (xs < x0 - margin) | (xs > x1 + margin)
+    out_y = (ys < y0 - margin) | (ys > y1 + margin)
+    return out_y[:, None] | out_x[None, :]
 
 
 def background_mask(cells, bg):
@@ -157,8 +172,9 @@ def main():
             bg = np.array(bg, float)
             box = tight_box(img, rect, bg)
             period = (box[3] - box[1] + 1) / CFG['bodyHeight'] if group == 'body' else CFG['portraitPeriod']
-            cells = sample(img, box, period)
-            raw[name] = (group, cells, background_mask(cells, bg))
+            cells, xs, ys = sample(img, box, period)
+            mask = background_mask(cells, bg) | outside_box(xs, ys, box, period)
+            raw[name] = (group, cells, mask)
             print(f'{name:12s} okres={period:.2f} komórki={cells.shape[1]}x{cells.shape[0]}')
 
     pixels = np.concatenate([c[~m] for _, c, m in raw.values()])
