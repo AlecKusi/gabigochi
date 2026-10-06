@@ -1,0 +1,332 @@
+{
+  "pc_desk": {
+    "w": 49,
+    "h": 50
+  },
+  "writing_desk": {
+    "w": 31,
+    "h": 35,
+    "scale": 1.25
+  },
+  "office_chair": {
+    "w": 19,
+    "h": 29
+  },
+  "pouf": {
+    "w": 14,
+    "h": 15
+  },
+  "bookshelf_tall": {
+    "w": 32,
+    "h": 65
+  },
+  "wall_shelves": {
+    "w": 33,
+    "h": 37
+  },
+  "sideboard": {
+    "w": 29,
+    "h": 36
+  },
+  "nightstand_lamp": {
+    "w": 21,
+    "h": 33
+  },
+  "window_flower": {
+    "w": 33,
+    "h": 37
+  },
+  "window_curtains": {
+    "w": 36,
+    "h": 38
+  },
+  "manga_pile": {
+    "w": 39,
+    "h": 26
+  },
+  "cat_figure_orange": {
+    "w": 14,
+    "h": 16
+  },
+  "manga_wall_shelf": {
+    "w": 36,
+    "h": 18
+  },
+  "manga_stacks": {
+    "w": 39,
+    "h": 22
+  },
+  "cat_figure_black": {
+    "w": 13,
+    "h": 16
+  },
+  "poster_mecha": {
+    "w": 18,
+    "h": 32
+  },
+  "poster_girl": {
+    "w": 18,
+    "h": 27
+  },
+  "scroll_hero": {
+    "w": 17,
+    "h": 31
+  },
+  "fairy_lights_warm": {
+    "w": 34,
+    "h": 11
+  },
+  "poster_sun": {
+    "w": 17,
+    "h": 25
+  },
+  "calendar": {
+    "w": 13,
+    "h": 19
+  },
+  "cork_board": {
+    "w": 24,
+    "h": 21
+  },
+  "bean_bag": {
+    "w": 58,
+    "h": 37,
+    "scale": 0.6
+  },
+  "dresser_plush": {
+    "w": 67,
+    "h": 47,
+    "scale": 0.7
+  },
+  "cat_bed_round": {
+    "w": 35,
+    "h": 23,
+    "scale": 0.6
+  },
+  "cat_cave": {
+    "w": 33,
+    "h": 31,
+    "scale": 0.6
+  },
+  "nightstand_mushroom": {
+    "w": 21,
+    "h": 39,
+    "scale": 0.7
+  },
+  "star_lamp": {
+    "w": 29,
+    "h": 48,
+    "scale": 0.7
+  },
+  "tv_retro": {
+    "w": 59,
+    "h": 55,
+    "scale": 0.55
+  },
+  "tv_flat": {
+    "w": 65,
+    "h": 57,
+    "scale": 0.65
+  },
+  "gaming_desk": {
+    "w": 83,
+    "h": 66,
+    "scale": 0.7
+  },
+  "wall_shelf_games": {
+    "w": 69,
+    "h": 24,
+    "scale": 0.7
+  },
+  "gaming_chair_purple": {
+    "w": 29,
+    "h": 53,
+    "scale": 0.75
+  },
+  "gaming_chair_pink": {
+    "w": 30,
+    "h": 52,
+    "scale": 0.75
+  },
+  "bookshelf_manga": {
+    "w": 43,
+    "h": 75,
+    "scale": 0.8
+  },
+  "figure_cabinet": {
+    "w": 50,
+    "h": 78,
+    "scale": 0.8
+  },
+  "figure_wall_shelf": {
+    "w": 56,
+    "h": 32,
+    "scale": 0.6
+  },
+  "yarn_basket": {
+    "w": 27,
+    "h": 35,
+    "scale": 0.5
+  },
+  "knitting_basket": {
+    "w": 29,
+    "h": 26,
+    "scale": 0.5
+  },
+  "first_aid_kit": {
+    "w": 19,
+    "h": 16,
+    "scale": 0.6
+  },
+  "medical_chart": {
+    "w": 23,
+    "h": 26,
+    "scale": 0.6
+  },
+  "clothes_rack": {
+    "w": 49,
+    "h": 57,
+    "scale": 0.85
+  },
+  "mirror_floor": {
+    "w": 28,
+    "h": 53,
+    "scale": 0.9
+  },
+  "mirror_wall": {
+    "w": 33,
+    "h": 39,
+    "scale": 0.7
+  },
+  "window_pink": {
+    "w": 43,
+    "h": 44,
+    "scale": 0.85
+  },
+  "window_lilac": {
+    "w": 43,
+    "h": 43,
+    "scale": 0.85
+  },
+  "window_blinds": {
+    "w": 41,
+    "h": 43,
+    "scale": 0.85
+  },
+  "fairy_lights_color": {
+    "w": 66,
+    "h": 18,
+    "scale": 0.75
+  },
+  "poster_moon": {
+    "w": 23,
+    "h": 31,
+    "scale": 0.6
+  },
+  "rug_round": {
+    "w": 57,
+    "h": 32,
+    "scale": 0.6
+  },
+  "rug_heart": {
+    "w": 52,
+    "h": 37,
+    "scale": 0.6
+  },
+  "rug_striped": {
+    "w": 55,
+    "h": 26,
+    "scale": 0.6
+  },
+  "monstera": {
+    "w": 33,
+    "h": 46
+  },
+  "palm": {
+    "w": 33,
+    "h": 48
+  },
+  "peace_lily": {
+    "w": 38,
+    "h": 41
+  },
+  "snake_plant": {
+    "w": 19,
+    "h": 45
+  },
+  "ficus": {
+    "w": 25,
+    "h": 51
+  },
+  "plant_stand": {
+    "w": 20,
+    "h": 54
+  },
+  "macrame_plant": {
+    "w": 20,
+    "h": 46
+  },
+  "pothos_hanging": {
+    "w": 23,
+    "h": 49
+  },
+  "plant_shelf_wall": {
+    "w": 43,
+    "h": 26
+  },
+  "hanging_fern": {
+    "w": 30,
+    "h": 36
+  },
+  "string_of_pearls": {
+    "w": 14,
+    "h": 47
+  },
+  "ivy_trellis": {
+    "w": 36,
+    "h": 42
+  },
+  "cactus_flower": {
+    "w": 12,
+    "h": 20
+  },
+  "cactus_blue": {
+    "w": 13,
+    "h": 23
+  },
+  "bonsai": {
+    "w": 22,
+    "h": 22
+  },
+  "fern_small": {
+    "w": 26,
+    "h": 24
+  },
+  "terrarium_dome": {
+    "w": 18,
+    "h": 20
+  },
+  "jar_terrarium": {
+    "w": 17,
+    "h": 24
+  },
+  "teacup_plant": {
+    "w": 15,
+    "h": 19
+  },
+  "propagation": {
+    "w": 32,
+    "h": 24
+  },
+  "watering_can": {
+    "w": 23,
+    "h": 18
+  },
+  "gabi_bed_empty": {
+    "w": 89,
+    "h": 65,
+    "scale": 0.8889,
+    "anchorX": 44.0,
+    "foot": 65
+  }
+}

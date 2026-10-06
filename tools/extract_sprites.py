@@ -29,6 +29,16 @@ przebarwia pozostałych. `--palette` liczy ją od nowa z bieżących klatek. Kla
 `paletteColours` kolorów (pole arkusza; domyślnie `paletteSize`). `--extend-palette K ARKUSZ...` dopisuje K kolorów
 dla nowych arkuszy (patrz `extend_palette`) — starsze klatki ich nie widzą, więc ich PNG się nie zmieniają.
 
+Przedmioty (sekcja `items`, osobna od `body`/`portraits`): wpis jak klatka ({"sheet", "rect", "erase", ...}) plus
+`keep` ("largest" — największy kształt w prostokącie, albo "all"), `scale` (skala wpisu; domyślnie `scale` arkusza,
+skala z `scaleRef` arkusza postaci albo 1), `mirror` ([["x"|"y", środek w px arkusza], ...] — połowa za środkiem
+zastąpiona odbiciem połowy przed nim, np. dywan zasłonięty z jednej strony) i dane katalogu (`name`, `category`,
+`layer`, `interaction`, `price`). Przy `keep` "largest" zostaje tylko jeden spójny kształt (bez odprysków
+sąsiadów). Arkusz może mieć `halo` i `holeTol` (= `hole_tol`) — patrz `background_mask` (rozmyty arkusz z jasną
+obwódką konturu i jasnymi płaszczyznami blisko tła: poduszki, dywany). Wyjście: public/items/<id>.png (przycięte
+do obrysu), src/home/items.generated.json {id: {w, h, scale}}, tools/out/items_manifest.json (dane katalogu z wpisów),
+podgląd ×3 z podpisami i postacią `idle_front` dla skali: tools/out/items_preview.png.
+
 Kotwica x: `anchor` arkusza albo wpisu — "head" (środek czubka głowy) albo "center" (środek obrazka, sceny).
 Arkusz z `"align": wzorzec` — po wycięciu każda klatka arkusza jest przesuwana (całkowite px natywne) tak,
 żeby jej łóżko pokryło się z łóżkiem wzorca; przesunięcie trafia do `anchorX`/`foot` (patrz `align_sheet`).
@@ -55,6 +65,11 @@ DRAG_X4 = ROOT / 'tools' / 'out' / 'drag_x4.png'
 BED_ALIGNED = ROOT / 'tools' / 'out' / 'bed_aligned.png'
 BAG_PREVIEW = ROOT / 'tools' / 'out' / 'bag_before_after.png'
 PALETTE_PATH = ROOT / 'tools' / 'palette.json'
+ITEMS_DIR = ROOT / 'public' / 'items'
+ITEMS_META = ROOT / 'src' / 'home' / 'items.generated.json'
+ITEMS_MANIFEST = ROOT / 'tools' / 'out' / 'items_manifest.json'
+ITEMS_PREVIEW = ROOT / 'tools' / 'out' / 'items_preview.png'
+ITEM_FIELDS = ('name', 'category', 'layer', 'interaction', 'price')
 RETOUCH_KEYS = ('bag', 'wipe', 'cut', 'copy', 'fix', 'shadow')
 LIST_KEYS = ('erase', 'paint') + RETOUCH_KEYS
 ALIGN_SEARCH = 20
@@ -85,11 +100,14 @@ def entry(spec, group):
         'rect': spec['rect'],
         'background': spec.get('background', sh.get('background', CFG['background'])),
         'period': sh.get('gridPeriod', default_period),
-        'keep': sh.get('keep', 'largest'),
+        'keep': spec.get('keep', sh.get('keep', 'largest')),
         'sheet': name,
         'anchor': spec.get('anchor', sh.get('anchor', 'head')),
         'colours': sh.get('paletteColours', CFG['paletteSize']),
         'alignBottom': spec.get('alignBottom'),
+        'halo': sh.get('halo'),
+        'holeTol': sh.get('holeTol'),
+        'mirror': spec.get('mirror', []),
         **{k: spec.get(k, []) for k in LIST_KEYS},
     }
 
@@ -193,11 +211,13 @@ def erase_mask(xs, ys, shapes):
     return mask
 
 
-def background_mask(cells, bg, min_blob=12, hole_tol=None):
+def background_mask(cells, bg, min_blob=12, hole_tol=None, halo=None):
     """Tło: komórki bliskie tłu spójne z brzegiem albo dziury >= 6 komórek.
 
     `hole_tol`: dziura (nie przy brzegu) jest tłem tylko, gdy jej średnia różnica od tła < hole_tol —
     jasne refleksy włosów i koszuli nocnej są blisko tła, ale wyraźnie mniej jednolite niż prawdziwe tło.
+    `halo`: rozmyty arkusz ma wokół konturu jasną obwódkę (mieszanka tła i konturu) — dwa pierścienie komórek
+    stykających się z tłem, o różnicy od tła < halo, też stają się tłem (wnętrze za ciemnym konturem zostaje).
     """
     diff = np.abs(cells - bg).sum(axis=2)
     near = diff < 30
@@ -209,6 +229,13 @@ def background_mask(cells, bg, min_blob=12, hole_tol=None):
         if touches_edge or is_hole:
             for p in comp:
                 mask[p] = True
+    for _ in range(2 if halo else 0):
+        grown = mask.copy()
+        grown[1:] |= mask[:-1]
+        grown[:-1] |= mask[1:]
+        grown[:, 1:] |= mask[:, :-1]
+        grown[:, :-1] |= mask[:, 1:]
+        mask |= grown & (diff < halo)
     for comp in components(~mask, NEIGH8):
         if len(comp) < min_blob:
             for p in comp:
@@ -709,6 +736,89 @@ def save_bed_aligned(items, ref, f=4, pad=4):
     out.save(BED_ALIGNED)
 
 
+def mirror_half(cells, mask, centres, c, along_x):
+    """`mirror`: komórki, których środek leży za `c` (px arkusza), dostają komórkę odbitą względem `c`."""
+    for i, v in enumerate(centres):
+        if v > c:
+            j = int(np.abs(centres - (2 * c - v)).argmin())
+            if along_x:
+                cells[:, i], mask[:, i] = cells[:, j], mask[:, j]
+            else:
+                cells[i], mask[i] = cells[j], mask[j]
+
+
+def save_items(images, sheet_scale, gabi_scale, body):
+    """Przedmioty: PNG, metadane dla gry, manifest katalogu i podgląd ×3 z podpisami (patrz opis modułu).
+
+    Wpis z `"alignTo": klatka` (puste łóżko Gabi) dostaje `anchorX`/`foot` w układzie tej klatki — łóżko
+    przedmiotu pokrywa się z łóżkiem klatki narysowanej w tym samym punkcie (dopasowanie jak `align_sheet`)."""
+    ITEMS_DIR.mkdir(parents=True, exist_ok=True)
+    meta, manifest, tiles = {}, [], []
+    for name, spec in CFG.get('items', {}).items():
+        _, e, im = images[name]
+        sh = CFG.get('sheets', {}).get(e['sheet'], {})
+        scale = spec.get('scale', sh.get('scale', sheet_scale.get(e['sheet'], 1.0)))
+        im.save(ITEMS_DIR / f'{name}.png')
+        meta[name] = {'w': im.width, 'h': im.height, **({'scale': round(scale, 4)} if scale != 1 else {})}
+        if 'alignTo' in spec:
+            ref = body[spec['alignTo']]
+            dx, dy, score = best_shift(bed_classes(im), bed_classes(ref['im']))
+            meta[name].update(anchorX=round(ref['anchorX'] - dx, 2), foot=ref['foot'] - dy)
+            print(f'wyrównanie {name} -> {spec["alignTo"]}: dx={dx:+d} dy={dy:+d} zgodnych px łóżka={score}')
+        if 'name' in spec:
+            manifest.append({'id': name, **{k: spec[k] for k in ITEM_FIELDS}})
+        tiles.append((name, im, scale))
+        print(f'{name:22s} {im.width:3d}x{im.height:3d} skala={scale:.3f} -> {im.width * scale:.0f}x{im.height * scale:.0f} px log.')
+    for old in ITEMS_DIR.glob('*.png'):
+        if old.stem not in meta:
+            old.unlink()
+    ITEMS_META.parent.mkdir(parents=True, exist_ok=True)
+    ITEMS_META.write_text(json.dumps(meta, indent=2) + '\n', encoding='utf-8')
+    ITEMS_MANIFEST.parent.mkdir(parents=True, exist_ok=True)
+    ITEMS_MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+    save_items_preview(tiles, images['idle_front'][2], gabi_scale)
+
+
+def save_items_preview(tiles, gabi, gabi_scale, f=3, max_width=1800):
+    """Przedmioty ×f·skala (NN, gdy f·skala całkowite; inaczej najbliższy rozmiar) na szachownicy, wspólna linia
+    dolna w rzędzie, podpis pod spodem; na początku każdego rzędu `idle_front` w skali gry jako wzorzec wielkości."""
+    def big(im, s):
+        return im.resize((max(1, round(im.width * f * s)), max(1, round(im.height * f * s))), Image.NEAREST)
+    ref = big(gabi, gabi_scale)
+    cells = [(n, big(im, s)) for n, im, s in tiles]
+    gap, label_h = 12, 14
+    rows, row, width = [], [], ref.width + gap
+    for n, t in cells:
+        w = max(t.width, len(n) * 6) + gap
+        if row and width + w > max_width:
+            rows.append(row)
+            row, width = [], ref.width + gap
+        row.append((n, t, w))
+        width += w
+    rows.append(row)
+    heights = [max([ref.height] + [t.height for _, t, _ in r]) + label_h + gap for r in rows]
+    out = Image.new('RGBA', (max_width + gap, sum(heights) + gap), (255, 255, 255, 255))
+    arr = np.asarray(out).copy()
+    yy, xx = np.mgrid[0:out.height, 0:out.width]
+    dark = ((yy // 6 + xx // 6) % 2).astype(bool)
+    arr[dark, :3] = 222
+    arr[~dark, :3] = 240
+    out = Image.fromarray(arr, 'RGBA')
+    d = ImageDraw.Draw(out)
+    y = gap
+    for r, h in zip(rows, heights):
+        base = y + h - label_h - gap
+        out.alpha_composite(ref, (gap, base - ref.height))
+        x = gap + ref.width + gap
+        for n, t, w in r:
+            out.alpha_composite(t, (x, base - t.height))
+            d.text((x, base + 2), n, fill=(0, 0, 0, 255))
+            x += w
+        d.line([(0, base), (out.width, base)], fill=(255, 120, 120, 255))
+        y += h
+    out.save(ITEMS_PREVIEW)
+
+
 def group_of(name):
     """Grupa klatek: nazwa bez końcowych cyfr (walk_a1 → walk_a)."""
     return re.sub(r'\d+$', '', name)
@@ -717,8 +827,8 @@ def group_of(name):
 def collect():
     """Komórki wszystkich klatek przed kwantyzacją: nazwa → (grupa, wpis, komórki, maska tła, xs, ys)."""
     raw = {}
-    for group in ('body', 'portraits'):
-        for name, spec in CFG[group].items():
+    for group in ('body', 'portraits', 'items'):
+        for name, spec in CFG.get(group, {}).items():
             e = entry(spec, group)
             img = sheet(e['path'])
             bg = np.array(e['background'], float)
@@ -727,16 +837,25 @@ def collect():
                 # Wszystkie kształty w prostokącie (postać + efekty); ramka = cały prostokąt.
                 box, margin, min_blob, hole_tol = e['rect'], 0, 1, 15
             else:
-                box, margin, min_blob, hole_tol = tight_box(img, e['rect'], bg), period / 2, 12, None
+                box, margin, min_blob, hole_tol = tight_box(img, e['rect'], bg), period / 2, 12, e['holeTol']
             # Arkusz ma jedną siatkę pikseli dla całej postaci — próbkujemy ją wprost, bez przeskalowania.
             cells, xs, ys = sample(img, box, period)
             erased = erase_mask(xs, ys, e['erase'])
             cells[erased] = bg
-            mask = background_mask(cells, bg, min_blob, hole_tol) | outside_box(xs, ys, box, margin) | erased
+            mask = (background_mask(cells, bg, min_blob, hole_tol, e['halo'])
+                    | outside_box(xs, ys, box, margin) | erased)
+            if group == 'items' and e['keep'] != 'all':
+                # Przedmiot to jeden kształt — odpryski sąsiadów i podpisów w jego ramce znikają.
+                parts = sorted(components(~mask, NEIGH8), key=len)
+                for comp in parts[:-1]:
+                    for p in comp:
+                        mask[p] = True
             for *rect, color in e['paint']:
                 painted = erase_mask(xs, ys, [rect])
                 cells[painted] = color
                 mask[painted] = False
+            for axis, centre in e['mirror']:
+                mirror_half(cells, mask, xs if axis == 'x' else ys, centre, axis == 'x')
             raw[name] = (group, e, cells, mask, xs, ys)
             print(f'{name:12s} arkusz={e["sheet"]:6s} okres={period:.2f} komórki={cells.shape[1]}x{cells.shape[0]}')
     return raw
@@ -781,6 +900,8 @@ def main():
         print(f'grupa {g:11s} mediana wysokości={float(np.median(heights[g])):.1f} skala={group_scale[g]:.3f}')
     sheet_scale = {}
     for sname, sh in CFG.get('sheets', {}).items():
+        if 'scaleRef' not in sh:
+            continue  # arkusz samych przedmiotów — skala z `scale` arkusza albo wpisu
         ref = sh['scaleRef']
         sheet_scale[sname] = display_h / float(body[ref]['bodyH'])
         print(f'arkusz {sname:7s} wzorzec={ref} wysokość ciała={body[ref]["bodyH"]} skala={sheet_scale[sname]:.3f}')
@@ -828,7 +949,8 @@ def main():
     save_preview_new(preview_new)
     save_drag_x4([body[n]['im'] for n in ('drag_2', 'drag_3', 'drag_4', 'drag_5')])
     save_sheet_previews(body)
-    print(f'Podgląd: {PREVIEW}, {PREVIEW_NEW}, {DRAG_X4}, {BED_ALIGNED}, {BAG_PREVIEW}')
+    save_items(images, sheet_scale, frames['idle_front']['scale'], body)
+    print(f'Podgląd: {PREVIEW}, {PREVIEW_NEW}, {DRAG_X4}, {BED_ALIGNED}, {BAG_PREVIEW}, {ITEMS_PREVIEW}')
 
 
 if __name__ == '__main__':
