@@ -86,6 +86,10 @@ export function applyGameResult(state: GameState, result: GameResult): GameState
   };
 }
 
+export function finishActivity(state: GameState): GameState {
+  return { ...state, needs: { ...state.needs, mood: clamp(state.needs.mood + 3) } };
+}
+
 export function setSleeping(state: GameState, sleeping: boolean): GameState {
   return state.sleeping === sleeping ? state : { ...state, sleeping };
 }

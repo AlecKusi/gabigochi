@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  applyGameResult, buyFood, claimDailyBonus, feed, petCharacter, priceOf, setSleeping,
+  applyGameResult, buyFood, claimDailyBonus, feed, finishActivity, petCharacter, priceOf, setSleeping,
 } from '../../src/core/economy';
 import { createState } from '../../src/core/state';
 import { DAY } from '../../src/core/time';
@@ -118,6 +118,13 @@ describe('applyGameResult', () => {
   it('przerwana gra nic nie zmienia', () => {
     const s = base();
     expect(applyGameResult(s, { ...result, aborted: true })).toBe(s);
+  });
+});
+
+describe('finishActivity', () => {
+  it('+3 humoru, z limitem 100', () => {
+    expect(finishActivity(base({ needs: { hunger: 50, mood: 50, energy: 50 } })).needs.mood).toBe(53);
+    expect(finishActivity(base({ needs: { hunger: 50, mood: 99, energy: 50 } })).needs.mood).toBe(100);
   });
 });
 
