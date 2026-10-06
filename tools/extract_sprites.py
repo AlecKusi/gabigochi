@@ -1,9 +1,10 @@
-"""Wycina klatki postaci z arkusza i zapisuje czyste PNG w natywnej rozdzielczości.
+"""Wycina klatki postaci z arkusza i zapisuje czyste PNG w natywnej rozdzielczości (przycięte do obrysu).
 
 Użycie: tools/.venv/Scripts/python tools/extract_sprites.py
 Konfiguracja: tools/frames.json
 """
 import json
+import re
 from collections import deque
 from pathlib import Path
 
@@ -151,16 +152,26 @@ def anchor_x(img):
     return float(xs.mean()) if len(xs) else img.width / 2
 
 
-def save_preview(images):
+def save_preview(items):
+    """Podgląd: każda klatka powiększona NN o round(3 × skala), wyrównana do wspólnej linii stóp."""
     PREVIEW.parent.mkdir(parents=True, exist_ok=True)
-    scaled = [im.resize((im.width * 3, im.height * 3), Image.NEAREST) for im in images]
+    scaled = []
+    for im, scale in items:
+        f = max(1, int(round(3 * scale)))
+        scaled.append(im.resize((im.width * f, im.height * f), Image.NEAREST))
     width = sum(im.width + 10 for im in scaled) + 10
-    sheet_img = Image.new('RGBA', (width, max(im.height for im in scaled) + 20), (255, 255, 255, 255))
+    top = max(im.height for im in scaled)
+    sheet_img = Image.new('RGBA', (width, top + 20), (255, 255, 255, 255))
     x = 10
     for im in scaled:
-        sheet_img.alpha_composite(im, (x, 10))
+        sheet_img.alpha_composite(im, (x, 10 + top - im.height))
         x += im.width + 10
     sheet_img.save(PREVIEW)
+
+
+def group_of(name):
+    """Grupa klatek: nazwa bez końcowych cyfr (walk_a1 → walk_a)."""
+    return re.sub(r'\d+$', '', name)
 
 
 def main():
@@ -171,7 +182,8 @@ def main():
             img = sheet(path)
             bg = np.array(bg, float)
             box = tight_box(img, rect, bg)
-            period = (box[3] - box[1] + 1) / CFG['bodyHeight'] if group == 'body' else CFG['portraitPeriod']
+            # Arkusz ma jedną siatkę pikseli dla całej postaci — próbkujemy ją wprost, bez przeskalowania.
+            period = CFG['gridPeriod'] if group == 'body' else CFG['portraitPeriod']
             cells, xs, ys = sample(img, box, period)
             mask = background_mask(cells, bg) | outside_box(xs, ys, box, period)
             raw[name] = (group, cells, mask)
@@ -182,30 +194,36 @@ def main():
     images = {name: (group, to_rgba(c, m, palette)) for name, (group, c, m) in raw.items()}
 
     body = {n: im for n, (g, im) in images.items() if g == 'body'}
-    anchors = {n: anchor_x(im) for n, im in body.items()}
-    half = max(max(a, im.width - a) for a, im in ((anchors[n], body[n]) for n in body))
-    cw = int(np.ceil(half)) * 2 + 2
-    ch = max(im.height for im in body.values())
+    display_h = CFG['displayHeight']
+    heights = {}
+    for name, im in body.items():
+        heights.setdefault(group_of(name), []).append(im.height)
+    group_scale = {g: display_h / float(np.median(hs)) for g, hs in heights.items()}
+    for g in sorted(heights):
+        print(f'grupa {g:11s} mediana wysokości={float(np.median(heights[g])):.1f} skala={group_scale[g]:.3f}')
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    framed = []
-    for name, im in body.items():
-        canvas = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
-        canvas.alpha_composite(im, (int(round(cw / 2 - anchors[name])), ch - im.height))
-        canvas.save(OUT_DIR / f'{name}.png')
-        framed.append(canvas)
+    frames = {}
+    preview = []
+    for name in sorted(body):
+        im = body[name]
+        scale = group_scale[group_of(name)]
+        im.save(OUT_DIR / f'{name}.png')
+        frames[name] = {'w': im.width, 'h': im.height, 'anchorX': round(anchor_x(im), 2), 'scale': round(scale, 4)}
+        preview.append((im, scale))
 
     portraits = {}
     for name, (group, im) in images.items():
         if group == 'portraits':
             im.save(OUT_DIR / f'{name}.png')
             portraits[name] = [im.width, im.height]
-            framed.append(im)
+            preview.append((im, 1.0))
 
     META_PATH.parent.mkdir(parents=True, exist_ok=True)
-    META_PATH.write_text(json.dumps({'canvas': [cw, ch], 'body': sorted(body), 'portraits': portraits}, indent=2) + '\n', encoding='utf-8')
-    save_preview(framed)
-    print(f'Płótno klatek: {cw}x{ch}. Podgląd: {PREVIEW}')
+    meta = {'displayHeight': display_h, 'frames': frames, 'body': sorted(body), 'portraits': portraits}
+    META_PATH.write_text(json.dumps(meta, indent=2) + '\n', encoding='utf-8')
+    save_preview(preview)
+    print(f'Podgląd: {PREVIEW}')
 
 
 if __name__ == '__main__':

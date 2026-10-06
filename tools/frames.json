@@ -1,7 +1,8 @@
 {
   "sheet": "assets/source/sprite-sheet.jpg",
   "background": [207, 210, 215],
-  "bodyHeight": 56,
+  "gridPeriod": 4.0,
+  "displayHeight": 56,
   "portraitPeriod": 4.0,
   "paletteSize": 40,
   "anchorRows": 8,

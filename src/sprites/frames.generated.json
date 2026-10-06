@@ -1,8 +1,103 @@
 {
-  "canvas": [
-    42,
-    57
-  ],
+  "displayHeight": 56,
+  "frames": {
+    "fun_eat": {
+      "w": 24,
+      "h": 67,
+      "anchorX": 11.37,
+      "scale": 0.8358
+    },
+    "fun_talk": {
+      "w": 36,
+      "h": 67,
+      "anchorX": 12.78,
+      "scale": 0.8358
+    },
+    "fun_wave": {
+      "w": 28,
+      "h": 67,
+      "anchorX": 16.02,
+      "scale": 0.8358
+    },
+    "idle_back": {
+      "w": 22,
+      "h": 54,
+      "anchorX": 10.85,
+      "scale": 1.037
+    },
+    "idle_front": {
+      "w": 23,
+      "h": 55,
+      "anchorX": 11.08,
+      "scale": 1.0182
+    },
+    "idle_side": {
+      "w": 19,
+      "h": 54,
+      "anchorX": 8.07,
+      "scale": 1.037
+    },
+    "walk_a1": {
+      "w": 20,
+      "h": 42,
+      "anchorX": 8.24,
+      "scale": 1.3333
+    },
+    "walk_a2": {
+      "w": 21,
+      "h": 42,
+      "anchorX": 10.35,
+      "scale": 1.3333
+    },
+    "walk_a3": {
+      "w": 21,
+      "h": 42,
+      "anchorX": 10.88,
+      "scale": 1.3333
+    },
+    "walk_a4": {
+      "w": 17,
+      "h": 43,
+      "anchorX": 8.88,
+      "scale": 1.3333
+    },
+    "walk_a5": {
+      "w": 21,
+      "h": 43,
+      "anchorX": 9.15,
+      "scale": 1.3333
+    },
+    "walk_b1": {
+      "w": 24,
+      "h": 49,
+      "anchorX": 11.96,
+      "scale": 1.1429
+    },
+    "walk_b2": {
+      "w": 22,
+      "h": 48,
+      "anchorX": 10.49,
+      "scale": 1.1429
+    },
+    "walk_b3": {
+      "w": 22,
+      "h": 50,
+      "anchorX": 10.7,
+      "scale": 1.1429
+    },
+    "walk_b4": {
+      "w": 20,
+      "h": 49,
+      "anchorX": 10.82,
+      "scale": 1.1429
+    },
+    "walk_b5": {
+      "w": 21,
+      "h": 47,
+      "anchorX": 10.32,
+      "scale": 1.1429
+    }
+  },
   "body": [
     "fun_eat",
     "fun_talk",
