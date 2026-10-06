@@ -26,13 +26,14 @@ export interface SpriteDraw extends SpriteAt {
 
 /**
  * Gdzie narysować klatkę w pikselach urządzenia (`k` px urządzenia na px logiczny):
- * czubek głowy (`anchorX`) trafia w round(x·k), dół klatki w round((feetY − bob − jump)·k).
+ * czubek głowy (`anchorX`) trafia w round(x·k), punkt stóp (`foot`; brak = dół klatki) w round((feetY − bob − jump)·k).
  */
 export function spriteRect(meta: FrameMeta, k: number, o: SpriteAt): Rect {
   const w = Math.round(meta.w * meta.scale * k);
   const h = Math.round(meta.h * meta.scale * k);
   const x = Math.round(o.x * k) - Math.round(meta.anchorX * meta.scale * k);
-  const y = Math.round((o.feetY - o.bob - o.jump) * k) - h;
+  const foot = Math.round((meta.foot ?? meta.h) * meta.scale * k);
+  const y = Math.round((o.feetY - o.bob - o.jump) * k) - foot;
   return { x, y, w, h };
 }
 
@@ -43,7 +44,7 @@ export function drawSprite(ctx: CanvasRenderingContext2D, k: number, img: Canvas
   ctx.imageSmoothingEnabled = false;
   if (o.flip || o.squash) {
     const ax = Math.round(o.x * k);
-    const by = r.y + r.h;
+    const by = r.y + Math.round((meta.foot ?? meta.h) * meta.scale * k);
     ctx.translate(ax, by);
     ctx.scale((o.flip ? -1 : 1) * (1 + o.squash), 1 - o.squash);
     ctx.drawImage(img, r.x - ax, r.y - by, r.w, r.h);

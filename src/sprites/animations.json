@@ -4,7 +4,18 @@
   "eat": { "frames": ["fun_eat", "idle_front"], "fps": 2.5 },
   "wave": { "frames": ["fun_wave"], "fps": 1 },
   "talk": { "frames": ["fun_talk"], "fps": 1 },
-  "sleep": { "fallback": "idle_front", "overlay": "zzz", "dim": true },
-  "sad": { "fallback": "idle_front", "overlay": "cloud" },
-  "hungry": { "fallback": "idle_front", "overlay": "food" }
+  "sleep": { "intro": ["bed_1", "bed_2", "bed_3"], "introFps": 0.8, "frames": ["bed_4", "bed_5"], "fps": 0.8 },
+  "wake": { "frames": ["bed_1"], "fps": 1 },
+  "sad": { "frames": ["sad_cry"], "fps": 1 },
+  "hungry": { "frames": ["hunger_1", "hunger_2", "hunger_3"], "fps": 0.4 },
+  "starving": { "intro": ["hunger_4"], "introFps": 0.6, "frames": ["hunger_5"], "fps": 1 },
+  "tired": { "frames": ["tired_1", "tired_2", "tired_3"], "fps": 0.45 },
+  "exhausted": { "intro": ["tired_4"], "introFps": 0.6, "frames": ["tired_5"], "fps": 1 },
+  "happy": { "frames": ["happy"], "fps": 1 },
+  "angry": { "frames": ["angry"], "fps": 1 },
+  "scared": { "frames": ["scared"], "fps": 1 },
+  "crazy": { "frames": ["crazy"], "fps": 1 },
+  "drag_pick": { "frames": ["drag_1"], "fps": 1 },
+  "drag_dangle": { "frames": ["drag_2", "drag_3", "drag_5", "drag_3"], "fps": 3 },
+  "drag_panic": { "frames": ["drag_4"], "fps": 1 }
 }

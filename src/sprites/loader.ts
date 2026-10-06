@@ -26,6 +26,8 @@ export interface FrameMeta {
   h: number;
   anchorX: number;
   scale: number;
+  /** Wiersz stóp (od góry obrazka, px natywne); brak = dół obrazka. */
+  foot?: number;
 }
 
 export const FRAMES: Record<string, FrameMeta | undefined> = framesMeta.frames;

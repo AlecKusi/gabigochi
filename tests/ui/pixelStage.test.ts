@@ -32,4 +32,11 @@ describe('spriteRect', () => {
       expect(r.y + r.h).toBe(Math.round(136 * k));
     }
   });
+
+  it('dół rysowania liczony od punktu stóp (foot), nie od dołu obrazka', () => {
+    const meta = { w: 20, h: 40, anchorX: 10, scale: 1, foot: 30 };
+    const r = spriteRect(meta, 2, { x: 50, feetY: 100, bob: 0, jump: 0 });
+    expect(r.y + 30 * 2).toBe(200);
+    expect(r.h).toBe(80);
+  });
 });
