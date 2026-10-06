@@ -3,8 +3,12 @@ import type { GameResult } from '../core/types';
 import { h, icon } from '../ui/dom';
 import type { MiniGame } from './types';
 
-/** Uruchamia minigrę na pełnym ekranie; rozwiązuje się po odebraniu nagrody albo przerwaniu. */
-export function runGame(game: MiniGame, app: App): Promise<GameResult> {
+/**
+ * Uruchamia minigrę na pełnym ekranie; rozwiązuje się po zamknięciu powłoki (Odbierz / X).
+ * `onResult` wołane jest od razu po zakończeniu rozgrywki (przed panelem końcowym), żeby nagroda
+ * została zapisana, nawet jeśli iOS ubije aplikację, zanim gracz stuknie „Odbierz”.
+ */
+export function runGame(game: MiniGame, app: App, onResult: (result: GameResult) => void = () => {}): Promise<GameResult> {
   return new Promise((resolve) => {
     const controller = new AbortController();
     const hud = h('span', { class: 'hud', 'aria-live': 'polite' });
@@ -13,6 +17,8 @@ export function runGame(game: MiniGame, app: App): Promise<GameResult> {
     const shell = h('div', { class: 'game-shell' }, h('header', { class: 'game-head' }, close, h('h1', {}, game.name), hud), body);
     app.root.append(shell);
 
+    const aborted: GameResult = { gameId: game.id, score: 0, coins: 0, moodBoost: 0, aborted: true };
+    let settled: GameResult | null = null;
     let finished = false;
     const finish = (result: GameResult) => {
       if (finished) return;
@@ -23,7 +29,8 @@ export function runGame(game: MiniGame, app: App): Promise<GameResult> {
       resolve(result);
     };
 
-    close.addEventListener('click', () => finish({ gameId: game.id, score: 0, coins: 0, moodBoost: 0, aborted: true }));
+    // Po zakończeniu rozgrywki wynik jest już zapisany – zamknięcie przyciskiem X go nie cofa.
+    close.addEventListener('click', () => finish(settled ?? aborted));
 
     void game
       .play({ body, sprites: app.sprites, signal: controller.signal, setHud: (t) => { hud.textContent = t; } })
@@ -32,6 +39,8 @@ export function runGame(game: MiniGame, app: App): Promise<GameResult> {
         const reward = game.reward(score);
         const isRecord = score > (app.store.get().records[game.id] ?? 0);
         const result: GameResult = { gameId: game.id, score, ...reward, aborted: false };
+        settled = result;
+        onResult(result);
         shell.append(
           h(
             'div',
@@ -47,6 +56,11 @@ export function runGame(game: MiniGame, app: App): Promise<GameResult> {
           ),
         );
         if (isRecord || reward.coins >= 30) app.celebrate();
+      })
+      .catch(() => {
+        if (finished) return;
+        app.toast('Ups, coś poszło nie tak w grze.');
+        finish(settled ?? aborted);
       });
   });
 }

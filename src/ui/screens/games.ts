@@ -1,6 +1,7 @@
 import type { App, Screen } from '../../app';
 import { CONFIG } from '../../core/config';
 import { applyGameResult } from '../../core/economy';
+import { coinsLabel } from '../../core/plural';
 import { COMING_SOON, GAMES } from '../../games';
 import { runGame } from '../../games/shell';
 import type { MiniGame } from '../../games/types';
@@ -52,10 +53,10 @@ export function gamesScreen(app: App): Screen {
       const ok = await confirmDialog(app.root, 'Jestem zbyt śpiąca… Zagrać mimo to?', 'Gramy!', 'Nie');
       if (!ok) return;
     }
-    const result = await runGame(game, app);
+    // Nagroda zapisuje się w chwili końca gry (nie po „Odbierz”) – iOS może ubić aplikację w tle.
+    const result = await runGame(game, app, (r) => app.store.update((s) => applyGameResult(s, r)));
     if (result.aborted) return;
-    app.store.update((s) => applyGameResult(s, result));
-    app.toast(`+${result.coins} monet!`);
+    if (result.coins > 0) app.toast(`+${result.coins} ${coinsLabel(result.coins)}!`);
     render();
   }
 
