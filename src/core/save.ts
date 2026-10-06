@@ -18,6 +18,7 @@ export interface LoadResult {
 const isRecord = (x: unknown): x is Record<string, unknown> =>
   typeof x === 'object' && x !== null && !Array.isArray(x);
 const isNum = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
+const allNums = (x: Record<string, unknown>): boolean => Object.values(x).every(isNum);
 
 function isValidV1(x: Record<string, unknown>): boolean {
   const n = x.needs;
@@ -25,7 +26,7 @@ function isValidV1(x: Record<string, unknown>): boolean {
     x.version === 1 &&
     isNum(x.createdAt) && isNum(x.lastUpdate) && isNum(x.coins) && isNum(x.lastPetAt) &&
     isRecord(n) && isNum(n.hunger) && isNum(n.mood) && isNum(n.energy) &&
-    isRecord(x.fridge) && isRecord(x.records) &&
+    isRecord(x.fridge) && allNums(x.fridge) && isRecord(x.records) && allNums(x.records) &&
     typeof x.sleeping === 'boolean' && typeof x.seenBirthday === 'boolean' &&
     typeof x.lastDailyBonus === 'string' &&
     (x.lastFreeKitkat === null || typeof x.lastFreeKitkat === 'string')
@@ -57,6 +58,8 @@ export function loadState(kv: KV, now: number): LoadResult {
 }
 
 export function saveState(kv: KV, state: GameState): boolean {
+  // NaN/Infinity zamieniłoby się w null i następny odczyt odrzuciłby cały zapis
+  if (!isValidV1(state as unknown as Record<string, unknown>)) return false;
   try {
     kv.setItem(SAVE_KEY, JSON.stringify(state));
     return true;

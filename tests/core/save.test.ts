@@ -41,6 +41,23 @@ describe('save', () => {
     expect(loadState(kv2, T0).recovered).toBe(true);
   });
 
+  it('zapis stanu z NaN jest odrzucany i nie nadpisuje dobrego zapisu', () => {
+    const kv = memoryKV();
+    const good = { ...createState(T0), coins: 42 };
+    expect(saveState(kv, good)).toBe(true);
+    const before = kv.data.get(SAVE_KEY);
+    expect(saveState(kv, { ...good, coins: NaN })).toBe(false);
+    expect(kv.data.get(SAVE_KEY)).toBe(before);
+  });
+
+  it('wartości w fridge/records muszą być skończonymi liczbami', () => {
+    const bad = { ...createState(T0), fridge: { apple: '2' } };
+    const kv = memoryKV({ [SAVE_KEY]: JSON.stringify(bad) });
+    expect(loadState(kv, T0).recovered).toBe(true);
+    const bad2 = { ...createState(T0), records: { catch: null } };
+    expect(loadState(memoryKV({ [SAVE_KEY]: JSON.stringify(bad2) }), T0).recovered).toBe(true);
+  });
+
   it('błąd zapisu (np. pełna pamięć) nie wywraca aplikacji', () => {
     const kv: KV = { getItem: () => null, setItem: () => { throw new Error('QuotaExceeded'); } };
     expect(saveState(kv, createState(T0))).toBe(false);
