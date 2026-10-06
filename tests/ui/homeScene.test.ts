@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { HOUR } from '../../src/core/time';
 import type { PlacedItem } from '../../src/core/types';
-import { GABI_BED, itemById } from '../../src/home/catalog';
+import { GABI_BED, itemById, itemFrames } from '../../src/home/catalog';
 import { ROOMS, itemBox } from '../../src/home/layout';
 import { createHome } from '../../src/home/starter';
 import { ROOM_BOUNDS } from '../../src/pet/brain';
-import { NIGHT_TINT, ROOM_W } from '../../src/pet/room';
+import { FEET_Y, NIGHT_TINT, ROOM_W } from '../../src/pet/room';
 import { withPreview } from '../../src/ui/home/editMode';
 import { inventoryEntries, ownedLooksOf } from '../../src/ui/home/inventoryPanel';
 import {
-  SWIPE_MIN, WILTED_TINT, WINDOW_NIGHT_TINT, entryWalk, findBed, itemAnchor, itemTints, needsWater, neighborRoom, swipeDir,
-  wakeSpot,
+  SWIPE_MIN, WILTED_TINT, WINDOW_NIGHT_TINT, entryWalk, findBed, itemAnchor, itemFrameAnchor, itemTints, needsWater,
+  neighborRoom, swipeDir, wakeSpot,
 } from '../../src/ui/home/scene';
 import { FRAMES } from '../../src/sprites/loader';
 import { deviceRect } from '../../src/ui/pixelStage';
@@ -36,6 +36,26 @@ describe('kotwica przedmiotu', () => {
     expect(a.feetY - a.meta.foot! * a.meta.scale).toBeCloseTo(box.y, 6);
     // klatki snu mają tę samą skalę i są wyrównane do tej samej kotwicy
     for (const f of ['bed_1', 'bed_3', 'bed_4', 'bed_4z']) expect(FRAMES[f]!.scale).toBeCloseTo(def.scale, 4);
+  });
+
+  it('klatki stanów: ten sam punkt co przedmiot, a przedmiot pod klatką leży w swoim prostokącie', () => {
+    const def = itemById('toilet');
+    const it = item('toilet', 104, 136);
+    const base = itemAnchor(it, def);
+    const open = itemFrameAnchor(it, def, itemFrames('toilet').open);
+    expect(open).toMatchObject({ x: base.x, feetY: base.feetY });
+    // otwarta klapa: rysunek toalety bez zmian, więc lewy górny róg klatki == róg przedmiotu
+    const box = itemBox(it);
+    expect(open.x - open.meta.anchorX * open.meta.scale).toBeCloseTo(box.x, 6);
+    expect(open.feetY - open.meta.foot! * open.meta.scale).toBeCloseTo(box.y, 6);
+    for (const sprite of Object.values(itemFrames('bathtub'))) {
+      const a = itemFrameAnchor(item('bathtub'), itemById('bathtub'), sprite);
+      expect(a.meta.scale).toBe(itemById('bathtub').scale);
+    }
+    // klatka narysowana inaczej niż przedmiot (Gabi przy wieszaku) — na linii stóp Gabi, w osi przedmiotu
+    const rail = item('towel_rail', 40, 80);
+    expect(itemFrameAnchor(rail, itemById('towel_rail'), 'towel_rail_gabi')).toMatchObject({ x: 40, feetY: FEET_Y });
+    expect(() => itemFrameAnchor(it, def, 'toilet')).toThrow();
   });
 });
 

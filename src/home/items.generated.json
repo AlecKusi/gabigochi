@@ -693,5 +693,195 @@
     "scale": 0.8889,
     "anchorX": 44.0,
     "foot": 65
+  },
+  "toilet": {
+    "w": 24,
+    "h": 32,
+    "scale": 1.5556,
+    "name": "Toaleta",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "toilet",
+    "price": 120
+  },
+  "shower": {
+    "w": 28,
+    "h": 46,
+    "scale": 1.5556,
+    "name": "Prysznic",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "shower",
+    "price": 300
+  },
+  "bathtub": {
+    "w": 36,
+    "h": 21,
+    "scale": 1.5556,
+    "name": "Wanna",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "bath",
+    "price": 350
+  },
+  "sink": {
+    "w": 22,
+    "h": 32,
+    "scale": 1.5556,
+    "name": "Umywalka z lustrem",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "sink",
+    "price": 140
+  },
+  "towel_rail": {
+    "w": 28,
+    "h": 22,
+    "scale": 1.5556,
+    "name": "Wieszak z ręcznikiem",
+    "category": "bathroom",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 50
+  },
+  "towel_hanging": {
+    "w": 12,
+    "h": 23,
+    "scale": 1.5556,
+    "name": "Wiszący ręcznik",
+    "category": "bathroom",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 30
+  },
+  "hairdryer_shelf": {
+    "w": 23,
+    "h": 15,
+    "scale": 1.5556,
+    "name": "Półka z suszarką",
+    "category": "bathroom",
+    "layer": "wall",
+    "interaction": "hairdryer",
+    "price": 70
+  },
+  "toilet_open": {
+    "w": 24,
+    "h": 32,
+    "scale": 1.5556,
+    "anchorX": 12.0,
+    "foot": 32,
+    "frameOf": "toilet",
+    "state": "open",
+    "overlay": true
+  },
+  "toilet_flush": {
+    "w": 27,
+    "h": 32,
+    "scale": 1.5556,
+    "anchorX": 13.0,
+    "foot": 32,
+    "frameOf": "toilet",
+    "state": "flush",
+    "overlay": true
+  },
+  "toilet_gabi": {
+    "w": 31,
+    "h": 36,
+    "scale": 1.5556,
+    "anchorX": 9.0,
+    "foot": 34,
+    "frameOf": "toilet",
+    "state": "gabi",
+    "overlay": true
+  },
+  "shower_drip": {
+    "w": 29,
+    "h": 46,
+    "scale": 1.5556,
+    "anchorX": 14.0,
+    "foot": 46,
+    "frameOf": "shower",
+    "state": "drip",
+    "overlay": true
+  },
+  "shower_on": {
+    "w": 29,
+    "h": 46,
+    "scale": 1.5556,
+    "anchorX": 14.0,
+    "foot": 46,
+    "frameOf": "shower",
+    "state": "on",
+    "overlay": true
+  },
+  "shower_gabi": {
+    "w": 29,
+    "h": 46,
+    "scale": 1.5556,
+    "anchorX": 14.0,
+    "foot": 46,
+    "frameOf": "shower",
+    "state": "gabi",
+    "overlay": true
+  },
+  "bathtub_fill": {
+    "w": 36,
+    "h": 27,
+    "scale": 1.5556,
+    "anchorX": 18.0,
+    "foot": 27,
+    "frameOf": "bathtub",
+    "state": "fill",
+    "overlay": true
+  },
+  "bathtub_bubbles": {
+    "w": 36,
+    "h": 31,
+    "scale": 1.5556,
+    "anchorX": 18.0,
+    "foot": 31,
+    "frameOf": "bathtub",
+    "state": "bubbles",
+    "overlay": true
+  },
+  "bathtub_gabi": {
+    "w": 37,
+    "h": 34,
+    "scale": 1.5556,
+    "anchorX": 18.0,
+    "foot": 34,
+    "frameOf": "bathtub",
+    "state": "gabi",
+    "overlay": true
+  },
+  "sink_on": {
+    "w": 22,
+    "h": 32,
+    "scale": 1.5556,
+    "anchorX": 11.0,
+    "foot": 32,
+    "frameOf": "sink",
+    "state": "on",
+    "overlay": true
+  },
+  "sink_gabi": {
+    "w": 33,
+    "h": 34,
+    "scale": 1.5556,
+    "anchorX": 26.0,
+    "foot": 35,
+    "frameOf": "sink",
+    "state": "gabi",
+    "overlay": true
+  },
+  "towel_rail_gabi": {
+    "w": 33,
+    "h": 32,
+    "scale": 1.5556,
+    "anchorX": 8.66,
+    "foot": 32,
+    "frameOf": "towel_rail",
+    "state": "gabi",
+    "overlay": false
   }
 }

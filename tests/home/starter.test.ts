@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GABI_BED, itemById } from '../../src/home/catalog';
-import { ROOMS, clampToLayer } from '../../src/home/layout';
+import { ROOMS, clampToLayer, itemBox } from '../../src/home/layout';
 import { DEFAULT_LOOKS } from '../../src/home/looks';
 import { isPlant } from '../../src/home/plants';
 import { STARTER_LAYOUT, createHome } from '../../src/home/starter';
@@ -27,7 +27,7 @@ describe('dom startowy', () => {
     expect(ids('salon')).toEqual(['rug_round', 'window_flower', 'wall_shelves', 'monstera']);
     expect(ids('bedroom')).toEqual([GABI_BED, 'window_curtains', 'poster_moon']);
     expect(ids('studio')).toEqual(['window_blinds', 'writing_desk', 'office_chair', 'cactus_flower']);
-    expect(ids('bathroom')).toEqual(['rug_striped', 'mirror_wall', 'window_flower', 'snake_plant']);
+    expect(ids('bathroom')).toEqual(['rug_striped', 'sink', 'window_flower', 'snake_plant', 'toilet']);
     expect(ids('bedroom').filter((i) => i.startsWith('nightstand'))).toEqual([]);
   });
 
@@ -45,6 +45,23 @@ describe('dom startowy', () => {
     // łóżko za linią stóp Gabi — chodzi przed nim, a nie za nim
     expect(bed.y).toBeLessThan(144);
     expect(STARTER_LAYOUT.salon.find((e) => e.itemId === 'rug_round')!.x).toBe(64);
+  });
+
+  it('łazienka: umywalka i toaleta za linią stóp Gabi, przedmioty (poza dywanem) nie nachodzą na siebie', () => {
+    const items = home.rooms.bathroom.items;
+    for (const id of ['sink', 'toilet']) {
+      const it = items.find((i) => i.itemId === id)!;
+      expect(itemById(id).category, id).toBe('bathroom');
+      expect(it.y, id).toBeLessThan(144);
+    }
+    const boxes = items.filter((i) => itemById(i.itemId).layer !== 'rug').map((i) => ({ id: i.itemId, ...itemBox(i) }));
+    for (const a of boxes) {
+      for (const b of boxes) {
+        if (a === b) continue;
+        const apart = a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
+        expect(apart, `${a.id} / ${b.id}`).toBe(true);
+      }
+    }
   });
 
   it('unikalne uid, licznik za ostatnim; rośliny podlane teraz', () => {

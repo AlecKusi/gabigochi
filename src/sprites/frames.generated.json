@@ -134,6 +134,20 @@
       "foot": 67,
       "scale": 0.8358
     },
+    "gabi_hairdryer": {
+      "w": 43,
+      "h": 32,
+      "anchorX": 12.47,
+      "foot": 32,
+      "scale": 1.5556
+    },
+    "gabi_turban": {
+      "w": 17,
+      "h": 34,
+      "anchorX": 7.85,
+      "foot": 34,
+      "scale": 1.5556
+    },
     "happy": {
       "w": 39,
       "h": 65,
@@ -414,6 +428,8 @@
     "fun_eat",
     "fun_talk",
     "fun_wave",
+    "gabi_hairdryer",
+    "gabi_turban",
     "happy",
     "hunger_1",
     "hunger_2",

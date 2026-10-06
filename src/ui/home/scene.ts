@@ -1,5 +1,5 @@
 import type { GameState, PlacedItem, RoomId } from '../../core/types';
-import { GABI_BED, findItem, type ItemDef } from '../../home/catalog';
+import { GABI_BED, findItem, itemFrameMeta, type ItemDef } from '../../home/catalog';
 import { ROOMS, itemBox } from '../../home/layout';
 import { plantState } from '../../home/plants';
 import { ROOM_BOUNDS } from '../../pet/brain';
@@ -30,6 +30,20 @@ export function itemAnchor(item: PlacedItem, def: ItemDef): ItemAnchor {
     feetY: item.y + (foot - def.h) * def.scale,
     meta: { w: def.w, h: def.h, anchorX, foot, scale: def.scale },
   };
+}
+
+/**
+ * Kotwica klatki stanu przedmiotu (`itemFrames`, np. toaleta z otwartą klapą) rysowanej zamiast niego: ten sam punkt
+ * co `itemAnchor` przedmiotu, a metadane klatki — jej `anchorX`/`foot` pokrywają się z kotwicą przedmiotu, więc klatka
+ * wypada dokładnie w jego miejscu (także odbita: oba odbijają się wokół tej samej osi). Klatka z `overlay: false`
+ * (narysowana inaczej niż przedmiot, np. Gabi przy innym wieszaku) ma kotwicę postaci — staje na linii stóp Gabi
+ * (FEET_Y) w osi przedmiotu; przedmiot trzeba wtedy ukryć.
+ */
+export function itemFrameAnchor(item: PlacedItem, def: ItemDef, sprite: string): ItemAnchor {
+  const m = itemFrameMeta(sprite);
+  if (!m) throw new Error(`Nieznana klatka przedmiotu: ${sprite}`);
+  const base = itemAnchor(item, def);
+  return { x: base.x, feetY: m.overlay ? base.feetY : FEET_Y, meta: { w: m.w, h: m.h, anchorX: m.anchorX, foot: m.foot, scale: m.scale } };
 }
 
 /** Nakładki koloru dla przedmiotu (kolejno, `source-atop`); pusta lista = oryginalny sprite. */

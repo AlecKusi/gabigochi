@@ -16,7 +16,9 @@
     "hobby":   { "path": "assets/source/sheet-hobby.jpg",   "background": [206, 205, 210], "gridPeriod": 4.0, "keep": "all", "scaleRef": "music_5", "paletteColours": 76, "preview": "preview_activities" },
     "furniture":  { "path": "assets/source/sheet-furniture.jpg",   "background": [206, 206, 210], "gridPeriod": 4.0, "paletteColours": 116 },
     "roomAssets": { "path": "assets/source/sheet-room-assets.jpg", "background": [207, 206, 211], "gridPeriod": 2.0, "paletteColours": 122, "halo": 60, "holeTol": 12 },
-    "plants":     { "path": "assets/source/sheet-plants.jpg",      "background": [205, 205, 210], "gridPeriod": 4.0, "paletteColours": 116 }
+    "plants":     { "path": "assets/source/sheet-plants.jpg",      "background": [205, 205, 210], "gridPeriod": 4.0, "paletteColours": 116 },
+    "bathroom":   { "path": "assets/source/sheet-bathroom.jpg",    "background": [207, 206, 211], "gridPeriod": 4.0, "paletteColours": 134, "holeTol": 10, "holeTolAll": 10,
+                    "scaleRef": "toilet_gabi", "scaleRefCols": [612, 668], "scaleCheck": { "sink_gabi": [418, 492] }, "itemPreview": "bathroom_preview" }
   },
   "body": {
     "idle_front": { "rect": [34, 47, 127, 266],
@@ -120,7 +122,9 @@
     "music_2":   { "sheet": "hobby", "rect": [184, 730, 300, 980], "erase": [[184, 970, 197, 980]], "alignBottom": ["music_3", 6], "shadow": [[184, 940, 280, 980]] },
     "music_3":   { "sheet": "hobby", "rect": [316, 720, 452, 980], "erase": [[316, 970, 341, 980]] },
     "music_4":   { "sheet": "hobby", "rect": [466, 720, 610, 980], "erase": [[466, 970, 484, 980]], "alignBottom": ["music_3", 6] },
-    "music_5":   { "sheet": "hobby", "rect": [610, 730, 748, 980], "erase": [[610, 970, 629, 980]], "alignBottom": ["music_3", 6] }
+    "music_5":   { "sheet": "hobby", "rect": [610, 730, 748, 980], "erase": [[610, 970, 629, 980]], "alignBottom": ["music_3", 6] },
+    "gabi_hairdryer": { "sheet": "bathroom", "rect": [222, 874, 402, 1008], "keep": "all", "erase": [[200, 840, 410, 874], [205, 975, 240, 1010], [396, 975, 410, 1010]] },
+    "gabi_turban":    { "sheet": "bathroom", "rect": [620, 862, 708, 1008] }
   },
   "portraits": {
     "portrait_a": [507, 40, 753, 290],
@@ -217,6 +221,27 @@
                             "wipe": [[[996, 944], [1100, 944], [1136, 972], [1140, 1040], [1112, 1078], [1070, 1102], [1040, 1100], [1020, 1092], [994, 1060], [988, 1000]]],
                             "fix": [[1024, 944, 1084, 998, [226, 213, 196]], [1008, 950, 1024, 966, [226, 213, 196]], [994, 966, 1024, 982, [226, 213, 196]], [980, 982, 1024, 998, [226, 213, 196]], [966, 998, 1024, 1022, [226, 213, 196]],
                                     [1000, 950, 1007, 966, [3, 2, 5]], [986, 966, 993, 982, [3, 2, 5]], [972, 982, 979, 998, [3, 2, 5]],
-                                    [1020, 999, 1050, 1015, [226, 213, 196]], [1059, 937, 1067, 945, [226, 213, 196]], [1005, 946, 1019, 952, [3, 2, 5]], [990, 969, 996, 983, [3, 2, 5]]] }
+                                    [1020, 999, 1050, 1015, [226, 213, 196]], [1059, 937, 1067, 945, [226, 213, 196]], [1005, 946, 1019, 952, [3, 2, 5]], [990, 969, 996, 983, [3, 2, 5]]] },
+
+    "toilet":             { "sheet": "bathroom", "rect": [50, 140, 156, 282], "name": "Toaleta", "category": "bathroom", "layer": "floor", "interaction": "toilet", "price": 120 },
+    "shower":             { "sheet": "bathroom", "rect": [50, 314, 170, 504], "erase": [[40, 280, 330, 315]], "name": "Prysznic", "category": "bathroom", "layer": "floor", "interaction": "shower", "price": 300 },
+    "bathtub":            { "sheet": "bathroom", "rect": [40, 560, 192, 656], "erase": [[20, 620, 50, 660]], "name": "Wanna", "category": "bathroom", "layer": "floor", "interaction": "bath", "price": 350 },
+    "sink":               { "sheet": "bathroom", "rect": [66, 692, 162, 828], "erase": [[20, 660, 280, 691]], "name": "Umywalka z lustrem", "category": "bathroom", "layer": "floor", "interaction": "sink", "price": 140 },
+    "towel_rail":         { "sheet": "bathroom", "rect": [420, 880, 546, 990], "name": "Wieszak z ręcznikiem", "category": "bathroom", "layer": "wall", "interaction": "none", "price": 50 },
+    "towel_hanging":      { "sheet": "bathroom", "rect": [140, 888, 194, 990], "name": "Wiszący ręcznik", "category": "bathroom", "layer": "wall", "interaction": "none", "price": 30 },
+    "hairdryer_shelf":    { "sheet": "bathroom", "rect": [40, 896, 140, 964], "name": "Półka z suszarką", "category": "bathroom", "layer": "wall", "interaction": "hairdryer", "price": 70 },
+
+    "toilet_open":        { "sheet": "bathroom", "frameOf": "toilet", "rect": [232, 140, 346, 282] },
+    "toilet_flush":       { "sheet": "bathroom", "frameOf": "toilet", "rect": [424, 140, 532, 282], "keep": "all" },
+    "toilet_gabi":        { "sheet": "bathroom", "frameOf": "toilet", "alignRect": [668, 215, 750, 282], "rect": [612, 126, 750, 282], "keep": "all", "flipX": true },
+    "shower_drip":        { "sheet": "bathroom", "frameOf": "shower", "rect": [240, 314, 364, 504], "keep": "all", "erase": [[40, 280, 330, 315]] },
+    "shower_on":          { "sheet": "bathroom", "frameOf": "shower", "rect": [422, 314, 548, 504], "keep": "all" },
+    "shower_gabi":        { "sheet": "bathroom", "frameOf": "shower", "rect": [608, 314, 732, 504], "keep": "all" },
+    "bathtub_fill":       { "sheet": "bathroom", "frameOf": "bathtub", "rect": [226, 536, 380, 656], "keep": "all", "erase": [[210, 620, 238, 660]] },
+    "bathtub_bubbles":    { "sheet": "bathroom", "frameOf": "bathtub", "rect": [410, 512, 564, 658], "keep": "all", "erase": [[398, 620, 424, 660]] },
+    "bathtub_gabi":       { "sheet": "bathroom", "frameOf": "bathtub", "rect": [592, 510, 748, 656], "keep": "all", "erase": [[585, 620, 608, 660]] },
+    "sink_on":            { "sheet": "bathroom", "frameOf": "sink", "rect": [248, 692, 348, 828], "keep": "all", "erase": [[20, 660, 280, 691]] },
+    "sink_gabi":          { "sheet": "bathroom", "frameOf": "sink", "alignRect": [500, 765, 560, 828], "rect": [418, 684, 560, 828], "keep": "all" },
+    "towel_rail_gabi":    { "sheet": "bathroom", "frameOf": "towel_rail", "overlay": false, "rect": [600, 690, 740, 828], "keep": "all", "erase": [[580, 785, 612, 830]] }
   }
 }

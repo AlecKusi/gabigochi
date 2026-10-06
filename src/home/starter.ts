@@ -29,12 +29,13 @@ export const STARTER_LAYOUT: Readonly<Record<RoomId, readonly { itemId: string; 
     { itemId: 'office_chair', x: 76, y: 148 },
     { itemId: 'cactus_flower', x: 20, y: 140 },
   ],
-  // Łazienka bez armatury (brak jej w arkuszach) — lustro, okno, roślina i dywanik.
+  // Łazienka: umywalka z lustrem i toaleta za linią stóp Gabi (chodzi przed nimi), okno nad toaletą, roślina, dywanik.
   bathroom: [
     { itemId: 'rug_striped', x: 64, y: 152 },
-    { itemId: 'mirror_wall', x: 32, y: 64 },
+    { itemId: 'sink', x: 48, y: 136 },
     { itemId: 'window_flower', x: 100, y: 52 },
     { itemId: 'snake_plant', x: 20, y: 140 },
+    { itemId: 'toilet', x: 104, y: 136 },
   ],
 };
 

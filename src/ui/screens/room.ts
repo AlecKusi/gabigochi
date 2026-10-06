@@ -8,7 +8,7 @@ import { feed, finishActivity, petCharacter, setSleeping } from '../../core/econ
 import { moodLevel } from '../../core/needs';
 import { dayNumber } from '../../core/time';
 import type { GameState, PlacedItem, RoomId } from '../../core/types';
-import { GABI_BED, findItem, itemById } from '../../home/catalog';
+import { GABI_BED, findItem, itemById, itemFrames } from '../../home/catalog';
 import { ROOMS, hitItem, itemBox } from '../../home/layout';
 import { pickActivity, type ActivityId } from '../../pet/activities';
 import { animationName, createBrain, stepBrain, triggerBrain, wakeBrain, type Brain } from '../../pet/brain';
@@ -95,8 +95,11 @@ export function roomScreen(app: App): Screen {
   preloadItems(
     new Set(
       [...ROOMS.flatMap((r) => s0.rooms[r].items.map((i) => i.itemId)), ...Object.keys(s0.inventory)]
-        .map((id) => findItem(id)?.sprite)
-        .filter((s): s is string => s !== undefined),
+        .flatMap((id) => {
+          const sprite = findItem(id)?.sprite;
+          // klatki stanów (np. woda w umywalce) też od razu — żeby nie mrugały przy pierwszym użyciu
+          return sprite === undefined ? [] : [sprite, ...Object.values(itemFrames(id))];
+        }),
     ),
   );
 

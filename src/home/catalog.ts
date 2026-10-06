@@ -1,12 +1,13 @@
 import meta from './items.generated.json';
 
-export const ITEM_CATEGORIES = ['furniture', 'decor', 'plant', 'gaming', 'hobby'] as const;
+export const ITEM_CATEGORIES = ['furniture', 'decor', 'plant', 'gaming', 'hobby', 'bathroom'] as const;
 export type ItemCategory = (typeof ITEM_CATEGORIES)[number];
 
 export type ItemLayer = 'wall' | 'floor' | 'rug';
 
 export const INTERACTIONS = [
-  'water', 'read', 'play', 'study', 'crochet', 'music', 'cute', 'lamp', 'calendar', 'window', 'none',
+  'water', 'read', 'play', 'study', 'crochet', 'music', 'cute', 'lamp', 'calendar', 'window',
+  'toilet', 'shower', 'bath', 'sink', 'hairdryer', 'none',
 ] as const;
 export type Interaction = (typeof INTERACTIONS)[number];
 
@@ -45,6 +46,10 @@ interface RawMeta {
   layer?: ItemLayer;
   interaction?: Interaction;
   price?: number;
+  /** Klatka stanu: przedmiot bazowy i nazwa stanu (np. toilet / open). */
+  frameOf?: string;
+  state?: string;
+  overlay?: boolean;
 }
 
 const RAW = meta as Record<string, RawMeta>;
@@ -108,6 +113,49 @@ export const SHOP_CATEGORIES: readonly { id: ShopCategory; name: string }[] = [
   { id: 'plant', name: 'Rośliny' },
   { id: 'gaming', name: 'Gaming' },
   { id: 'hobby', name: 'Hobby' },
+  { id: 'bathroom', name: 'Łazienka' },
   { id: 'wallpaper', name: 'Tapety' },
   { id: 'floor', name: 'Podłogi' },
 ];
+
+/** Metadane klatki stanu przedmiotu (px natywne sprite'a w public/items). */
+export interface ItemFrameMeta {
+  w: number;
+  h: number;
+  scale: number;
+  /**
+   * Kotwica: x i linia stóp. `overlay` — punkt pokrywający się z kotwicą przedmiotu (środek jego dolnej krawędzi),
+   * więc klatka narysowana w miejscu przedmiotu (zamiast niego) pokrywa go; inaczej — kotwica postaci (środek
+   * czubka głowy Gabi i linia jej stóp), bo klatka jest narysowana inaczej niż przedmiot.
+   */
+  anchorX: number;
+  foot: number;
+  overlay: boolean;
+}
+
+const FRAMES_OF = new Map<string, Record<string, string>>();
+const FRAME_META = new Map<string, ItemFrameMeta>();
+for (const [sprite, m] of Object.entries(RAW)) {
+  if (m.frameOf === undefined || m.state === undefined) continue;
+  const frames = FRAMES_OF.get(m.frameOf) ?? {};
+  frames[m.state] = sprite;
+  FRAMES_OF.set(m.frameOf, frames);
+  FRAME_META.set(sprite, {
+    w: m.w,
+    h: m.h,
+    scale: m.scale ?? 1,
+    anchorX: m.anchorX ?? m.w / 2,
+    foot: m.foot ?? m.h,
+    overlay: m.overlay ?? true,
+  });
+}
+
+/** Klatki stanów przedmiotu: nazwa stanu → sprite (np. toilet → { open: 'toilet_open', … }); `{}` gdy brak. */
+export function itemFrames(itemId: string): Record<string, string> {
+  return { ...FRAMES_OF.get(itemId) };
+}
+
+/** Metadane klatki stanu (sprite z `itemFrames`); `undefined` dla innych sprite'ów. */
+export function itemFrameMeta(sprite: string): ItemFrameMeta | undefined {
+  return FRAME_META.get(sprite);
+}

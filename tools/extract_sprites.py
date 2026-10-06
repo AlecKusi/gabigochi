@@ -45,6 +45,22 @@ Arkusz z `"align": wzorzec` — po wycięciu każda klatka arkusza jest przesuwa
 żeby jej łóżko pokryło się z łóżkiem wzorca; przesunięcie trafia do `anchorX`/`foot` (patrz `align_sheet`).
 Wpis z `"alignBottom": [wzorzec, wiersze]` — klatka pętli wyrównana w poziomie do wzorca po butach / nogach
 stołka (patrz `align_bottom`). Arkusz z `"preview": nazwa` — podgląd ×4 swoich klatek w tools/out/<nazwa>.png.
+
+Klatki stanów przedmiotu (sekcja `items`, bez danych katalogu): `"frameOf": przedmiot` — klatka (np. toaleta
+z otwartą klapą) wyrównana do przedmiotu bazowego: całkowite przesunięcie (±ITEM_ALIGN_SEARCH komórek)
+z największą liczbą pikseli tego samego koloru (tylko piksele klatki, których środek leży w `alignRect` w px
+arkusza; domyślnie wszystkie) — `anchorX`/`foot` klatki = punkt, który pokrywa się ze środkiem dolnej krawędzi
+przedmiotu (jego kotwicą), więc klatka narysowana w miejscu przedmiotu pokrywa go dokładnie. W metadanych:
+`frameOf`, `state` (id bez przedrostka `<przedmiot>_`) i `overlay`. `"overlay": false` — klatka narysowana inaczej
+niż przedmiot (nie da się jej nałożyć): kotwica jak w klatce postaci (środek czubka głowy, linia stóp = dół
+największego kształtu). `"flipX": true` — klatka odbita w poziomie po wycięciu (arkusz narysował ją w lustrze).
+`scaleRef` arkusza może wskazywać przedmiot (np. klatkę stanu z Gabi) zamiast klatki postaci: wysokość Gabi to
+liczba wierszy z nieprzezroczystymi komórkami w kolumnach `scaleRefCols` ([x0, x1] w px arkusza); `scaleCheck`
+({klatka: [x0, x1]}) tylko wypisuje, jak wysoka wyjdzie Gabi w innych klatkach. `holeTol` może być też we wpisie;
+`holeTolAll` (arkusz albo wpis, domyślnie 15) — to samo dla wpisów `keep: "all"` (jasne płaszczyzny blisko tła, np.
+brodzik prysznica, nie stają się dziurami).
+Arkusz z `"itemPreview": nazwa` — podgląd ×3·skala jego przedmiotów, klatek stanów i pozy postaci (z `idle_front`)
+oraz przenikanie każdej serii (przedmiot + stany w kotwicy przedmiotu) w tools/out/<nazwa>.png.
 """
 import colorsys
 import json
@@ -74,6 +90,7 @@ ITEM_FIELDS = ('name', 'category', 'layer', 'interaction', 'price')
 RETOUCH_KEYS = ('bag', 'wipe', 'cut', 'copy', 'fix', 'shadow')
 LIST_KEYS = ('erase', 'paint') + RETOUCH_KEYS
 ALIGN_SEARCH = 20
+ITEM_ALIGN_SEARCH = 40
 SHADOW_BARRIER_VAL = 0.22
 NEIGH4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 NEIGH8 = tuple((dy, dx) for dy in (-1, 0, 1) for dx in (-1, 0, 1) if dy or dx)
@@ -107,8 +124,10 @@ def entry(spec, group):
         'colours': sh.get('paletteColours', CFG['paletteSize']),
         'alignBottom': spec.get('alignBottom'),
         'halo': sh.get('halo'),
-        'holeTol': sh.get('holeTol'),
+        'holeTol': spec.get('holeTol', sh.get('holeTol')),
+        'holeTolAll': spec.get('holeTolAll', sh.get('holeTolAll', 15)),
         'mirror': spec.get('mirror', []),
+        'flipX': spec.get('flipX', False),
         **{k: spec.get(k, []) for k in LIST_KEYS},
     }
 
@@ -748,11 +767,51 @@ def mirror_half(cells, mask, centres, c, along_x):
                 cells[i], mask[i] = cells[j], mask[j]
 
 
-def save_items(images, sheet_scale, gabi_scale, body):
+def gabi_height(raw_entry, cols):
+    """`scaleRef` w przedmiocie: liczba wierszy od pierwszego do ostatniego z nieprzezroczystą komórką, której
+    środek leży w kolumnach [x0, x1] (px arkusza) — wysokość stojącej Gabi obok przedmiotu."""
+    _, _, _, mask, xs, _ = raw_entry
+    sel = (xs >= cols[0]) & (xs <= cols[1])
+    rows = np.nonzero((~mask[:, sel]).any(axis=1))[0]
+    return int(rows[-1] - rows[0] + 1)
+
+
+def colour_codes(im):
+    """Kolor każdego piksela jako liczba (0 = przezroczysty)."""
+    a = np.asarray(im).astype(np.int64)
+    return np.where(a[:, :, 3] > 0, (a[:, :, 0] << 16 | a[:, :, 1] << 8 | a[:, :, 2]) + 1, 0)
+
+
+def item_shift(im, xy, rect, base):
+    """Całkowite (dx, dy): piksel klatki (u, v) → przedmiot bazowy (u+dx, v+dy) z największą liczbą pikseli tego
+    samego koloru; liczą się tylko piksele klatki ze środkiem w `rect` (px arkusza; None — wszystkie).
+    Przy remisie mniejsze przesunięcie. Zwraca też liczbę zgodnych pikseli i liczbę pikseli porównywanych."""
+    cur, ref = colour_codes(im), colour_codes(base)
+    sel = cur > 0
+    if rect:
+        xs, ys = xy
+        sel &= ((ys >= rect[1]) & (ys <= rect[3]))[:, None] & ((xs >= rect[0]) & (xs <= rect[2]))[None, :]
+    vs, us = np.nonzero(sel)
+    vals = cur[vs, us]
+    h, w = ref.shape
+    best = None
+    for dy in range(-ITEM_ALIGN_SEARCH, ITEM_ALIGN_SEARCH + 1):
+        for dx in range(-ITEM_ALIGN_SEARCH, ITEM_ALIGN_SEARCH + 1):
+            ry, rx = vs + dy, us + dx
+            ok = (ry >= 0) & (ry < h) & (rx >= 0) & (rx < w)
+            score = int((ref[ry[ok], rx[ok]] == vals[ok]).sum())
+            key = (score, -(abs(dx) + abs(dy)))
+            if best is None or key > best[0]:
+                best = (key, dx, dy)
+    return best[1], best[2], best[0][0], len(vals)
+
+
+def save_items(images, coords, sheet_scale, gabi_scale, body, frames):
     """Przedmioty: PNG, metadane dla gry, manifest katalogu i podgląd ×3 z podpisami (patrz opis modułu).
 
     Wpis z `"alignTo": klatka` (puste łóżko Gabi) dostaje `anchorX`/`foot` w układzie tej klatki — łóżko
-    przedmiotu pokrywa się z łóżkiem klatki narysowanej w tym samym punkcie (dopasowanie jak `align_sheet`)."""
+    przedmiotu pokrywa się z łóżkiem klatki narysowanej w tym samym punkcie (dopasowanie jak `align_sheet`).
+    Wpis z `"frameOf": przedmiot` — klatka stanu wyrównana do przedmiotu (`item_shift`, patrz opis modułu)."""
     ITEMS_DIR.mkdir(parents=True, exist_ok=True)
     meta, manifest, tiles = {}, [], []
     for name, spec in CFG.get('items', {}).items():
@@ -766,6 +825,18 @@ def save_items(images, sheet_scale, gabi_scale, body):
             dx, dy, score = best_shift(bed_classes(im), bed_classes(ref['im']))
             meta[name].update(anchorX=round(ref['anchorX'] - dx, 2), foot=ref['foot'] - dy)
             print(f'wyrównanie {name} -> {spec["alignTo"]}: dx={dx:+d} dy={dy:+d} zgodnych px łóżka={score}')
+        if 'frameOf' in spec:
+            base_name = spec['frameOf']
+            base = images[base_name][2]
+            state = spec.get('state', name.removeprefix(base_name + '_'))
+            if spec.get('overlay', True):
+                dx, dy, score, n = item_shift(im, coords[name], spec.get('alignRect'), base)
+                meta[name].update(anchorX=base.width / 2 - dx, foot=base.height - dy)
+                print(f'wyrównanie {name} -> {base_name}: dx={dx:+d} dy={dy:+d} zgodnych px={score}/{n}')
+            else:
+                (_, sy0, _, sy1), shape = largest_shape(im)
+                meta[name].update(anchorX=round(anchor_x(shape, sy0), 2), foot=int(sy1) + 1)
+            meta[name].update(frameOf=base_name, state=state, overlay=spec.get('overlay', True))
         if 'name' in spec:
             catalog = {k: spec[k] for k in ITEM_FIELDS}
             meta[name].update(catalog)
@@ -780,6 +851,90 @@ def save_items(images, sheet_scale, gabi_scale, body):
     ITEMS_MANIFEST.parent.mkdir(parents=True, exist_ok=True)
     ITEMS_MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
     save_items_preview(tiles, images['idle_front'][2], gabi_scale)
+    save_item_sheet_previews(images, meta, frames, body)
+
+
+def save_item_sheet_previews(images, meta, frames, body, f=3):
+    """Arkusze z `"itemPreview": nazwa` → tools/out/<nazwa>.png (patrz opis modułu). Rząd 1: `idle_front`, pozy
+    postaci z arkusza i przedmioty ×f·skala na wspólnej linii stóp. Kolejne rzędy — po jednym na przedmiot ze
+    stanami: każda klatka złożona w natywnych px w kotwicy przedmiotu (czerwony obrys przedmiotu na stanie,
+    niebieskie kreski: kotwica x i linia dolna), na końcu przenikanie wszystkich klatek serii; całe płótno
+    powiększane razem, więc wyrównanie widać bez błędów zaokrąglenia. Klatki `overlay: false` — osobno, ze stopami."""
+    for sname, sh in CFG.get('sheets', {}).items():
+        if 'itemPreview' not in sh:
+            continue
+        names = [n for n, (_, e, _) in images.items() if e['sheet'] == sname and n in meta]
+        poses = [n for n in CFG['body'] if body[n]['e']['sheet'] == sname]
+
+        def big(im, s):
+            return im.resize((max(1, round(im.width * f * s)), max(1, round(im.height * f * s))), Image.NEAREST)
+
+        def scale_of(n):
+            return meta[n].get('scale', 1)
+
+        # Rząd 1: wzorzec wielkości, pozy i przedmioty (bez stanów).
+        row1 = [(big(images['idle_front'][2], frames['idle_front']['scale']), 'idle_front')]
+        row1 += [(big(images[n][2], frames[n]['scale']), n) for n in poses]
+        row1 += [(big(images[n][2], scale_of(n)), n) for n in names if 'frameOf' not in meta[n]]
+        rows = [row1]
+        # Serie: przedmiot + jego stany wyrównane.
+        for base in names:
+            states = [n for n in names if meta[n].get('frameOf') == base and meta[n]['overlay']]
+            if not states:
+                continue
+            bm = meta[base]
+            seq = [(base, images[base][2], bm['w'] / 2, bm['h'])]
+            seq += [(n, images[n][2], meta[n]['anchorX'], meta[n]['foot']) for n in states]
+            left = max(int(np.floor(ax)) for _, _, ax, _ in seq) + 2
+            right = max(im.width - int(np.floor(ax)) for _, im, ax, _ in seq) + 2
+            top = max(ft for _, _, _, ft in seq) + 2
+            below = max(im.height - ft for _, im, _, ft in seq) + 2
+            outline = np.asarray(images[base][2])[:, :, 3] > 0
+            edge = outline & ~(np.pad(outline, 1)[2:, 1:-1] & np.pad(outline, 1)[:-2, 1:-1]
+                               & np.pad(outline, 1)[1:-1, 2:] & np.pad(outline, 1)[1:-1, :-2])
+            bx, by = left - int(np.floor(bm['w'] / 2)), top - bm['h']
+            s = f * bm.get('scale', 1)
+            row, layers = [], []
+            for i, (n, im, ax, ft) in enumerate(seq):
+                c = Image.new('RGBA', (left + right, top + below), (232, 232, 238, 255))
+                c.alpha_composite(im, (left - int(np.floor(ax)), top - ft))
+                layers.append(np.asarray(c).astype(float))
+                a = np.asarray(c).copy()
+                if i:
+                    ys, xs = np.nonzero(edge)
+                    a[ys + by, xs + bx] = (255, 40, 40, 255)
+                t = big(Image.fromarray(a), bm.get('scale', 1))
+                d = ImageDraw.Draw(t)
+                d.line([(left * s, 0), (left * s, t.height)], fill=(0, 160, 255, 255))
+                d.line([(0, top * s), (t.width, top * s)], fill=(0, 160, 255, 255))
+                row.append((t, n))
+            blend = Image.fromarray(np.mean(layers, axis=0).astype(np.uint8))
+            row.append((big(blend, bm.get('scale', 1)), f'{base}: przenikanie'))
+            rows.append(row)
+        # Klatki bez nakładania (inny rysunek niż przedmiot) — same, w skali gry.
+        loose = [(big(images[n][2], scale_of(n)), f'{n} (bez nakladania)')
+                 for n in names if 'frameOf' in meta[n] and not meta[n]['overlay']]
+        if loose:
+            rows.append(loose)
+        gap, label_h = 12, 14
+        tiles = []
+        for r in rows:
+            h = max(t.height for t, _ in r)
+            w = sum(max(t.width, len(n) * 6) + gap for t, n in r) + gap
+            out = Image.new('RGBA', (w, h + label_h + 2 * gap), (255, 255, 255, 255))
+            d = ImageDraw.Draw(out)
+            x = gap
+            for t, n in r:
+                out.alpha_composite(t, (x, gap + h - t.height))
+                d.text((x, gap + h + 2), n, fill=(0, 0, 0, 255))
+                x += max(t.width, len(n) * 6) + gap
+            tiles.append(out)
+        sheet_img = Image.new('RGBA', (max(t.width for t in tiles), sum(t.height for t in tiles)), (255, 255, 255, 255))
+        y = 0
+        for t in tiles:
+            sheet_img.alpha_composite(t, (0, y))
+            y += t.height
+        sheet_img.save(PREVIEW.parent / f'{sh["itemPreview"]}.png')
 
 
 def save_items_preview(tiles, gabi, gabi_scale, f=3, max_width=1800):
@@ -838,7 +993,7 @@ def collect():
             period = e['period']
             if e['keep'] == 'all':
                 # Wszystkie kształty w prostokącie (postać + efekty); ramka = cały prostokąt.
-                box, margin, min_blob, hole_tol = e['rect'], 0, 1, 15
+                box, margin, min_blob, hole_tol = e['rect'], 0, 1, e['holeTolAll']
             else:
                 box, margin, min_blob, hole_tol = tight_box(img, e['rect'], bg), period / 2, 12, e['holeTol']
             # Arkusz ma jedną siatkę pikseli dla całej postaci — próbkujemy ją wprost, bez przeskalowania.
@@ -859,6 +1014,9 @@ def collect():
                 mask[painted] = False
             for axis, centre in e['mirror']:
                 mirror_half(cells, mask, xs if axis == 'x' else ys, centre, axis == 'x')
+            if e['flipX']:
+                # Komórki zachowują swoje środki w px arkusza (xs maleje) — `alignRect` i `scaleRefCols` bez zmian.
+                cells, mask, xs = cells[:, ::-1], mask[:, ::-1], xs[::-1]
             raw[name] = (group, e, cells, mask, xs, ys)
             print(f'{name:12s} arkusz={e["sheet"]:6s} okres={period:.2f} komórki={cells.shape[1]}x{cells.shape[0]}')
     return raw
@@ -874,6 +1032,7 @@ def main():
     quantised = {name: (quantise(cells, palette[:e['colours']]), mask, xs, ys)
                  for name, (_, e, cells, mask, xs, ys) in raw.items()}
     images = {}
+    coords = {}
     retouched = []
     for name, (group, e, *_) in raw.items():
         idx, mask, xs, ys = quantised[name]
@@ -882,6 +1041,10 @@ def main():
             idx, mask = retouch(idx, mask, xs, ys, e, palette[:e['colours']], quantised)
             retouched.append((name, before, to_rgba(idx, mask, palette)))
         images[name] = (group, e, to_rgba(idx, mask, palette))
+        # Środki komórek obrazka (po przycięciu) w px arkusza — dla `alignRect` klatek stanów.
+        rows, cols = np.nonzero((~mask).any(axis=1))[0], np.nonzero((~mask).any(axis=0))[0]
+        coords[name] = (xs[cols[0]:cols[-1] + 1], ys[rows[0]:rows[-1] + 1])
+        assert images[name][2].size == (len(coords[name][0]), len(coords[name][1])), name
     save_bag_preview(retouched)
 
     # Największy kształt każdej klatki ciała: wysokość ciała, stopy, kotwica.
@@ -906,8 +1069,12 @@ def main():
         if 'scaleRef' not in sh:
             continue  # arkusz samych przedmiotów — skala z `scale` arkusza albo wpisu
         ref = sh['scaleRef']
-        sheet_scale[sname] = display_h / float(body[ref]['bodyH'])
-        print(f'arkusz {sname:7s} wzorzec={ref} wysokość ciała={body[ref]["bodyH"]} skala={sheet_scale[sname]:.3f}')
+        height = body[ref]['bodyH'] if ref in body else gabi_height(raw[ref], sh['scaleRefCols'])
+        sheet_scale[sname] = display_h / float(height)
+        print(f'arkusz {sname:7s} wzorzec={ref} wysokość ciała={height} skala={sheet_scale[sname]:.3f}')
+        for other, cols in sh.get('scaleCheck', {}).items():
+            h = gabi_height(raw[other], cols)
+            print(f'  kontrola {other}: wysokość Gabi={h} komórek -> {h * sheet_scale[sname]:.1f} px log.')
     for sname, sh in CFG.get('sheets', {}).items():
         if 'align' in sh:
             align_sheet(body, sname, sh['align'])
@@ -952,7 +1119,7 @@ def main():
     save_preview_new(preview_new)
     save_drag_x4([body[n]['im'] for n in ('drag_2', 'drag_3', 'drag_4', 'drag_5')])
     save_sheet_previews(body)
-    save_items(images, sheet_scale, frames['idle_front']['scale'], body)
+    save_items(images, coords, sheet_scale, frames['idle_front']['scale'], body, frames)
     print(f'Podgląd: {PREVIEW}, {PREVIEW_NEW}, {DRAG_X4}, {BED_ALIGNED}, {BAG_PREVIEW}, {ITEMS_PREVIEW}')
 
 
