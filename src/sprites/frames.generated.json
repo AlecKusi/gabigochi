@@ -1,110 +1,334 @@
 {
   "displayHeight": 56,
   "frames": {
+    "angry": {
+      "w": 27,
+      "h": 66,
+      "anchorX": 14.95,
+      "foot": 66,
+      "scale": 0.8889
+    },
+    "bed_1": {
+      "w": 90,
+      "h": 68,
+      "anchorX": 45.0,
+      "foot": 68,
+      "scale": 0.8889
+    },
+    "bed_2": {
+      "w": 74,
+      "h": 66,
+      "anchorX": 37.0,
+      "foot": 66,
+      "scale": 0.8889
+    },
+    "bed_3": {
+      "w": 89,
+      "h": 65,
+      "anchorX": 44.5,
+      "foot": 65,
+      "scale": 0.8889
+    },
+    "bed_3b": {
+      "w": 89,
+      "h": 65,
+      "anchorX": 44.5,
+      "foot": 65,
+      "scale": 0.8889
+    },
+    "bed_4": {
+      "w": 90,
+      "h": 66,
+      "anchorX": 45.0,
+      "foot": 66,
+      "scale": 0.8889
+    },
+    "bed_5": {
+      "w": 90,
+      "h": 69,
+      "anchorX": 45.0,
+      "foot": 69,
+      "scale": 0.8889
+    },
+    "crazy": {
+      "w": 26,
+      "h": 64,
+      "anchorX": 14.5,
+      "foot": 64,
+      "scale": 0.8889
+    },
+    "drag_1": {
+      "w": 23,
+      "h": 69,
+      "anchorX": 10.42,
+      "foot": 69,
+      "scale": 0.9032
+    },
+    "drag_2": {
+      "w": 47,
+      "h": 73,
+      "anchorX": 22.93,
+      "foot": 73,
+      "scale": 0.9032
+    },
+    "drag_3": {
+      "w": 54,
+      "h": 61,
+      "anchorX": 35.15,
+      "foot": 61,
+      "scale": 0.9032
+    },
+    "drag_4": {
+      "w": 67,
+      "h": 44,
+      "anchorX": 16.02,
+      "foot": 43,
+      "scale": 0.9032
+    },
+    "drag_5": {
+      "w": 50,
+      "h": 58,
+      "anchorX": 25.54,
+      "foot": 58,
+      "scale": 0.9032
+    },
     "fun_eat": {
       "w": 24,
       "h": 67,
       "anchorX": 11.37,
+      "foot": 67,
       "scale": 0.8358
     },
     "fun_talk": {
       "w": 36,
       "h": 67,
       "anchorX": 12.78,
+      "foot": 67,
       "scale": 0.8358
     },
     "fun_wave": {
       "w": 28,
       "h": 67,
       "anchorX": 16.02,
+      "foot": 67,
       "scale": 0.8358
+    },
+    "happy": {
+      "w": 39,
+      "h": 65,
+      "anchorX": 19.5,
+      "foot": 60,
+      "scale": 0.8889
+    },
+    "hunger_1": {
+      "w": 27,
+      "h": 65,
+      "anchorX": 11.15,
+      "foot": 65,
+      "scale": 0.8889
+    },
+    "hunger_2": {
+      "w": 28,
+      "h": 65,
+      "anchorX": 11.0,
+      "foot": 65,
+      "scale": 0.8889
+    },
+    "hunger_3": {
+      "w": 44,
+      "h": 78,
+      "anchorX": 10.08,
+      "foot": 78,
+      "scale": 0.8889
+    },
+    "hunger_4": {
+      "w": 26,
+      "h": 61,
+      "anchorX": 15.7,
+      "foot": 61,
+      "scale": 0.8889
+    },
+    "hunger_5": {
+      "w": 40,
+      "h": 42,
+      "anchorX": 21.97,
+      "foot": 42,
+      "scale": 0.8889
     },
     "idle_back": {
       "w": 22,
       "h": 54,
       "anchorX": 10.85,
+      "foot": 54,
       "scale": 1.037
     },
     "idle_front": {
       "w": 23,
       "h": 55,
       "anchorX": 11.08,
+      "foot": 55,
       "scale": 1.0182
     },
     "idle_side": {
       "w": 19,
       "h": 54,
       "anchorX": 8.07,
+      "foot": 54,
       "scale": 1.037
+    },
+    "sad_cry": {
+      "w": 25,
+      "h": 63,
+      "anchorX": 10.85,
+      "foot": 63,
+      "scale": 0.8889
+    },
+    "scared": {
+      "w": 29,
+      "h": 64,
+      "anchorX": 13.65,
+      "foot": 64,
+      "scale": 0.8889
+    },
+    "tired_1": {
+      "w": 28,
+      "h": 60,
+      "anchorX": 10.0,
+      "foot": 60,
+      "scale": 0.8889
+    },
+    "tired_2": {
+      "w": 24,
+      "h": 59,
+      "anchorX": 10.85,
+      "foot": 59,
+      "scale": 0.8889
+    },
+    "tired_3": {
+      "w": 31,
+      "h": 59,
+      "anchorX": 18.22,
+      "foot": 59,
+      "scale": 0.8889
+    },
+    "tired_4": {
+      "w": 26,
+      "h": 44,
+      "anchorX": 13.5,
+      "foot": 44,
+      "scale": 0.8889
+    },
+    "tired_5": {
+      "w": 35,
+      "h": 44,
+      "anchorX": 14.07,
+      "foot": 44,
+      "scale": 0.8889
     },
     "walk_a1": {
       "w": 20,
       "h": 42,
       "anchorX": 8.24,
+      "foot": 42,
       "scale": 1.3333
     },
     "walk_a2": {
       "w": 21,
       "h": 42,
       "anchorX": 10.35,
+      "foot": 42,
       "scale": 1.3333
     },
     "walk_a3": {
       "w": 21,
       "h": 42,
       "anchorX": 10.88,
+      "foot": 42,
       "scale": 1.3333
     },
     "walk_a4": {
       "w": 17,
       "h": 43,
       "anchorX": 8.88,
+      "foot": 43,
       "scale": 1.3333
     },
     "walk_a5": {
       "w": 21,
       "h": 43,
       "anchorX": 9.15,
+      "foot": 43,
       "scale": 1.3333
     },
     "walk_b1": {
       "w": 24,
       "h": 49,
       "anchorX": 11.96,
+      "foot": 49,
       "scale": 1.1429
     },
     "walk_b2": {
       "w": 22,
       "h": 48,
       "anchorX": 10.49,
+      "foot": 48,
       "scale": 1.1429
     },
     "walk_b3": {
       "w": 22,
       "h": 50,
       "anchorX": 10.7,
+      "foot": 50,
       "scale": 1.1429
     },
     "walk_b4": {
       "w": 20,
       "h": 49,
       "anchorX": 10.82,
+      "foot": 49,
       "scale": 1.1429
     },
     "walk_b5": {
       "w": 21,
       "h": 47,
       "anchorX": 10.32,
+      "foot": 47,
       "scale": 1.1429
     }
   },
   "body": [
+    "angry",
+    "bed_1",
+    "bed_2",
+    "bed_3",
+    "bed_3b",
+    "bed_4",
+    "bed_5",
+    "crazy",
+    "drag_1",
+    "drag_2",
+    "drag_3",
+    "drag_4",
+    "drag_5",
     "fun_eat",
     "fun_talk",
     "fun_wave",
+    "happy",
+    "hunger_1",
+    "hunger_2",
+    "hunger_3",
+    "hunger_4",
+    "hunger_5",
     "idle_back",
     "idle_front",
     "idle_side",
+    "sad_cry",
+    "scared",
+    "tired_1",
+    "tired_2",
+    "tired_3",
+    "tired_4",
+    "tired_5",
     "walk_a1",
     "walk_a2",
     "walk_a3",
@@ -124,6 +348,30 @@
     "portrait_b": [
       64,
       68
+    ],
+    "face_tired": [
+      22,
+      23
+    ],
+    "face_hungry": [
+      30,
+      28
+    ],
+    "face_crazy_1": [
+      12,
+      14
+    ],
+    "face_crazy_2": [
+      12,
+      14
+    ],
+    "face_crazy_3": [
+      12,
+      14
+    ],
+    "face_dizzy": [
+      41,
+      41
     ]
   }
 }

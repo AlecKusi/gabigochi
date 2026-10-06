@@ -1,7 +1,11 @@
-"""Wycina klatki postaci z arkusza i zapisuje czyste PNG w natywnej rozdzielczości (przycięte do obrysu).
+"""Wycina klatki postaci z arkuszy i zapisuje czyste PNG w natywnej rozdzielczości (przycięte do obrysu).
 
-Użycie: tools/.venv/Scripts/python tools/extract_sprites.py
+Użycie: /c/gvenv/Scripts/python tools/extract_sprites.py
 Konfiguracja: tools/frames.json
+
+Arkusze: domyślny `main` (pola `sheet`, `background`, `gridPeriod` na górze pliku) oraz sekcja `sheets`.
+Wpis klatki: [x0,y0,x1,y1] (arkusz main) albo {"sheet": nazwa, "rect": [...], "erase": [...]}.
+`erase` — prostokąty [x0,y0,x1,y1] albo wielokąty [[x,y],...] w px arkusza, wymazywane do przezroczystości.
 """
 import json
 import re
@@ -16,6 +20,8 @@ CFG = json.loads((ROOT / 'tools' / 'frames.json').read_text(encoding='utf-8'))
 OUT_DIR = ROOT / 'public' / 'sprites'
 META_PATH = ROOT / 'src' / 'sprites' / 'frames.generated.json'
 PREVIEW = ROOT / 'tools' / 'out' / 'preview.png'
+PREVIEW_NEW = ROOT / 'tools' / 'out' / 'preview_new.png'
+DRAG_X4 = ROOT / 'tools' / 'out' / 'drag_x4.png'
 NEIGH4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 NEIGH8 = tuple((dy, dx) for dy in (-1, 0, 1) for dx in (-1, 0, 1) if dy or dx)
 _sheets = {}
@@ -27,11 +33,23 @@ def sheet(path):
     return _sheets[path]
 
 
-def entry(spec):
-    """Wpis klatki: [x0,y0,x1,y1] albo {"sheet":..., "rect":[...], "background":[r,g,b]}."""
+def entry(spec, group):
+    """Wpis klatki jako słownik: path, rect, background, period, keep, erase, sheet, anchor."""
     if isinstance(spec, list):
-        return CFG['sheet'], spec, CFG['background']
-    return spec.get('sheet', CFG['sheet']), spec['rect'], spec.get('background', CFG['background'])
+        spec = {'rect': spec}
+    name = spec.get('sheet', 'main')
+    sh = CFG.get('sheets', {}).get(name, {})
+    default_period = CFG['gridPeriod'] if group == 'body' else CFG['portraitPeriod']
+    return {
+        'path': sh.get('path', CFG['sheet']),
+        'rect': spec['rect'],
+        'background': spec.get('background', sh.get('background', CFG['background'])),
+        'period': sh.get('gridPeriod', default_period),
+        'keep': sh.get('keep', 'largest'),
+        'erase': spec.get('erase', []),
+        'sheet': name,
+        'anchor': sh.get('anchor', 'head'),
+    }
 
 
 def components(mask, neigh):
@@ -100,34 +118,73 @@ def sample(img, box, period):
     return out, xs, ys
 
 
-def outside_box(xs, ys, box, period):
-    """Maska komórek, których środek leży poza ramką obiektu powiększoną o pół okresu."""
+def outside_box(xs, ys, box, margin):
+    """Maska komórek, których środek leży poza ramką obiektu powiększoną o margines."""
     x0, y0, x1, y1 = box
-    margin = period / 2
     out_x = (xs < x0 - margin) | (xs > x1 + margin)
     out_y = (ys < y0 - margin) | (ys > y1 + margin)
     return out_y[:, None] | out_x[None, :]
 
 
-def background_mask(cells, bg):
-    near = np.abs(cells - bg).sum(axis=2) < 30
+def in_erase(x, y, shapes):
+    for s in shapes:
+        if len(s) == 4 and all(isinstance(v, (int, float)) for v in s):
+            if s[0] <= x <= s[2] and s[1] <= y <= s[3]:
+                return True
+        else:
+            inside = False
+            for (x1, y1), (x2, y2) in zip(s, s[1:] + s[:1]):
+                if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1:
+                    inside = not inside
+            if inside:
+                return True
+    return False
+
+
+def erase_mask(xs, ys, shapes):
+    """Maska komórek, których środek leży w którymś kształcie z `erase`."""
+    mask = np.zeros((len(ys), len(xs)), bool)
+    if shapes:
+        for j, y in enumerate(ys):
+            for i, x in enumerate(xs):
+                mask[j, i] = in_erase(x, y, shapes)
+    return mask
+
+
+def background_mask(cells, bg, min_blob=12, hole_tol=None):
+    """Tło: komórki bliskie tłu spójne z brzegiem albo dziury >= 6 komórek.
+
+    `hole_tol`: dziura (nie przy brzegu) jest tłem tylko, gdy jej średnia różnica od tła < hole_tol —
+    jasne refleksy włosów i koszuli nocnej są blisko tła, ale wyraźnie mniej jednolite niż prawdziwe tło.
+    """
+    diff = np.abs(cells - bg).sum(axis=2)
+    near = diff < 30
     h, w = near.shape
     mask = np.zeros((h, w), bool)
     for comp in components(near, NEIGH4):
         touches_edge = any(y in (0, h - 1) or x in (0, w - 1) for y, x in comp)
-        if touches_edge or len(comp) >= 6:
+        is_hole = len(comp) >= 6 and (hole_tol is None or np.mean([diff[p] for p in comp]) < hole_tol)
+        if touches_edge or is_hole:
             for p in comp:
                 mask[p] = True
     for comp in components(~mask, NEIGH8):
-        if len(comp) < 12:
+        if len(comp) < min_blob:
             for p in comp:
                 mask[p] = True
     return mask
 
 
 def kmeans(px, k, iters=15):
-    rng = np.random.default_rng(1)
-    centers = px[rng.choice(len(px), k, replace=False)].copy()
+    # Start: najdalsze punkty (k-means++ bez losowania) — rzadkie, wyraźne kolory efektów
+    # (niebieskie łzy, czerwony znak złości, zielone kreski) dostają własne środki.
+    uniq = np.unique(px.round(), axis=0)
+    centers = [px.mean(axis=0)]
+    dist = ((uniq - centers[0]) ** 2).sum(axis=1)
+    for _ in range(k - 1):
+        c = uniq[dist.argmax()]
+        centers.append(c)
+        dist = np.minimum(dist, ((uniq - c) ** 2).sum(axis=1))
+    centers = np.array(centers, float)
     for _ in range(iters):
         labels = ((px[:, None] - centers[None]) ** 2).sum(axis=2).argmin(axis=1)
         for i in range(k):
@@ -145,11 +202,47 @@ def to_rgba(cells, mask, palette):
     return img.crop(img.getbbox())
 
 
-def anchor_x(img):
-    """Środek czubka głowy (pierwsze wiersze) — stabilny punkt między klatkami."""
-    alpha = np.asarray(img)[:CFG['anchorRows'], :, 3]
-    xs = np.nonzero(alpha)[1]
-    return float(xs.mean()) if len(xs) else img.width / 2
+def largest_shape(img):
+    """Największy 8-spójny nieprzezroczysty kształt: (x0, y0, x1, y1) włącznie, maska."""
+    alpha = np.asarray(img)[:, :, 3] > 0
+    best = max(components(alpha, NEIGH8), key=len)
+    shape = np.zeros_like(alpha)
+    for p in best:
+        shape[p] = True
+    ys, xs = np.nonzero(shape)
+    return (xs.min(), ys.min(), xs.max(), ys.max()), shape
+
+
+def anchor_x(shape, top):
+    """Środek czubka głowy (pierwsze wiersze największego kształtu) — stabilny punkt między klatkami."""
+    xs = np.nonzero(shape[top:top + CFG['anchorRows']])[1]
+    return float(xs.mean()) if len(xs) else shape.shape[1] / 2
+
+
+def compose(items, foot_line=False, checker=False):
+    """Klatki obok siebie na wspólnej linii (dół obrazka albo `foot`)."""
+    gap = 10
+    width = sum(im.width + gap for im, _ in items) + gap
+    above = max(foot for _, foot in items)
+    below = max(im.height - foot for im, foot in items)
+    out = Image.new('RGBA', (width, above + below + 2 * gap), (255, 255, 255, 255))
+    if checker:
+        cell = 8
+        arr = np.asarray(out).copy()
+        yy, xx = np.mgrid[0:out.height, 0:out.width]
+        dark = ((yy // cell + xx // cell) % 2).astype(bool)
+        arr[dark, :3] = 200
+        arr[~dark, :3] = 235
+        out = Image.fromarray(arr, 'RGBA')
+    x = gap
+    for im, foot in items:
+        out.alpha_composite(im, (x, gap + above - foot))
+        if foot_line:
+            for xx in range(x, x + im.width):
+                if not im.getpixel((xx - x, min(foot, im.height - 1)))[3]:
+                    out.putpixel((xx, gap + above), (255, 0, 0, 255))
+        x += im.width + gap
+    return out
 
 
 def save_preview(items):
@@ -158,15 +251,29 @@ def save_preview(items):
     scaled = []
     for im, scale in items:
         f = max(1, int(round(3 * scale)))
-        scaled.append(im.resize((im.width * f, im.height * f), Image.NEAREST))
-    width = sum(im.width + 10 for im in scaled) + 10
-    top = max(im.height for im in scaled)
-    sheet_img = Image.new('RGBA', (width, top + 20), (255, 255, 255, 255))
-    x = 10
-    for im in scaled:
-        sheet_img.alpha_composite(im, (x, 10 + top - im.height))
-        x += im.width + 10
-    sheet_img.save(PREVIEW)
+        big = im.resize((im.width * f, im.height * f), Image.NEAREST)
+        scaled.append((big, big.height))
+    compose(scaled).save(PREVIEW)
+
+
+def save_preview_new(items):
+    """Nowe klatki ×3·skala (min. 1) na wspólnej linii stóp (`foot`, czerwona kreska)."""
+    scaled = []
+    for im, scale, foot in items:
+        f = max(1, int(round(3 * scale)))
+        scaled.append((im.resize((im.width * f, im.height * f), Image.NEAREST), foot * f))
+    # Dwa rzędy, żeby obraz nie był bardzo szeroki.
+    half = (len(scaled) + 1) // 2
+    rows = [compose(scaled[:half], foot_line=True), compose(scaled[half:], foot_line=True)]
+    out = Image.new('RGBA', (max(r.width for r in rows), sum(r.height for r in rows)), (255, 255, 255, 255))
+    out.alpha_composite(rows[0], (0, 0))
+    out.alpha_composite(rows[1], (0, rows[0].height))
+    out.save(PREVIEW_NEW)
+
+
+def save_drag_x4(images):
+    items = [(im.resize((im.width * 4, im.height * 4), Image.NEAREST), im.height * 4) for im in images]
+    compose(items, checker=True).save(DRAG_X4)
 
 
 def group_of(name):
@@ -178,52 +285,87 @@ def main():
     raw = {}
     for group in ('body', 'portraits'):
         for name, spec in CFG[group].items():
-            path, rect, bg = entry(spec)
-            img = sheet(path)
-            bg = np.array(bg, float)
-            box = tight_box(img, rect, bg)
+            e = entry(spec, group)
+            img = sheet(e['path'])
+            bg = np.array(e['background'], float)
+            period = e['period']
+            if e['keep'] == 'all':
+                # Wszystkie kształty w prostokącie (postać + efekty); ramka = cały prostokąt.
+                box, margin, min_blob, hole_tol = e['rect'], 0, 1, 15
+            else:
+                box, margin, min_blob, hole_tol = tight_box(img, e['rect'], bg), period / 2, 12, None
             # Arkusz ma jedną siatkę pikseli dla całej postaci — próbkujemy ją wprost, bez przeskalowania.
-            period = CFG['gridPeriod'] if group == 'body' else CFG['portraitPeriod']
             cells, xs, ys = sample(img, box, period)
-            mask = background_mask(cells, bg) | outside_box(xs, ys, box, period)
-            raw[name] = (group, cells, mask)
-            print(f'{name:12s} okres={period:.2f} komórki={cells.shape[1]}x{cells.shape[0]}')
+            erased = erase_mask(xs, ys, e['erase'])
+            cells[erased] = bg
+            mask = background_mask(cells, bg, min_blob, hole_tol) |outside_box(xs, ys, box, margin) | erased
+            raw[name] = (group, e, cells, mask)
+            print(f'{name:12s} arkusz={e["sheet"]:6s} okres={period:.2f} komórki={cells.shape[1]}x{cells.shape[0]}')
 
-    pixels = np.concatenate([c[~m] for _, c, m in raw.values()])
+    pixels = np.concatenate([c[~m] for _, _, c, m in raw.values()])
     palette = kmeans(pixels, CFG['paletteSize'])
-    images = {name: (group, to_rgba(c, m, palette)) for name, (group, c, m) in raw.items()}
+    images = {name: (group, e, to_rgba(c, m, palette)) for name, (group, e, c, m) in raw.items()}
 
-    body = {n: im for n, (g, im) in images.items() if g == 'body'}
+    # Największy kształt każdej klatki ciała: wysokość ciała, stopy, kotwica.
+    body = {}
+    for name, (group, e, im) in images.items():
+        if group != 'body':
+            continue
+        (sx0, sy0, sx1, sy1), shape = largest_shape(im)
+        ax = im.width / 2 if e['anchor'] == 'center' else anchor_x(shape, sy0)
+        body[name] = {'im': im, 'e': e, 'bodyH': sy1 - sy0 + 1, 'foot': int(sy1) + 1, 'anchorX': ax}
+
     display_h = CFG['displayHeight']
     heights = {}
-    for name, im in body.items():
-        heights.setdefault(group_of(name), []).append(im.height)
+    for name, b in body.items():
+        if b['e']['sheet'] == 'main':
+            heights.setdefault(group_of(name), []).append(b['bodyH'])
     group_scale = {g: display_h / float(np.median(hs)) for g, hs in heights.items()}
     for g in sorted(heights):
         print(f'grupa {g:11s} mediana wysokości={float(np.median(heights[g])):.1f} skala={group_scale[g]:.3f}')
+    sheet_scale = {}
+    for sname, sh in CFG.get('sheets', {}).items():
+        ref = sh['scaleRef']
+        sheet_scale[sname] = display_h / float(body[ref]['bodyH'])
+        print(f'arkusz {sname:7s} wzorzec={ref} wysokość ciała={body[ref]["bodyH"]} skala={sheet_scale[sname]:.3f}')
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     frames = {}
     preview = []
+    preview_new = []
     for name in sorted(body):
-        im = body[name]
-        scale = group_scale[group_of(name)]
+        b = body[name]
+        im, sname = b['im'], b['e']['sheet']
+        scale = group_scale[group_of(name)] if sname == 'main' else sheet_scale[sname]
         im.save(OUT_DIR / f'{name}.png')
-        frames[name] = {'w': im.width, 'h': im.height, 'anchorX': round(anchor_x(im), 2), 'scale': round(scale, 4)}
-        preview.append((im, scale))
+        frames[name] = {'w': im.width, 'h': im.height, 'anchorX': round(b['anchorX'], 2),
+                        'foot': b['foot'], 'scale': round(scale, 4)}
+        if sname == 'main':
+            preview.append((im, scale))
+        print(f'{name:12s} {im.width:3d}x{im.height:3d} ciało={b["bodyH"]:3d} stopy={b["foot"]:3d} skala={scale:.3f}')
+
+    for name in CFG['body']:
+        b = body[name]
+        if b['e']['sheet'] != 'main':
+            preview_new.append((b['im'], frames[name]['scale'], b['foot']))
 
     portraits = {}
-    for name, (group, im) in images.items():
+    for name, (group, e, im) in images.items():
         if group == 'portraits':
             im.save(OUT_DIR / f'{name}.png')
             portraits[name] = [im.width, im.height]
-            preview.append((im, 1.0))
+            if e['sheet'] == 'main':
+                preview.append((im, 1.0))
+            else:
+                preview_new.append((im, 1.0, im.height))
 
     META_PATH.parent.mkdir(parents=True, exist_ok=True)
     meta = {'displayHeight': display_h, 'frames': frames, 'body': sorted(body), 'portraits': portraits}
     META_PATH.write_text(json.dumps(meta, indent=2) + '\n', encoding='utf-8')
     save_preview(preview)
-    print(f'Podgląd: {PREVIEW}')
+    save_preview_new(preview_new)
+    save_drag_x4([body[n]['im'] for n in ('drag_2', 'drag_3', 'drag_4', 'drag_5')])
+    print(f'Podgląd: {PREVIEW}, {PREVIEW_NEW}, {DRAG_X4}')
 
 
 if __name__ == '__main__':
