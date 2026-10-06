@@ -34,7 +34,10 @@ const HEAD_Y = FEET_Y - DISPLAY_HEIGHT;
 const HIT_HALF_W = 12;
 /** Od tej energii Gabi nie chce spać (inaczej tick od razu by ją obudził). */
 const NOT_SLEEPY_ENERGY = 95;
-/** Łóżko stoi na środku pokoju; klatki `bed_*` mają kotwicę w środku obrazka. */
+/**
+ * Łóżko stoi na środku pokoju. Kotwica `bed_4` to środek obrazka; pozostałe klatki `bed_*` mają `anchorX`/`foot`
+ * przesunięte przez tools/extract_sprites.py (`align`), więc łóżko i szafka nie skaczą między klatkami.
+ */
 const BED = { x: 64, feetY: FEET_Y + 2, halfW: 40, h: 60 } as const;
 /** Klatka `wake` przed wstaniem z łóżka. */
 const WAKE_MS = 1000;

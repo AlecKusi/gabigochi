@@ -4,7 +4,7 @@
   "eat": { "frames": ["fun_eat", "idle_front"], "fps": 2.5 },
   "wave": { "frames": ["fun_wave"], "fps": 1 },
   "talk": { "frames": ["fun_talk"], "fps": 1 },
-  "sleep": { "intro": ["bed_1", "bed_2", "bed_3"], "introFps": 0.8, "frames": ["bed_4", "bed_5"], "fps": 0.8 },
+  "sleep": { "intro": ["bed_1", "bed_3"], "introFps": 0.7, "frames": ["bed_4", "bed_4z"], "fps": 1.2 },
   "wake": { "frames": ["bed_1"], "fps": 1 },
   "sad": { "frames": ["sad_cry"], "fps": 1 },
   "hungry": { "frames": ["hunger_1", "hunger_2", "hunger_3"], "fps": 0.4 },

@@ -11,28 +11,14 @@
     "bed_1": {
       "w": 90,
       "h": 68,
-      "anchorX": 45.0,
-      "foot": 68,
-      "scale": 0.8889
-    },
-    "bed_2": {
-      "w": 74,
-      "h": 66,
-      "anchorX": 37.0,
-      "foot": 66,
+      "anchorX": 47.0,
+      "foot": 67,
       "scale": 0.8889
     },
     "bed_3": {
       "w": 89,
       "h": 65,
-      "anchorX": 44.5,
-      "foot": 65,
-      "scale": 0.8889
-    },
-    "bed_3b": {
-      "w": 89,
-      "h": 65,
-      "anchorX": 44.5,
+      "anchorX": 44.0,
       "foot": 65,
       "scale": 0.8889
     },
@@ -43,11 +29,11 @@
       "foot": 66,
       "scale": 0.8889
     },
-    "bed_5": {
+    "bed_4z": {
       "w": 90,
-      "h": 69,
+      "h": 66,
       "anchorX": 45.0,
-      "foot": 69,
+      "foot": 66,
       "scale": 0.8889
     },
     "crazy": {
@@ -299,11 +285,9 @@
   "body": [
     "angry",
     "bed_1",
-    "bed_2",
     "bed_3",
-    "bed_3b",
     "bed_4",
-    "bed_5",
+    "bed_4z",
     "crazy",
     "drag_1",
     "drag_2",

@@ -6,14 +6,21 @@ Konfiguracja: tools/frames.json
 Arkusze: domyślny `main` (pola `sheet`, `background`, `gridPeriod` na górze pliku) oraz sekcja `sheets`.
 Wpis klatki: [x0,y0,x1,y1] (arkusz main) albo {"sheet": nazwa, "rect": [...], "erase": [...]}.
 `erase` — prostokąty [x0,y0,x1,y1] albo wielokąty [[x,y],...] w px arkusza, wymazywane do przezroczystości.
+`paint` — [[x0,y0,x1,y1,[r,g,b]], ...]: komórki ze środkiem w prostokącie (px arkusza) dostają ten kolor
+          (po dopasowaniu do palety) i są nieprzezroczyste — drobne poprawki po wymazaniu (np. odsłonięta noga łóżka).
+`like` — nazwa innej klatki: przejmuje jej wpis (rect, erase, paint), a własne `erase`/`paint` dopisuje na końcu.
+
+Arkusz z `"align": wzorzec` — po wycięciu każda klatka arkusza jest przesuwana (całkowite px natywne) tak,
+żeby jej łóżko pokryło się z łóżkiem wzorca; przesunięcie trafia do `anchorX`/`foot` (patrz `align_sheet`).
 """
+import colorsys
 import json
 import re
 from collections import deque
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
 CFG = json.loads((ROOT / 'tools' / 'frames.json').read_text(encoding='utf-8'))
@@ -22,6 +29,8 @@ META_PATH = ROOT / 'src' / 'sprites' / 'frames.generated.json'
 PREVIEW = ROOT / 'tools' / 'out' / 'preview.png'
 PREVIEW_NEW = ROOT / 'tools' / 'out' / 'preview_new.png'
 DRAG_X4 = ROOT / 'tools' / 'out' / 'drag_x4.png'
+BED_ALIGNED = ROOT / 'tools' / 'out' / 'bed_aligned.png'
+ALIGN_SEARCH = 20
 NEIGH4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 NEIGH8 = tuple((dy, dx) for dy in (-1, 0, 1) for dx in (-1, 0, 1) if dy or dx)
 _sheets = {}
@@ -37,6 +46,11 @@ def entry(spec, group):
     """Wpis klatki jako słownik: path, rect, background, period, keep, erase, sheet, anchor."""
     if isinstance(spec, list):
         spec = {'rect': spec}
+    if 'like' in spec:
+        base = CFG[group][spec['like']]
+        spec = {**base, **spec,
+                'erase': base.get('erase', []) + spec.get('erase', []),
+                'paint': base.get('paint', []) + spec.get('paint', [])}
     name = spec.get('sheet', 'main')
     sh = CFG.get('sheets', {}).get(name, {})
     default_period = CFG['gridPeriod'] if group == 'body' else CFG['portraitPeriod']
@@ -47,6 +61,7 @@ def entry(spec, group):
         'period': sh.get('gridPeriod', default_period),
         'keep': sh.get('keep', 'largest'),
         'erase': spec.get('erase', []),
+        'paint': spec.get('paint', []),
         'sheet': name,
         'anchor': sh.get('anchor', 'head'),
     }
@@ -276,6 +291,110 @@ def save_drag_x4(images):
     compose(items, checker=True).save(DRAG_X4)
 
 
+def bed_classes(im):
+    """Mapa klas pikseli łóżka: 1 = drewno (brązy ramy, wezgłowia, szafki), 2 = beż materaca/kołdry, 0 = reszta.
+
+    Progi z palety: ciepły odcień (≤40° albo ≥330°); beż — mało nasycony i jasny; drewno — nasycone i ciemne
+    (skóra ma ten sam odcień, ale jest dużo jaśniejsza; włosy, koszula i kot są fioletowe/szare/czarne).
+    """
+    arr = np.asarray(im)
+    out = np.zeros(arr.shape[:2], int)
+    opaque = arr[:, :, 3] > 0
+    for color in np.unique(arr[opaque][:, :3], axis=0):
+        hue, sat, val = colorsys.rgb_to_hsv(*(color / 255.0))
+        warm = hue * 360 <= 40 or hue * 360 >= 330
+        cls = 2 if warm and sat < 0.22 and val >= 0.6 else 1 if warm and sat >= 0.35 and 0.25 <= val <= 0.65 else 0
+        if cls:
+            out[opaque & (arr[:, :, :3] == color).all(axis=2)] = cls
+    return out
+
+
+def best_shift(cls, ref_cls):
+    """Całkowite (dx, dy) w ±ALIGN_SEARCH: piksel klatki (u,v) → wzorzec (u+dx, v+dy) z największą liczbą
+    pikseli łóżka tej samej klasy; przy remisie mniejsze przesunięcie."""
+    ys, xs = np.nonzero(cls)
+    vals = cls[ys, xs]
+    h, w = ref_cls.shape
+    best = None
+    for dy in range(-ALIGN_SEARCH, ALIGN_SEARCH + 1):
+        for dx in range(-ALIGN_SEARCH, ALIGN_SEARCH + 1):
+            ry, rx = ys + dy, xs + dx
+            ok = (ry >= 0) & (ry < h) & (rx >= 0) & (rx < w)
+            score = int((ref_cls[ry[ok], rx[ok]] == vals[ok]).sum())
+            key = (score, -(abs(dx) + abs(dy)))
+            if best is None or key > best[0]:
+                best = (key, dx, dy)
+    return best[1], best[2], best[0][0]
+
+
+def align_sheet(body, sname, ref_name):
+    """Wyrównuje łóżka klatek arkusza do wzorca: anchorX = wzorzec.anchorX − dx, foot = wzorzec.foot − dy."""
+    ref = body[ref_name]
+    ref_cls = bed_classes(ref['im'])
+    names = [n for n in CFG['body'] if body[n]['e']['sheet'] == sname]
+    for name in names:
+        b = body[name]
+        dx, dy, score = best_shift(bed_classes(b['im']), ref_cls)
+        b['shift'] = (dx, dy)
+        b['anchorX'] = ref['anchorX'] - dx
+        b['foot'] = ref['foot'] - dy
+        print(f'wyrównanie {name:8s} -> {ref_name}: dx={dx:+d} dy={dy:+d} zgodnych px łóżka={score}')
+    save_bed_aligned([(n, body[n]) for n in names], ref)
+
+
+def save_bed_aligned(items, ref, f=4, pad=4):
+    """Podgląd wyrównania ×f: rząd 1 — każda klatka z obrysem wzorca (czerwony), rząd 2 — same klatki
+    ze stałymi liniami pomocniczymi (stopy, kotwica, lewy i górny brzeg wzorca), rząd 3 — przenikanie wszystkich."""
+    ra = np.asarray(ref['im'])
+    outline = (ra[:, :, 3] > 0) & (ra[:, :, :3].astype(int).sum(axis=2) < 60)
+    x0 = min(0, *(b['shift'][0] for _, b in items))
+    y0 = min(0, *(b['shift'][1] for _, b in items))
+    x1 = max(ref['im'].width, *(b['shift'][0] + b['im'].width for _, b in items))
+    y1 = max(ref['im'].height, *(b['shift'][1] + b['im'].height for _, b in items))
+    cw, ch = x1 - x0 + 2 * pad, y1 - y0 + 2 * pad
+    ox, oy = pad - x0, pad - y0  # położenie (0,0) wzorca na płótnie
+
+    def placed(b):
+        c = Image.new('RGBA', (cw, ch), (70, 110, 80, 255))
+        c.alpha_composite(b['im'], (ox + b['shift'][0], oy + b['shift'][1]))
+        return c
+
+    def big(c):
+        return c.resize((c.width * f, c.height * f), Image.NEAREST)
+
+    ref_cols = np.nonzero(ra[:, :, 3].any(axis=0))[0]
+    ref_rows = np.nonzero(ra[:, :, 3].any(axis=1))[0]
+    row1, row2 = [], []
+    for _, b in items:
+        a = np.asarray(placed(b)).copy()
+        ys, xs = np.nonzero(outline)
+        a[ys + oy, xs + ox] = (255, 40, 40, 255)
+        row1.append(big(Image.fromarray(a)))
+        g = big(placed(b))
+        d = ImageDraw.Draw(g)
+        for x in (ox + ref_cols[0], ox + int(round(ref['anchorX'])), ox + ref_cols[-1] + 1):
+            d.line([(x * f, 0), (x * f, g.height)], fill=(0, 230, 255, 255))
+        for y in (oy + ref_rows[0], oy + ref['foot']):
+            d.line([(0, y * f), (g.width, y * f)], fill=(0, 230, 255, 255))
+        row2.append(g)
+    blend = np.mean([np.asarray(placed(b)).astype(float) for _, b in items], axis=0).astype(np.uint8)
+    row3 = [big(Image.fromarray(blend))]
+    gap = 8
+    rows = [row1, row2, row3]
+    width = max(sum(t.width + gap for t in r) for r in rows) + gap
+    height = sum(r[0].height + gap for r in rows) + gap
+    out = Image.new('RGBA', (width, height), (255, 255, 255, 255))
+    y = gap
+    for r in rows:
+        x = gap
+        for t in r:
+            out.alpha_composite(t, (x, y))
+            x += t.width + gap
+        y += r[0].height + gap
+    BED_ALIGNED.parent.mkdir(parents=True, exist_ok=True)
+    out.save(BED_ALIGNED)
+
+
 def group_of(name):
     """Grupa klatek: nazwa bez końcowych cyfr (walk_a1 → walk_a)."""
     return re.sub(r'\d+$', '', name)
@@ -298,7 +417,11 @@ def main():
             cells, xs, ys = sample(img, box, period)
             erased = erase_mask(xs, ys, e['erase'])
             cells[erased] = bg
-            mask = background_mask(cells, bg, min_blob, hole_tol) |outside_box(xs, ys, box, margin) | erased
+            mask = background_mask(cells, bg, min_blob, hole_tol) | outside_box(xs, ys, box, margin) | erased
+            for *rect, color in e['paint']:
+                painted = erase_mask(xs, ys, [rect])
+                cells[painted] = color
+                mask[painted] = False
             raw[name] = (group, e, cells, mask)
             print(f'{name:12s} arkusz={e["sheet"]:6s} okres={period:.2f} komórki={cells.shape[1]}x{cells.shape[0]}')
 
@@ -328,6 +451,9 @@ def main():
         ref = sh['scaleRef']
         sheet_scale[sname] = display_h / float(body[ref]['bodyH'])
         print(f'arkusz {sname:7s} wzorzec={ref} wysokość ciała={body[ref]["bodyH"]} skala={sheet_scale[sname]:.3f}')
+    for sname, sh in CFG.get('sheets', {}).items():
+        if 'align' in sh:
+            align_sheet(body, sname, sh['align'])
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     frames = {}
@@ -365,7 +491,7 @@ def main():
     save_preview(preview)
     save_preview_new(preview_new)
     save_drag_x4([body[n]['im'] for n in ('drag_2', 'drag_3', 'drag_4', 'drag_5')])
-    print(f'Podgląd: {PREVIEW}, {PREVIEW_NEW}, {DRAG_X4}')
+    print(f'Podgląd: {PREVIEW}, {PREVIEW_NEW}, {DRAG_X4}, {BED_ALIGNED}')
 
 
 if __name__ == '__main__':
