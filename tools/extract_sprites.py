@@ -21,13 +21,19 @@ Retusz (po kwantyzacji do palety, w komórkach natywnych; kształty jak w `erase
          klatki z tego samego arkusza, przeniesione tak, że lewy górny róg prostokąta trafia w `to` — np. nadruk
          koszulki, przez który szedł pasek, odtworzony z klatki bez paska.
 `fix`  — [[x0,y0,x1,y1,[r,g,b] | null], ...]: ręczne poprawki po retuszu (kolor z palety albo przezroczystość).
+`shadow` — obszary cienia na podłodze narysowanego w arkuszu: znika szara plama wokół butów (`remove_shadow`).
 Podgląd przed/po: tools/out/bag_before_after.png.
 
 Paleta (k-means wszystkich klatek) jest zamrożona w tools/palette.json — usunięcie albo dodanie klatki nie
-przebarwia pozostałych. `--palette` liczy ją od nowa z bieżących klatek.
+przebarwia pozostałych. `--palette` liczy ją od nowa z bieżących klatek. Klatka kwantyzuje się do pierwszych
+`paletteColours` kolorów (pole arkusza; domyślnie `paletteSize`). `--extend-palette K ARKUSZ...` dopisuje K kolorów
+dla nowych arkuszy (patrz `extend_palette`) — starsze klatki ich nie widzą, więc ich PNG się nie zmieniają.
 
+Kotwica x: `anchor` arkusza albo wpisu — "head" (środek czubka głowy) albo "center" (środek obrazka, sceny).
 Arkusz z `"align": wzorzec` — po wycięciu każda klatka arkusza jest przesuwana (całkowite px natywne) tak,
 żeby jej łóżko pokryło się z łóżkiem wzorca; przesunięcie trafia do `anchorX`/`foot` (patrz `align_sheet`).
+Wpis z `"alignBottom": [wzorzec, wiersze]` — klatka pętli wyrównana w poziomie do wzorca po butach / nogach
+stołka (patrz `align_bottom`). Arkusz z `"preview": nazwa` — podgląd ×4 swoich klatek w tools/out/<nazwa>.png.
 """
 import colorsys
 import json
@@ -49,9 +55,10 @@ DRAG_X4 = ROOT / 'tools' / 'out' / 'drag_x4.png'
 BED_ALIGNED = ROOT / 'tools' / 'out' / 'bed_aligned.png'
 BAG_PREVIEW = ROOT / 'tools' / 'out' / 'bag_before_after.png'
 PALETTE_PATH = ROOT / 'tools' / 'palette.json'
-RETOUCH_KEYS = ('bag', 'wipe', 'cut', 'copy', 'fix')
+RETOUCH_KEYS = ('bag', 'wipe', 'cut', 'copy', 'fix', 'shadow')
 LIST_KEYS = ('erase', 'paint') + RETOUCH_KEYS
 ALIGN_SEARCH = 20
+SHADOW_BARRIER_VAL = 0.22
 NEIGH4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 NEIGH8 = tuple((dy, dx) for dy in (-1, 0, 1) for dx in (-1, 0, 1) if dy or dx)
 _sheets = {}
@@ -80,7 +87,9 @@ def entry(spec, group):
         'period': sh.get('gridPeriod', default_period),
         'keep': sh.get('keep', 'largest'),
         'sheet': name,
-        'anchor': sh.get('anchor', 'head'),
+        'anchor': spec.get('anchor', sh.get('anchor', 'head')),
+        'colours': sh.get('paletteColours', CFG['paletteSize']),
+        'alignBottom': spec.get('alignBottom'),
         **{k: spec.get(k, []) for k in LIST_KEYS},
     }
 
@@ -227,15 +236,60 @@ def kmeans(px, k, iters=15):
     return centers
 
 
+def save_palette(palette):
+    rows = ',\n'.join('  ' + json.dumps([float(v) for v in c]) for c in palette)
+    PALETTE_PATH.write_text(f'[\n{rows}\n]\n', encoding='utf-8')
+
+
 def load_palette(pixels):
     """Wspólna paleta: zamrożona w PALETTE_PATH; liczona (k-means) i zapisywana, gdy jej brak albo `--palette`."""
     if PALETTE_PATH.exists() and '--palette' not in sys.argv:
         return np.array(json.loads(PALETTE_PATH.read_text(encoding='utf-8')), float)
     palette = kmeans(pixels, CFG['paletteSize'])
-    rows = ',\n'.join('  ' + json.dumps([float(v) for v in c]) for c in palette)
-    PALETTE_PATH.write_text(f'[\n{rows}\n]\n', encoding='utf-8')
+    save_palette(palette)
     print(f'Nowa paleta: {PALETTE_PATH}')
     return palette
+
+
+def sq_dist(a, b):
+    """Macierz kwadratów odległości (len(a), len(b)) bez tablicy 3-wymiarowej."""
+    return (a ** 2).sum(axis=1)[:, None] - 2 * a @ b.T + (b ** 2).sum(axis=1)[None]
+
+
+def extend_palette(raw, palette, k, sheets, far=20, iters=20):
+    """`--extend-palette K ARKUSZ...`: dopisuje K kolorów na koniec palety (tools/palette.json) dla klatek z podanych
+    arkuszy: k-means komórek tych klatek, w którym dotychczasowe kolory są nieruchome, a ruszają się tylko nowe
+    (start: zachłannie kolory komórek o największym spadku sumy kwadratów błędu). Klatki arkusza używają pierwszych `paletteColours` kolorów palety
+    (domyślnie `paletteSize`), więc po dopisaniu trzeba podnieść `paletteColours` w arkuszach, które mają z nowych
+    kolorów korzystać — pozostałe klatki kwantyzują się dokładnie jak wcześniej."""
+    cells = np.concatenate([c[~m] for _, e, c, m, _, _ in raw.values() if e['sheet'] in sheets])
+    new = cells[sq_dist(cells, palette).min(axis=1) > far ** 2]
+    cols = np.unique(new.round(), axis=0)
+    err = sq_dist(new, palette).min(axis=1)
+    centers = []
+    for _ in range(k):
+        gain = np.concatenate([np.maximum(0, err[None] - sq_dist(cols[i:i + 256], new)).sum(axis=1)
+                               for i in range(0, len(cols), 256)])
+        c = cols[gain.argmax()].astype(float)
+        centers.append(c)
+        err = np.minimum(err, ((new - c) ** 2).sum(axis=1))
+    centers = np.array(centers)
+    for _ in range(iters):
+        labels = sq_dist(new, np.concatenate([palette, centers])).argmin(axis=1) - len(palette)
+        for i in range(k):
+            if (labels == i).any():
+                centers[i] = new[labels == i].mean(axis=0)
+    full = np.concatenate([palette, centers])
+    before = np.sqrt(np.maximum(0, sq_dist(cells, palette).min(axis=1))).mean()
+    after = np.sqrt(np.maximum(0, sq_dist(cells, full).min(axis=1))).mean()
+    labels = sq_dist(cells, full).argmin(axis=1)
+    print(f'Paleta {len(palette)} + {k} = {len(full)} kolorów; komórek {", ".join(sheets)}: {len(cells)}, dalekich '
+          f'(> {far}): {len(new)}; średni błąd {before:.2f} -> {after:.2f}. '
+          f'Ustaw "paletteColours": {len(full)} w tych arkuszach.')
+    for i, c in enumerate(centers):
+        print(f'  {[round(v) for v in c]} komórek {(labels == len(palette) + i).sum()}')
+    save_palette(full)
+    return full
 
 
 def quantise(cells, palette):
@@ -351,7 +405,24 @@ def retouch(idx, mask, xs, ys, e, palette, sources):
                and idx[y + dy, x + dx] not in outline for dy, dx in NEIGH4):
             idx[y, x] = darkest
             mask[y, x] = False
+    barrier = {i for i, (_, _, v) in enumerate(palette_hsv(palette)) if v < SHADOW_BARRIER_VAL}
+    remove_shadow(idx, mask, erase_mask(xs, ys, e['shadow']), barrier)
     return idx, mask
+
+
+def remove_shadow(idx, mask, region, barrier):
+    """`shadow`: cień na podłodze z arkusza (pokój rysuje własny). W obszarze komórki osiągalne (4-sąsiedztwo)
+    z przezroczystych bez przechodzenia przez ciemne kolory (jasność < SHADOW_BARRIER_VAL: kontur i jego
+    odcienie po JPEG-u) stają się przezroczyste — buty i nogi otoczone konturem zostają, szara plama znika."""
+    h, w = mask.shape
+    queue = deque(zip(*np.nonzero(region & mask)))
+    while queue:
+        y, x = queue.popleft()
+        for dy, dx in NEIGH4:
+            ny, nx = y + dy, x + dx
+            if 0 <= ny < h and 0 <= nx < w and region[ny, nx] and not mask[ny, nx] and idx[ny, nx] not in barrier:
+                mask[ny, nx] = True
+                queue.append((ny, nx))
 
 
 def largest_shape(img):
@@ -426,6 +497,56 @@ def save_preview_new(items):
 def save_drag_x4(images):
     items = [(im.resize((im.width * 4, im.height * 4), Image.NEAREST), im.height * 4) for im in images]
     compose(items, checker=True).save(DRAG_X4)
+
+
+def onion_foot(frames):
+    return max(b['foot'] for b in frames)
+
+
+def onion(frames, f):
+    """Przenikanie klatek serii ustawionych tak, jak rysuje je pokój (kotwica x i linia stóp) — skaczące
+    elementy widać jako duchy. Kreska pionowa: kotwica."""
+    left = max(int(round(b['anchorX'])) for b in frames)
+    right = max(b['im'].width - int(round(b['anchorX'])) for b in frames)
+    top = onion_foot(frames)
+    below = max(b['im'].height - b['foot'] for b in frames)
+    layers = []
+    for b in frames:
+        c = Image.new('RGBA', (left + right, top + below), (235, 235, 240, 255))
+        c.alpha_composite(b['im'], (left - int(round(b['anchorX'])), top - b['foot']))
+        layers.append(np.asarray(c).astype(float))
+    out = Image.fromarray(np.mean(layers, axis=0).astype(np.uint8))
+    out = out.resize((out.width * f, out.height * f), Image.NEAREST)
+    ImageDraw.Draw(out).line([(left * f, 0), (left * f, out.height)], fill=(0, 200, 255, 255))
+    return out
+
+
+def save_sheet_previews(body, f=4):
+    """Arkusze z `"preview": nazwa` → tools/out/<nazwa>.png: klatki ×f na szachownicy, rząd na serię
+    (group_of), w rzędzie wspólna linia stóp (czerwone kreski pod przezroczystymi pikselami); na końcu rzędu
+    serii bez kotwicy `center` — przenikanie wszystkich jej klatek (`onion`)."""
+    files = {}
+    for name in CFG['body']:
+        sh = CFG.get('sheets', {}).get(body[name]['e']['sheet'], {})
+        if 'preview' in sh:
+            files.setdefault(sh['preview'], {}).setdefault(group_of(name), []).append(body[name])
+    for fname, series in files.items():
+        rows = []
+        for frames in series.values():
+            items = [(b['im'].resize((b['im'].width * f, b['im'].height * f), Image.NEAREST), b['foot'] * f)
+                     for b in frames]
+            # Przenikanie: klatki wyrównywane `alignBottom` i ich wzorce (albo cała seria, gdy brak wyrównania).
+            refs = {b['e']['alignBottom'][0] for b in frames if b['e']['alignBottom']}
+            skin = [b for b in frames if b['e']['alignBottom'] or b['name'] in refs] or frames
+            if all(b['e']['anchor'] != 'center' for b in skin) and len(skin) > 1:
+                items.append((onion(skin, f), onion_foot(skin) * f))
+            rows.append(compose(items, foot_line=True, checker=True))
+        out = Image.new('RGBA', (max(r.width for r in rows), sum(r.height for r in rows)), (255, 255, 255, 255))
+        y = 0
+        for r in rows:
+            out.alpha_composite(r, (0, y))
+            y += r.height
+        out.save(PREVIEW.parent / f'{fname}.png')
 
 
 def save_bag_preview(pairs, f=6, max_width=1600):
@@ -508,6 +629,33 @@ def align_sheet(body, sname, ref_name):
     save_bed_aligned([(n, body[n]) for n in names], ref)
 
 
+def align_bottom(body, name, ref_name, rows):
+    """`"alignBottom": [wzorzec, wiersze]` — poziome wyrównanie klatki pętli do wzorca po dolnym pasie sylwetki
+    (`wiersze` wierszy nad linią stóp: buty, nogi stołka). Przesunięcie dx (całkowite px natywne, ±ALIGN_SEARCH)
+    maksymalizuje liczbę nieprzezroczystych pikseli pasa pokrywających się z pasem wzorca, gdy obie klatki stoją
+    na tej samej linii stóp; przy remisie mniejsze |dx|. anchorX = wzorzec.anchorX − dx (stopy bez zmian)."""
+    def band(b):
+        a = np.asarray(b['im'])[:, :, 3] > 0
+        return a[max(0, b['foot'] - rows):b['foot']]
+    b, ref = body[name], body[ref_name]
+    cur, rb = band(b), band(ref)
+    h = min(len(cur), len(rb))
+    cur, rb = cur[len(cur) - h:], rb[len(rb) - h:]
+    ys, xs = np.nonzero(cur)
+    best = None
+    for dx in range(-ALIGN_SEARCH, ALIGN_SEARCH + 1):
+        rx = xs + dx
+        ok = (rx >= 0) & (rx < rb.shape[1])
+        key = (int(rb[ys[ok], rx[ok]].sum()), -abs(dx))
+        if best is None or key > best[0]:
+            best = (key, dx)
+    (score, _), dx = best
+    old = b['anchorX']
+    b['anchorX'] = ref['anchorX'] - dx
+    print(f'wyrównanie {name:10s} -> {ref_name} po {rows} dolnych wierszach: dx={dx:+d} '
+          f'(kotwica {old:.2f} -> {b["anchorX"]:.2f}), zgodnych px={score}/{len(xs)}')
+
+
 def save_bed_aligned(items, ref, f=4, pad=4):
     """Podgląd wyrównania ×f: rząd 1 — każda klatka z obrysem wzorca (czerwony), rząd 2 — same klatki
     ze stałymi liniami pomocniczymi (stopy, kotwica, lewy i górny brzeg wzorca), rząd 3 — przenikanie wszystkich."""
@@ -566,7 +714,8 @@ def group_of(name):
     return re.sub(r'\d+$', '', name)
 
 
-def main():
+def collect():
+    """Komórki wszystkich klatek przed kwantyzacją: nazwa → (grupa, wpis, komórki, maska tła, xs, ys)."""
     raw = {}
     for group in ('body', 'portraits'):
         for name, spec in CFG[group].items():
@@ -590,16 +739,25 @@ def main():
                 mask[painted] = False
             raw[name] = (group, e, cells, mask, xs, ys)
             print(f'{name:12s} arkusz={e["sheet"]:6s} okres={period:.2f} komórki={cells.shape[1]}x{cells.shape[0]}')
+    return raw
 
+
+def main():
+    raw = collect()
     palette = load_palette(np.concatenate([c[~m] for _, _, c, m, _, _ in raw.values()]))
-    quantised = {name: (quantise(cells, palette), mask, xs, ys) for name, (_, _, cells, mask, xs, ys) in raw.items()}
+    if '--extend-palette' in sys.argv:
+        args = sys.argv[sys.argv.index('--extend-palette') + 1:]
+        palette = extend_palette(raw, palette, int(args[0]), [a for a in args[1:] if not a.startswith('--')])
+    # Każda klatka kwantyzuje się do pierwszych `colours` kolorów palety (patrz extend_palette).
+    quantised = {name: (quantise(cells, palette[:e['colours']]), mask, xs, ys)
+                 for name, (_, e, cells, mask, xs, ys) in raw.items()}
     images = {}
     retouched = []
     for name, (group, e, *_) in raw.items():
         idx, mask, xs, ys = quantised[name]
         if any(e[k] for k in RETOUCH_KEYS):
             before = to_rgba(idx, mask, palette)
-            idx, mask = retouch(idx, mask, xs, ys, e, palette, quantised)
+            idx, mask = retouch(idx, mask, xs, ys, e, palette[:e['colours']], quantised)
             retouched.append((name, before, to_rgba(idx, mask, palette)))
         images[name] = (group, e, to_rgba(idx, mask, palette))
     save_bag_preview(retouched)
@@ -611,7 +769,7 @@ def main():
             continue
         (sx0, sy0, sx1, sy1), shape = largest_shape(im)
         ax = im.width / 2 if e['anchor'] == 'center' else anchor_x(shape, sy0)
-        body[name] = {'im': im, 'e': e, 'bodyH': sy1 - sy0 + 1, 'foot': int(sy1) + 1, 'anchorX': ax}
+        body[name] = {'name': name, 'im': im, 'e': e, 'bodyH': sy1 - sy0 + 1, 'foot': int(sy1) + 1, 'anchorX': ax}
 
     display_h = CFG['displayHeight']
     heights = {}
@@ -629,6 +787,9 @@ def main():
     for sname, sh in CFG.get('sheets', {}).items():
         if 'align' in sh:
             align_sheet(body, sname, sh['align'])
+    for name in CFG['body']:
+        if body[name]['e']['alignBottom']:
+            align_bottom(body, name, *body[name]['e']['alignBottom'])
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     frames = {}
@@ -666,6 +827,7 @@ def main():
     save_preview(preview)
     save_preview_new(preview_new)
     save_drag_x4([body[n]['im'] for n in ('drag_2', 'drag_3', 'drag_4', 'drag_5')])
+    save_sheet_previews(body)
     print(f'Podgląd: {PREVIEW}, {PREVIEW_NEW}, {DRAG_X4}, {BED_ALIGNED}, {BAG_PREVIEW}')
 
 

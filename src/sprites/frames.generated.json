@@ -43,6 +43,41 @@
       "foot": 64,
       "scale": 0.8889
     },
+    "crochet_1": {
+      "w": 27,
+      "h": 49,
+      "anchorX": 10.53,
+      "foot": 49,
+      "scale": 0.9492
+    },
+    "crochet_2": {
+      "w": 30,
+      "h": 49,
+      "anchorX": 9.53,
+      "foot": 49,
+      "scale": 0.9492
+    },
+    "crochet_3": {
+      "w": 32,
+      "h": 49,
+      "anchorX": 9.53,
+      "foot": 49,
+      "scale": 0.9492
+    },
+    "crochet_4": {
+      "w": 24,
+      "h": 49,
+      "anchorX": 8.53,
+      "foot": 49,
+      "scale": 0.9492
+    },
+    "crochet_5": {
+      "w": 37,
+      "h": 50,
+      "anchorX": 12.53,
+      "foot": 50,
+      "scale": 0.9492
+    },
     "drag_1": {
       "w": 23,
       "h": 69,
@@ -148,6 +183,104 @@
       "foot": 55,
       "scale": 1.0182
     },
+    "music_1": {
+      "w": 29,
+      "h": 60,
+      "anchorX": 13.23,
+      "foot": 60,
+      "scale": 0.9492
+    },
+    "music_2": {
+      "w": 26,
+      "h": 59,
+      "anchorX": 13.23,
+      "foot": 59,
+      "scale": 0.9492
+    },
+    "music_3": {
+      "w": 32,
+      "h": 60,
+      "anchorX": 14.23,
+      "foot": 60,
+      "scale": 0.9492
+    },
+    "music_4": {
+      "w": 33,
+      "h": 62,
+      "anchorX": 12.23,
+      "foot": 62,
+      "scale": 0.9492
+    },
+    "music_5": {
+      "w": 32,
+      "h": 59,
+      "anchorX": 13.23,
+      "foot": 59,
+      "scale": 0.9492
+    },
+    "nurse_1": {
+      "w": 31,
+      "h": 67,
+      "anchorX": 12.5,
+      "foot": 67,
+      "scale": 0.8358
+    },
+    "nurse_2": {
+      "w": 32,
+      "h": 69,
+      "anchorX": 13.15,
+      "foot": 69,
+      "scale": 0.8358
+    },
+    "nurse_3": {
+      "w": 55,
+      "h": 36,
+      "anchorX": 27.5,
+      "foot": 36,
+      "scale": 0.8358
+    },
+    "nurse_4": {
+      "w": 41,
+      "h": 57,
+      "anchorX": 20.5,
+      "foot": 57,
+      "scale": 0.8358
+    },
+    "nurse_5": {
+      "w": 39,
+      "h": 66,
+      "anchorX": 16.46,
+      "foot": 66,
+      "scale": 0.8358
+    },
+    "phone_1": {
+      "w": 29,
+      "h": 60,
+      "anchorX": 10.5,
+      "foot": 60,
+      "scale": 0.9492
+    },
+    "phone_2": {
+      "w": 22,
+      "h": 60,
+      "anchorX": 9.5,
+      "foot": 60,
+      "scale": 0.9492
+    },
+    "phone_3": {
+      "w": 25,
+      "h": 59,
+      "anchorX": 9.5,
+      "foot": 59,
+      "scale": 0.9492
+    },
+    "phone_4": {
+      "w": 25,
+      "h": 56,
+      "anchorX": 6.5,
+      "foot": 56,
+      "scale": 0.9492
+    },
     "sad_cry": {
       "w": 25,
       "h": 63,
@@ -161,6 +294,41 @@
       "anchorX": 13.65,
       "foot": 64,
       "scale": 0.8889
+    },
+    "study_1": {
+      "w": 62,
+      "h": 81,
+      "anchorX": 31.0,
+      "foot": 81,
+      "scale": 0.8358
+    },
+    "study_2": {
+      "w": 31,
+      "h": 42,
+      "anchorX": 15.5,
+      "foot": 42,
+      "scale": 0.8358
+    },
+    "study_3": {
+      "w": 34,
+      "h": 43,
+      "anchorX": 17.0,
+      "foot": 43,
+      "scale": 0.8358
+    },
+    "study_4": {
+      "w": 51,
+      "h": 44,
+      "anchorX": 25.5,
+      "foot": 44,
+      "scale": 0.8358
+    },
+    "study_5": {
+      "w": 56,
+      "h": 41,
+      "anchorX": 28.0,
+      "foot": 41,
+      "scale": 0.8358
     },
     "tired_1": {
       "w": 28,
@@ -233,6 +401,11 @@
     "bed_4",
     "bed_4z",
     "crazy",
+    "crochet_1",
+    "crochet_2",
+    "crochet_3",
+    "crochet_4",
+    "crochet_5",
     "drag_1",
     "drag_2",
     "drag_3",
@@ -248,8 +421,27 @@
     "hunger_4",
     "hunger_5",
     "idle_front",
+    "music_1",
+    "music_2",
+    "music_3",
+    "music_4",
+    "music_5",
+    "nurse_1",
+    "nurse_2",
+    "nurse_3",
+    "nurse_4",
+    "nurse_5",
+    "phone_1",
+    "phone_2",
+    "phone_3",
+    "phone_4",
     "sad_cry",
     "scared",
+    "study_1",
+    "study_2",
+    "study_3",
+    "study_4",
+    "study_5",
     "tired_1",
     "tired_2",
     "tired_3",
@@ -290,6 +482,14 @@
       14
     ],
     "face_dizzy": [
+      41,
+      41
+    ],
+    "face_study": [
+      41,
+      41
+    ],
+    "face_phone": [
       41,
       41
     ]

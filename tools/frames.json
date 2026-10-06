@@ -11,7 +11,9 @@
   "sheets": {
     "status": { "path": "assets/source/sheet-status.jpg", "background": [208, 207, 212], "gridPeriod": 7.82, "keep": "all", "scaleRef": "sad_cry" },
     "drag":   { "path": "assets/source/sheet-drag.jpg",   "background": [207, 206, 211], "gridPeriod": 7.82, "keep": "all", "scaleRef": "drag_1" },
-    "bed":    { "path": "assets/source/sheet-bed.jpg",    "background": [207, 206, 211], "gridPeriod": 7.82, "keep": "all", "scaleRef": "sad_cry", "anchor": "center", "align": "bed_4" }
+    "bed":    { "path": "assets/source/sheet-bed.jpg",    "background": [207, 206, 211], "gridPeriod": 7.82, "keep": "all", "scaleRef": "sad_cry", "anchor": "center", "align": "bed_4" },
+    "nursing": { "path": "assets/source/sheet-nursing.jpg", "background": [206, 206, 211], "gridPeriod": 4.0, "keep": "all", "scaleRef": "nurse_1", "paletteColours": 76, "preview": "preview_activities" },
+    "hobby":   { "path": "assets/source/sheet-hobby.jpg",   "background": [206, 205, 210], "gridPeriod": 4.0, "keep": "all", "scaleRef": "music_5", "paletteColours": 76, "preview": "preview_activities" }
   },
   "body": {
     "idle_front": { "rect": [34, 47, 127, 266],
@@ -91,7 +93,31 @@
                             [137, 1610, 143, 1656, [3, 2, 5]], [145, 1610, 159, 1656, [83, 44, 51]], [160, 1610, 167, 1656, [117, 67, 67]],
                             [105, 1680, 120, 1687, [152, 92, 78]], [90, 1688, 128, 1695, [152, 92, 78]], [74, 1696, 136, 1703, [152, 92, 78]],
                             [66, 1704, 136, 1710, [152, 92, 78]], [66, 1712, 120, 1718, [152, 92, 78]], [98, 1719, 104, 1726, [152, 92, 78]]] },
-    "bed_4z":   { "like": "bed_4", "erase": [[379, 1461, 480, 1546]] }
+    "bed_4z":   { "like": "bed_4", "erase": [[379, 1461, 480, 1546]] },
+    "study_1":   { "sheet": "nursing", "rect": [26, 150, 284, 484], "erase": [[26, 455, 52, 484], [252, 462, 284, 484], [276, 440, 284, 484]], "anchor": "center" },
+    "study_2":   { "sheet": "nursing", "rect": [326, 114, 460, 294], "erase": [[326, 270, 332, 294]], "anchor": "center" },
+    "study_3":   { "sheet": "nursing", "rect": [456, 146, 604, 328], "erase": [[586, 140, 604, 212], [456, 290, 468, 320]], "anchor": "center" },
+    "study_4":   { "sheet": "nursing", "rect": [272, 306, 488, 494], "erase": [[440, 300, 490, 318], [272, 480, 280, 494]], "anchor": "center" },
+    "study_5":   { "sheet": "nursing", "rect": [524, 322, 760, 498], "erase": [[524, 318, 546, 326]], "anchor": "center" },
+    "nurse_1":   { "sheet": "nursing", "rect": [34, 670, 172, 952], "erase": [[34, 946, 40, 952]], "shadow": [[34, 912, 172, 952]] },
+    "nurse_2":   { "sheet": "nursing", "rect": [196, 654, 332, 948], "shadow": [[196, 905, 332, 948]] },
+    "nurse_3":   { "sheet": "nursing", "rect": [436, 602, 668, 758], "erase": [[626, 728, 668, 758], [618, 748, 668, 758]], "anchor": "center" },
+    "nurse_4":   { "sheet": "nursing", "rect": [332, 766, 508, 1004], "erase": [[332, 984, 340, 1004]], "anchor": "center" },
+    "nurse_5":   { "sheet": "nursing", "rect": [588, 724, 754, 1004], "erase": [[[588, 720], [640, 720], [640, 734], [628, 740], [612, 756], [588, 756]], [588, 965, 605, 1004]], "shadow": [[588, 960, 632, 1004], [588, 995, 754, 1004], [662, 960, 754, 1004]], "fix": [[631, 988, 634, 995, [3, 2, 5]]] },
+    "phone_1":   { "sheet": "hobby", "rect": [36, 110, 162, 362], "erase": [[36, 330, 50, 362]] },
+    "phone_2":   { "sheet": "hobby", "rect": [184, 110, 280, 362], "erase": [[184, 330, 196, 362]], "alignBottom": ["phone_1", 6] },
+    "phone_3":   { "sheet": "hobby", "rect": [332, 114, 436, 362], "erase": [[332, 330, 343, 362]], "alignBottom": ["phone_1", 6] },
+    "phone_4":   { "sheet": "hobby", "rect": [472, 126, 586, 362], "erase": [[472, 345, 480, 362]], "alignBottom": ["phone_1", 6] },
+    "crochet_1": { "sheet": "hobby", "rect": [36, 438, 154, 646], "erase": [[36, 628, 40, 646]] },
+    "crochet_2": { "sheet": "hobby", "rect": [184, 438, 316, 646], "erase": [[184, 628, 193, 646]], "alignBottom": ["crochet_1", 12] },
+    "crochet_3": { "sheet": "hobby", "rect": [332, 438, 468, 646], "erase": [[332, 628, 341, 646]], "alignBottom": ["crochet_1", 12] },
+    "crochet_4": { "sheet": "hobby", "rect": [476, 438, 584, 646], "erase": [[476, 628, 484, 646]], "alignBottom": ["crochet_1", 12] },
+    "crochet_5": { "sheet": "hobby", "rect": [600, 434, 760, 646], "erase": [[600, 628, 621, 646]], "alignBottom": ["crochet_1", 12] },
+    "music_1":   { "sheet": "hobby", "rect": [28, 730, 154, 980], "erase": [[28, 970, 39, 980]], "alignBottom": ["music_3", 6] },
+    "music_2":   { "sheet": "hobby", "rect": [184, 730, 300, 980], "erase": [[184, 970, 197, 980]], "alignBottom": ["music_3", 6], "shadow": [[184, 940, 280, 980]] },
+    "music_3":   { "sheet": "hobby", "rect": [316, 720, 452, 980], "erase": [[316, 970, 341, 980]] },
+    "music_4":   { "sheet": "hobby", "rect": [466, 720, 610, 980], "erase": [[466, 970, 484, 980]], "alignBottom": ["music_3", 6] },
+    "music_5":   { "sheet": "hobby", "rect": [610, 730, 748, 980], "erase": [[610, 970, 629, 980]], "alignBottom": ["music_3", 6] }
   },
   "portraits": {
     "portrait_a": [507, 40, 753, 290],
@@ -103,6 +129,8 @@
     "face_crazy_1": { "sheet": "status", "rect": [1384, 1440, 1488, 1560] },
     "face_crazy_2": { "sheet": "status", "rect": [1384, 1572, 1488, 1692] },
     "face_crazy_3": { "sheet": "status", "rect": [1384, 1704, 1488, 1826] },
-    "face_dizzy":   { "sheet": "drag",   "rect": [1154, 80, 1473, 399] }
+    "face_dizzy":   { "sheet": "drag",   "rect": [1154, 80, 1473, 399] },
+    "face_study":   { "sheet": "nursing", "rect": [588, 36, 760, 210], "erase": [[588, 30, 762, 39]], "paint": [[666, 48, 690, 51, [223, 212, 228]]] },
+    "face_phone":   { "sheet": "hobby",   "rect": [588, 36, 762, 210], "erase": [[588, 30, 762, 39]] }
   }
 }
