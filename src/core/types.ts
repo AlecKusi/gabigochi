@@ -8,6 +8,8 @@ export interface Needs {
 
 export type MoodLevel = 'happy' | 'ok' | 'sad';
 
+export type RoomId = 'salon' | 'bedroom' | 'studio';
+
 export interface GameState {
   version: 1;
   createdAt: number;
