@@ -42,6 +42,7 @@ export function createApp(
         const swap = () => {
           current?.destroy?.();
           current?.el.remove();
+          current = null;
           current = screens[name](app, params);
           root.prepend(current.el);
         };

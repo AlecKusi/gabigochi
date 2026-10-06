@@ -92,6 +92,7 @@ export function roomScreen(app: App): Screen {
   let raf = 0;
   let last = performance.now();
   const particles: Particle[] = [];
+  let shownSleeping: boolean | null = null;
 
   function say(text: string, ms = 3200): void {
     speech.textContent = text;
@@ -118,7 +119,11 @@ export function roomScreen(app: App): Screen {
     bars.mood.set(s.needs.mood);
     bars.energy.set(s.needs.energy);
     coins.set(s.coins);
-    lightIcon.replaceChildren(icon(s.sleeping ? 'moon' : 'bulb', 3));
+    if (s.sleeping !== shownSleeping) {
+      shownSleeping = s.sleeping;
+      lightIcon.replaceChildren(icon(s.sleeping ? 'moon' : 'bulb', 3));
+    }
+    dayLabel.textContent = `Dzień ${dayNumber(s.createdAt, Date.now())}`;
     lightLabel.textContent = s.sleeping ? 'Pobudka' : 'Światło';
     el.classList.toggle('night', s.sleeping);
   }
@@ -209,7 +214,7 @@ export function roomScreen(app: App): Screen {
 
   function frame(t: number): void {
     if (destroyed) return;
-    const dt = Math.min(50, t - last);
+    const dt = Math.max(0, Math.min(50, t - last));
     last = t;
     const s = store.get();
     const mood = moodLevel(s.needs);

@@ -35,19 +35,35 @@ export const memoryGame: MiniGame = {
         env.setHud(`Ruchy: ${s.moves}`);
       };
 
+      let pending = false;
+      const timers = new Set<number>();
+      const later = (fn: () => void, ms: number) => {
+        pending = true;
+        const id = window.setTimeout(() => {
+          timers.delete(id);
+          pending = false;
+          fn();
+        }, ms);
+        timers.add(id);
+      };
+      env.signal.addEventListener('abort', () => {
+        timers.forEach((id) => clearTimeout(id));
+        timers.clear();
+      });
+
       function onFlip(i: number): void {
-        if (env.signal.aborted) return;
+        if (env.signal.aborted || pending) return;
         const before = s;
         s = flipCard(s, i);
         if (s === before) return;
         sync();
         if (s.locked) {
-          setTimeout(() => {
+          later(() => {
             s = resolveMismatch(s);
             sync();
           }, 750);
         } else if (isComplete(s)) {
-          setTimeout(() => resolve(memoryScore(s.moves)), 700);
+          later(() => resolve(memoryScore(s.moves)), 700);
         }
       }
 

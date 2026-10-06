@@ -31,14 +31,17 @@ export async function pixelTransition(host: HTMLElement, swap: () => void): Prom
   ctx.fillStyle = '#3b2a5c';
   const order = [...Array(COLS * ROWS).keys()].sort(() => Math.random() - 0.5);
   const cell = (i: number, fn: (x: number, y: number) => void) => fn(order[i] % COLS, Math.floor(order[i] / COLS));
-  await animate(150, (p) => {
-    const n = Math.ceil(p * order.length);
-    for (let i = 0; i < n; i++) cell(i, (x, y) => ctx.fillRect(x, y, 1, 1));
-  });
-  swap();
-  await animate(150, (p) => {
-    const n = Math.ceil(p * order.length);
-    for (let i = 0; i < n; i++) cell(i, (x, y) => ctx.clearRect(x, y, 1, 1));
-  });
-  canvas.remove();
+  try {
+    await animate(150, (p) => {
+      const n = Math.ceil(p * order.length);
+      for (let i = 0; i < n; i++) cell(i, (x, y) => ctx.fillRect(x, y, 1, 1));
+    });
+    swap();
+    await animate(150, (p) => {
+      const n = Math.ceil(p * order.length);
+      for (let i = 0; i < n; i++) cell(i, (x, y) => ctx.clearRect(x, y, 1, 1));
+    });
+  } finally {
+    canvas.remove();
+  }
 }
