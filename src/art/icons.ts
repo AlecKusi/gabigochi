@@ -377,6 +377,23 @@ export const ICONS = {
     '..kk......',
     '.k........',
   ],
+  pencil: [
+    '........kkk.',
+    '.......kiiik',
+    '......kiiik.',
+    '.....kgggk..',
+    '....kyyYk...',
+    '...kyyYk....',
+    '..kyyYk.....',
+    '.kyyYk......',
+    'kccck.......',
+    'kBk.........',
+    'kk..........',
+  ],
+  chevronLeft: ['....kk', '...kwk', '..kwk.', '.kwk..', 'kwk...', '.kwk..', '..kwk.', '...kwk', '....kk'],
+  chevronRight: ['kk....', 'kwk...', '.kwk..', '..kwk.', '...kwk', '..kwk.', '.kwk..', 'kwk...', 'kk....'],
+  /** Kropla nad spragnioną rośliną. */
+  drop: ['..k..', '.kuk.', '.kuk.', 'kwuuk', 'kwuuk', 'kuuuk', '.kkk.'],
   digit2: ['PPP', '..P', 'PPP', 'P..', 'PPP'],
   digit6: ['PPP', 'P..', 'PPP', 'P.P', 'PPP'],
 } as const satisfies Record<string, PixelArt>;

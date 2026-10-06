@@ -8,16 +8,75 @@ img.px.avatar { image-rendering: auto; }
 /* Miny stanów to małe wycinki powiększane w ramce — ostre piksele zamiast rozmycia. */
 img.px.avatar.crisp { image-rendering: pixelated; image-rendering: crisp-edges; }
 .needs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 6px 14px; }
-.stage-wrap { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; padding: 6px 14px; }
+.stage-wrap { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; padding: 4px 14px 6px; }
 .stage {
   position: relative;
   width: 100%;
-  max-width: min(100%, calc((100vh - 260px) * 0.8));
-  max-width: min(100%, calc((100dvh - 260px) * 0.8));
+  max-width: min(100%, calc((100vh - 290px) * 0.8));
+  max-width: min(100%, calc((100dvh - 290px) * 0.8));
   background: #cdb8f0;
   overflow: hidden;
 }
 .room.night .stage { background: #4a3a72; }
+/* Nazwa pokoju nad sceną i kropki (który z pokoi). */
+.room-title { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 2px 14px 0; min-height: 24px; color: var(--text-light); font-size: 17px; }
+.room-dots { display: inline-flex; gap: 5px; }
+.room-dot { width: 6px; height: 6px; background: var(--bg-2); box-shadow: 0 0 0 1px var(--ink); }
+.room-dot.on { background: #cdb8f0; }
+/* Strzałki ‹ › przy krawędziach sceny — duże pole dotyku, dyskretne tło. */
+.room-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 36px;
+  height: 64px;
+  margin-top: -32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: rgba(27, 19, 38, .22);
+  cursor: pointer;
+}
+.room-arrow.left { left: 0; }
+.room-arrow.right { right: 0; }
+.room-arrow:active { background: rgba(27, 19, 38, .45); }
+.room-arrow.hidden { display: none; }
+.stage-shot { position: absolute; left: 0; top: 0; pointer-events: none; }
+.edit-toggle { position: absolute; z-index: 2; right: 4px; bottom: 4px; }
+
+/* Tryb „Urządzaj”: zamiast potrzeb i nawigacji — pasek narzędzi i panel magazynu. */
+.edit-dock { display: none; }
+.room.editing .needs, .room.editing .room-nav, .room.editing .edit-toggle, .room.editing .speech { display: none; }
+.room.editing .stage { max-width: min(100%, calc((100vh - 330px) * 0.8)); max-width: min(100%, calc((100dvh - 330px) * 0.8)); }
+.room.editing .edit-dock { display: flex; flex-direction: column; gap: 6px; margin: 4px 10px 12px; padding: 8px; }
+.edit-bar { display: grid; grid-template-columns: 1fr 1.35fr 1fr; gap: 4px; }
+.edit-bar .px-btn { font-size: 15px; padding: 10px 4px; white-space: nowrap; }
+.edit-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.edit-tab { font-size: 14px; padding: 8px 4px; border: 0; color: var(--text); background: var(--panel-2); box-shadow: 0 0 0 2px var(--ink); cursor: pointer; }
+.edit-tab[aria-selected='true'] { background: var(--accent); color: #fff; }
+.edit-hint { font-size: 13px; color: var(--text-soft); min-height: 16px; }
+.edit-list { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 3px 3px 6px; min-height: 66px; touch-action: pan-x; scrollbar-width: none; }
+.edit-list::-webkit-scrollbar { display: none; }
+.edit-tile {
+  position: relative;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 56px;
+  padding: 3px;
+  border: 0;
+  background: var(--panel-2);
+  box-shadow: 0 0 0 2px var(--ink);
+  cursor: pointer;
+}
+.edit-tile:active { transform: translateY(2px); }
+.edit-tile img { width: 52px; height: 48px; object-fit: contain; }
+.edit-tile.look { width: auto; height: auto; padding: 0; }
+.edit-tile.on { box-shadow: 0 0 0 2px var(--ink), 0 0 0 5px var(--accent); }
+.look-swatch { display: block; }
+.edit-count { position: absolute; right: -6px; bottom: -6px; background: var(--accent); color: #fff; font-size: 12px; padding: 1px 4px; box-shadow: 0 0 0 2px var(--ink); }
 .speech {
   position: absolute;
   top: 6%;

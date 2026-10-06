@@ -37,6 +37,13 @@ export function spriteRect(meta: FrameMeta, k: number, o: SpriteAt): Rect {
   return { x, y, w, h };
 }
 
+/** Prostokąt w px logicznych przeliczony na całe piksele urządzenia (krawędzie zaokrąglone, bez rozmycia). */
+export function deviceRect(k: number, r: { x: number; y: number; w: number; h: number }): Rect {
+  const x = Math.round(r.x * k);
+  const y = Math.round(r.y * k);
+  return { x, y, w: Math.round((r.x + r.w) * k) - x, h: Math.round((r.y + r.h) * k) - y };
+}
+
 /** Rysuje klatkę postaci w rozdzielczości urządzenia; odbicie wokół czubka głowy, spłaszczenie względem stóp. */
 export function drawSprite(ctx: CanvasRenderingContext2D, k: number, img: CanvasImageSource, meta: FrameMeta, o: SpriteDraw): void {
   const r = spriteRect(meta, k, o);

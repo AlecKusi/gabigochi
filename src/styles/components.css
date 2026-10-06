@@ -28,6 +28,7 @@
 .px-btn.big { font-size: 22px; padding: 16px 28px; }
 .px-btn.free { --btn-bg: var(--mood); --btn-shade: #d65a90; }
 .px-btn.icon-only { padding: 8px; }
+.px-btn:disabled { opacity: .45; cursor: default; pointer-events: none; }
 .px-btn.shake { animation: shake 320ms steps(8); }
 
 .coin-pill {
