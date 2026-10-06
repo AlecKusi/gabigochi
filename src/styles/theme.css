@@ -1,0 +1,54 @@
+:root {
+  --font: 'Pixelify Sans', ui-monospace, monospace;
+  --px: 3px;
+  --bg: #2a1f3d;
+  --bg-2: #3b2a5c;
+  --panel: #f3ecff;
+  --panel-2: #e2d4fb;
+  --ink: #1b1326;
+  --text: #2b1d40;
+  --text-soft: #6b5a85;
+  --text-light: #f3ecff;
+  --accent: #9b6ee0;
+  --accent-2: #7a4fb3;
+  --hunger: #f08a3c;
+  --mood: #ff7fb0;
+  --energy: #5aa8f0;
+  --coin: #ffd34d;
+  --danger: #e0384f;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --outline:
+    calc(var(--px) * -1) 0 0 0 var(--ink),
+    var(--px) 0 0 0 var(--ink),
+    0 calc(var(--px) * -1) 0 0 var(--ink),
+    0 var(--px) 0 0 var(--ink);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
+body {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 0%, var(--bg-2) 0%, var(--bg) 70%);
+}
+
+#app { position: absolute; inset: 0; max-width: 480px; margin: 0 auto; overflow: hidden; }
+
+h1, h2, h3, p { margin: 0; }
+button { font: inherit; color: inherit; -webkit-appearance: none; appearance: none; }
+img.px, canvas.px, .px-icon { image-rendering: pixelated; image-rendering: crisp-edges; }

@@ -1,0 +1,38 @@
+.game-shell {
+  position: absolute;
+  inset: 0;
+  z-index: 75;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  padding: var(--safe-top) 0 var(--safe-bottom);
+  animation: fade-in 200ms;
+}
+.game-shell.out { animation: fade-out 200ms forwards; }
+.game-head { display: flex; align-items: center; gap: 8px; padding: 8px 12px; color: var(--text-light); }
+.game-head h1 { font-size: 18px; flex: 1; }
+.hud { font-size: 15px; }
+.game-body { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; position: relative; padding: 8px; }
+.game-canvas { box-shadow: 0 0 0 3px var(--ink); touch-action: none; }
+.end-panel h2 { font-size: 24px; margin-bottom: 8px; }
+.end-score { font-size: 18px; }
+.end-reward { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 20px; margin: 10px 0 4px; }
+
+.memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: min(100%, 360px); }
+.mem-card { aspect-ratio: 1; border: 0; padding: 0; background: none; perspective: 400px; cursor: pointer; }
+.mem-inner { position: relative; width: 100%; height: 100%; transition: transform 320ms cubic-bezier(.3, 1.3, .5, 1); transform-style: preserve-3d; }
+.mem-card.up .mem-inner { transform: rotateY(180deg); }
+.mem-back, .mem-front {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 0 0 0 3px var(--ink);
+}
+.mem-back { background: var(--accent) repeating-linear-gradient(45deg, transparent 0 6px, rgba(255, 255, 255, .15) 6px 12px); }
+.mem-front { background: var(--panel); transform: rotateY(180deg); }
+.mem-card.matched .mem-front { background: #e3ffd9; }
+.mem-card.matched .mem-inner { animation: matched 420ms; }
+@keyframes matched { 50% { transform: rotateY(180deg) scale(1.12); } }

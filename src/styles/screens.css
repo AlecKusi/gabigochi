@@ -1,0 +1,112 @@
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; padding: var(--safe-top) 0 var(--safe-bottom); }
+
+/* Pokój */
+.room-top { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px 4px; }
+.profile-btn { display: flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; color: var(--text-light); font-size: 18px; cursor: pointer; }
+.avatar { width: 40px; height: 40px; object-fit: cover; object-position: 50% 30%; background: var(--bg-2); box-shadow: 0 0 0 2px var(--ink); }
+.needs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 6px 14px; }
+.stage-wrap { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; padding: 6px 14px; }
+.stage { position: relative; width: 100%; max-width: min(100%, calc((100dvh - 260px) * 1.14)); background: #cdb8f0; overflow: hidden; }
+.room.night .stage { background: #4a3a72; }
+.stage-canvas { display: block; width: 100%; height: auto; touch-action: none; }
+.speech {
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  font-size: 15px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.speech.hidden { display: none; }
+.speech.pop { animation: speech-pop 260ms cubic-bezier(.2, 1.6, .4, 1); }
+.room-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 6px 10px 12px; }
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--text-light);
+  background: var(--bg-2);
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px var(--ink), inset 0 -3px 0 0 var(--bg);
+  transition: transform 80ms steps(2);
+}
+.nav-btn:active { transform: translateY(3px); box-shadow: 0 0 0 2px var(--ink), inset 0 3px 0 0 var(--bg); }
+@keyframes speech-pop { from { transform: translateX(-50%) scale(.5); opacity: 0; } }
+
+/* Sklep */
+.tabs { display: flex; gap: 6px; padding: 0 14px; }
+.tab { flex: 1; font-size: 16px; padding: 10px; border: 0; background: var(--bg-2); color: #cdb8f0; box-shadow: 0 0 0 2px var(--ink); cursor: pointer; }
+.tab.active { background: var(--accent); color: #fff; }
+.shop-body { flex: 1; overflow-y: auto; padding: 12px 14px 20px; display: flex; flex-direction: column; gap: 10px; }
+.shop-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; animation: row-in 300ms cubic-bezier(.2, 1.3, .4, 1) backwards; }
+.shop-row:nth-child(2) { animation-delay: 40ms; }
+.shop-row:nth-child(3) { animation-delay: 80ms; }
+.shop-row:nth-child(4) { animation-delay: 120ms; }
+.shop-row:nth-child(5) { animation-delay: 160ms; }
+.shop-row.fav { background: #ffe3ef; }
+.shop-info { display: flex; flex-direction: column; gap: 2px; }
+.shop-info strong { font-size: 17px; }
+.shop-info small { color: var(--text-soft); font-size: 13px; }
+.price { display: inline-flex; align-items: center; gap: 4px; }
+
+/* Lista minigier */
+.games-body { flex: 1; overflow-y: auto; padding: 0 14px 20px; }
+.game-section h2 { color: #cdb8f0; font-size: 16px; margin: 14px 4px 8px; }
+.game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.game-card {
+  position: relative;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 8px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: center;
+  transition: transform 120ms;
+}
+.game-card:active { transform: scale(.96); }
+.game-card small { color: var(--text-soft); font-size: 12px; }
+.game-card .record { color: var(--accent-2); }
+.game-card.soon { opacity: .6; cursor: default; }
+.game-card .lock { position: absolute; top: 8px; right: 8px; }
+
+/* Profil */
+.profile-body { flex: 1; overflow-y: auto; padding: 0 14px 20px; display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+.profile-card { display: grid; justify-items: center; gap: 6px; padding: 16px; text-align: center; }
+.portrait-mid { width: 198px; }
+.records { padding: 14px 16px; }
+.records h2 { font-size: 18px; margin-bottom: 8px; }
+.records ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.records li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }
+
+/* Urodziny */
+.birthday { overflow-y: auto; align-items: center; text-align: center; gap: 12px; padding: calc(var(--safe-top) + 16px) 16px calc(var(--safe-bottom) + 24px); color: var(--text-light); }
+.bday-age { font-size: 72px; font-weight: 700; line-height: 1; color: var(--coin); text-shadow: 4px 4px 0 var(--ink); animation: pulse 1.6s ease-in-out infinite; }
+.bday-hero { position: relative; }
+.portrait-big { width: 264px; animation: portrait-in 600ms cubic-bezier(.2, 1.4, .4, 1); }
+.wave-sprite { position: absolute; right: -40px; bottom: -6px; width: 84px; animation: hop 1.2s steps(2) infinite; }
+.bday-title { font-size: 30px; text-shadow: 3px 3px 0 var(--ink); }
+.bday-wishes { padding: 14px 16px; color: var(--text); text-align: left; font-size: 17px; line-height: 1.4; max-width: 360px; display: grid; gap: 8px; }
+.signature { text-align: right; color: var(--text-soft); }
+@keyframes pulse { 50% { transform: scale(1.08); } }
+@keyframes hop { 50% { transform: translateY(-6px); } }
+@keyframes portrait-in { from { transform: translateY(-40px) scale(.9); opacity: 0; } }
+
+/* Szafa */
+.wardrobe-body { flex: 1; display: grid; justify-items: center; align-content: center; gap: 16px; padding: 0 14px 20px; }
+.wardrobe-preview { width: 144px; }
+
+/* Instalacja */
+.install { overflow-y: auto; align-items: center; text-align: center; gap: 14px; padding: calc(var(--safe-top) + 24px) 20px 24px; color: var(--text-light); }
+.install h1 { font-size: 34px; text-shadow: 3px 3px 0 var(--ink); }
+.install p { font-size: 17px; line-height: 1.35; }
+.install-steps { text-align: left; color: var(--text); padding: 14px 16px 14px 36px; font-size: 16px; line-height: 1.4; display: grid; gap: 8px; max-width: 360px; }
+.small-link { color: #cdb8f0; font-size: 13px; }
