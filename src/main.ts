@@ -9,7 +9,7 @@ import { createApp, type App, type ScreenFactory, type ScreenName } from './app'
 import { CONFIG } from './core/config';
 import { claimDailyBonus } from './core/economy';
 import { applyElapsed } from './core/needs';
-import { loadState, saveState } from './core/save';
+import { NewerSaveError, loadState, saveState } from './core/save';
 import { Store } from './core/store';
 import { ANIMATIONS, allFrameNames } from './sprites/animations';
 import framesMeta from './sprites/frames.generated.json';
@@ -37,7 +37,10 @@ function isStandalone(): boolean {
   return nav.standalone === true || matchMedia('(display-mode: standalone)').matches;
 }
 
-function showBootError(): void {
+const NEWER_SAVE_MESSAGE =
+  'Ta wersja Gabigochi jest starsza niż Twój zapis. Zamknij i otwórz aplikację ponownie, żeby pobrać aktualizację.';
+
+function showBootError(message?: string): void {
   const root = document.getElementById('app');
   if (!root) return;
   root.replaceChildren(
@@ -45,6 +48,7 @@ function showBootError(): void {
       'div',
       { class: 'screen install' },
       h('h1', {}, 'Coś poszło nie tak…'),
+      message ? h('p', {}, message) : null,
       h('button', { class: 'px-btn big', onclick: () => location.reload() }, 'Spróbuj ponownie'),
     ),
   );
@@ -123,7 +127,8 @@ async function boot(): Promise<void> {
     });
   } catch (err) {
     console.error(err);
-    showBootError();
+    // Nowszy zapis zostaje nietknięty: w tej ścieżce nic nie woła saveState.
+    showBootError(err instanceof NewerSaveError ? NEWER_SAVE_MESSAGE : undefined);
   }
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BACKUP_KEY, SAVE_KEY, loadState, saveState, type KV } from '../../src/core/save';
+import { BACKUP_KEY, NewerSaveError, SAVE_KEY, loadState, saveState, type KV } from '../../src/core/save';
 import { createState } from '../../src/core/state';
 
 const T0 = new Date(2026, 9, 6, 12).getTime();
@@ -34,11 +34,20 @@ describe('save', () => {
     expect(kv.data.get(BACKUP_KEY)).toBe('{oops');
   });
 
-  it('nieznana wersja lub zły kształt → kopia i nowy stan', () => {
-    const kv = memoryKV({ [SAVE_KEY]: JSON.stringify({ version: 99 }) });
+  it('nieznana (niższa) wersja lub zły kształt → kopia i nowy stan', () => {
+    const kv = memoryKV({ [SAVE_KEY]: JSON.stringify({ version: 0 }) });
     expect(loadState(kv, T0).recovered).toBe(true);
     const kv2 = memoryKV({ [SAVE_KEY]: JSON.stringify({ ...createState(T0), coins: 'dużo' }) });
     expect(loadState(kv2, T0).recovered).toBe(true);
+  });
+
+  it('zapis z nowszej wersji → NewerSaveError, pamięć nietknięta (bez kopii i resetu)', () => {
+    const raw = JSON.stringify({ ...createState(T0), version: 2, extra: 'z przyszłości' });
+    const kv = memoryKV({ [SAVE_KEY]: raw });
+    expect(() => loadState(kv, T0)).toThrow(NewerSaveError);
+    expect(kv.data.get(SAVE_KEY)).toBe(raw);
+    expect(kv.data.has(BACKUP_KEY)).toBe(false);
+    expect(kv.data.size).toBe(1);
   });
 
   it('zapis stanu z NaN jest odrzucany i nie nadpisuje dobrego zapisu', () => {

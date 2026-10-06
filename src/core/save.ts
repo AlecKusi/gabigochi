@@ -40,13 +40,24 @@ function migrate(x: unknown): GameState | null {
   return null;
 }
 
+/** Zapis pochodzi z nowszej wersji gry niż ta, która go czyta — nie wolno go ruszać. */
+export class NewerSaveError extends Error {
+  constructor() {
+    super('Zapis pochodzi z nowszej wersji gry.');
+    this.name = 'NewerSaveError';
+  }
+}
+
 export function loadState(kv: KV, now: number): LoadResult {
   const raw = kv.getItem(SAVE_KEY);
   if (raw === null) return { state: createState(now), fresh: true, recovered: false };
   try {
-    const state = migrate(JSON.parse(raw));
+    const parsed: unknown = JSON.parse(raw);
+    if (isRecord(parsed) && isNum(parsed.version) && parsed.version > 1) throw new NewerSaveError();
+    const state = migrate(parsed);
     if (state) return { state, fresh: false, recovered: false };
-  } catch {
+  } catch (err) {
+    if (err instanceof NewerSaveError) throw err;
     // uszkodzony JSON — obsłużony poniżej
   }
   try {
