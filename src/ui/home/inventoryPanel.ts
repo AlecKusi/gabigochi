@@ -1,8 +1,9 @@
 import type { GameState, RoomId } from '../../core/types';
 import { findItem } from '../../home/catalog';
-import { LOOKS, drawFloor, drawWallpaper, type LookDef, type LookKind } from '../../home/looks';
+import { LOOKS, type LookDef, type LookKind } from '../../home/looks';
 import { h } from '../dom';
 import { itemUrl } from './itemSprites';
+import { lookSwatch } from './lookSwatch';
 
 export type PanelTab = 'inventory' | LookKind;
 
@@ -34,17 +35,7 @@ export interface InventoryPanel {
 /** Wymiary próbki wyglądu (px logiczne) i jej powiększenie na ekranie. */
 const SWATCH = { w: 24, h: 16, scale: 3 } as const;
 
-function swatch(look: LookDef): HTMLCanvasElement {
-  const c = h('canvas', { class: 'px look-swatch', width: SWATCH.w, height: SWATCH.h });
-  c.style.width = `${SWATCH.w * SWATCH.scale}px`;
-  c.style.height = `${SWATCH.h * SWATCH.scale}px`;
-  const ctx = c.getContext('2d');
-  if (ctx) {
-    if (look.kind === 'wallpaper') drawWallpaper(ctx, look, SWATCH.w, SWATCH.h);
-    else drawFloor(ctx, look, 0, SWATCH.w, SWATCH.h);
-  }
-  return c;
-}
+const swatch = (look: LookDef): HTMLCanvasElement => lookSwatch(look, SWATCH.w, SWATCH.h, SWATCH.scale);
 
 /** Dolny panel trybu „Urządzaj”: zakładki Magazyn / Tapeta / Podłoga i poziomo przewijana lista. */
 export function createInventoryPanel(hooks: InventoryHooks): InventoryPanel {
