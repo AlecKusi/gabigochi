@@ -23,6 +23,19 @@ export function plantState(item: PlacedItem, now: number): PlantState {
   return 'ok';
 }
 
+/** Dymek „Kwiatki chcą pić!” najwyżej raz na tyle ms (performance.now()). */
+export const PLANT_NAG_EVERY = 3 * 60_000;
+
+/** Czy w pokoju jest spragniona albo zwiędnięta roślina. */
+export function hasThirstyPlant(items: readonly PlacedItem[], now: number): boolean {
+  return items.some((i) => plantState(i, now) !== 'ok');
+}
+
+/** Czy przy najbliższej pogawędce Gabi ma przypomnieć o podlaniu (spragniona roślina + odstęp od ostatniego razu). */
+export function shouldNagPlants(items: readonly PlacedItem[], now: number, t: number, lastNagAt: number | null): boolean {
+  return hasThirstyPlant(items, now) && (lastNagAt === null || t - lastNagAt >= PLANT_NAG_EVERY);
+}
+
 export function water(state: GameState, room: RoomId, uid: string, now: number): HomeOutcome {
   const it = state.rooms[room].items.find((i) => i.uid === uid);
   if (!it) return { ok: false, reason: 'not-found' };

@@ -35,7 +35,7 @@ export const STARTER_LAYOUT: Readonly<Record<RoomId, readonly { itemId: string; 
     { itemId: 'sink', x: 48, y: 136 },
     { itemId: 'window_flower', x: 100, y: 52 },
     { itemId: 'snake_plant', x: 20, y: 140 },
-    { itemId: 'toilet', x: 104, y: 136 },
+    { itemId: 'toilet', x: 92, y: 136 },
   ],
 };
 

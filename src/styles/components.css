@@ -126,6 +126,10 @@
   cursor: pointer;
 }
 .activity-card:active { transform: translateY(2px); }
+.activity-card.off { cursor: default; color: var(--text-soft); }
+.activity-card.off:active { transform: none; }
+.activity-card.off img { filter: grayscale(1); opacity: .45; }
+.activity-hint { font-size: 11px; line-height: 1.15; color: var(--text-soft); text-align: center; }
 .activity-card img { height: 64px; width: auto; max-width: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: crisp-edges; }
 .fridge-empty { display: grid; justify-items: center; gap: 10px; padding: 10px; }
 .drag-ghost { position: fixed; z-index: 100; pointer-events: none; transform: translate(-50%, -60%) scale(1.1); }

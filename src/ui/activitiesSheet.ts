@@ -2,8 +2,17 @@ import { ACTIVITIES, ACTIVITY_IDS, type ActivityId } from '../pet/activities';
 import { spriteUrl } from '../sprites/loader';
 import { h } from './dom';
 
-/** Wysuwany panel „Zajęcia”: stuknięcie w kartę od razu zaczyna zajęcie. Zwraca funkcję zamykającą. */
-export function openActivities(host: HTMLElement, onPick: (id: ActivityId) => void): () => void {
+/** Stan karty zajęcia: wyszarzona (bez potrzebnego mebla w mieszkaniu) i/lub z podpisem (np. „Tylko w salonie”). */
+export interface ActivityCardState {
+  enabled: boolean;
+  hint: string | null;
+}
+
+/**
+ * Wysuwany panel „Zajęcia”: stuknięcie w dostępną kartę zaczyna zajęcie (pokój decyduje, czy od razu, czy po
+ * przejściu do mebla / innego pokoju). Zwraca funkcję zamykającą.
+ */
+export function openActivities(host: HTMLElement, stateOf: (id: ActivityId) => ActivityCardState, onPick: (id: ActivityId) => void): () => void {
   let closed = false;
   const close = () => {
     if (closed) return;
@@ -18,17 +27,21 @@ export function openActivities(host: HTMLElement, onPick: (id: ActivityId) => vo
 
   const card = (id: ActivityId) => {
     const def = ACTIVITIES[id];
+    const st = stateOf(id);
     return h(
       'button',
       {
-        class: 'activity-card',
+        class: `activity-card${st.enabled ? '' : ' off'}`,
+        'aria-disabled': st.enabled ? 'false' : 'true',
         onclick: () => {
+          if (!st.enabled) return;
           close();
           onPick(id);
         },
       },
       h('img', { class: 'px', src: spriteUrl(def.frames[0]), alt: '', draggable: 'false' }),
       h('span', {}, def.name),
+      st.hint ? h('small', { class: 'activity-hint' }, st.hint) : null,
     );
   };
 
