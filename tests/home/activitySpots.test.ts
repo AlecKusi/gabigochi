@@ -56,9 +56,9 @@ describe('reguły miejsc zajęć', () => {
 
   it('samo z siebie losuje tylko to, co jest dostępne w pokoju', () => {
     const s = fresh();
-    expect(activitiesHere(s, 'bedroom', ACTIVITY_IDS)).toEqual(['phone']);
-    expect(pickActivityHere(s, 'bedroom', ACTIVITY_IDS, () => 0.99)).toBe('phone');
-    expect(new Set(activitiesHere(s, 'studio', ACTIVITY_IDS))).toEqual(new Set(['study', 'nursing', 'phone', 'crochet']));
+    expect(activitiesHere(s, 'bedroom', ACTIVITY_IDS)).toEqual(['phone', 'dance']);
+    expect(['phone', 'dance']).toContain(pickActivityHere(s, 'bedroom', ACTIVITY_IDS, () => 0.99));
+    expect(new Set(activitiesHere(s, 'studio', ACTIVITY_IDS))).toEqual(new Set(['study', 'nursing', 'phone', 'crochet', 'dance']));
     expect(pickActivityHere(s, 'bedroom', ['music'], () => 0)).toBeNull();
   });
 

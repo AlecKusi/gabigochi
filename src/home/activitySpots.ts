@@ -30,6 +30,8 @@ export const ACTIVITY_RULES: Readonly<Record<ActivityId, SpotRule>> = {
   phone: { kind: 'any' },
   crochet: { kind: 'item', itemIds: SEATS, label: 'Potrzebne: siedzisko' },
   music: { kind: 'room', room: 'salon', label: 'Tylko w salonie' },
+  karaoke: { kind: 'room', room: 'salon', label: 'Tylko w salonie' },
+  dance: { kind: 'any' },
 };
 
 /** Mebel, przy którym odbywa się zajęcie. */

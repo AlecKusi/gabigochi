@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { defaultOutfit } from '../../src/wardrobe/outfit';
 import {
   HEAD_FIT,
+  isBackView,
+  isSeated,
   OUTLINE,
   headwearOf,
   legPatternAt,
@@ -214,5 +216,12 @@ describe('ubieralnia — części czyste', () => {
     expect(headwearOf(out({ dress: 'kawaii_bunny', head: 'head_crown' }))?.id).toBe('head_crown');
     expect(headwearOf(out({ dress: 'dress_dots' }))).toBeNull();
     expect(HEAD_FIT.bunny_hood).toBeDefined();
+  });
+
+  it('klatki od tyłu bez znaczka na piersi; nowe pozy siedzące i leżące', () => {
+    for (const n of ['back_idle', 'tv_2', 'console_4', 'turn_back']) expect(isBackView(n), n).toBe(true);
+    expect(isBackView('turn_front')).toBe(false);
+    for (const n of ['sit_tea_1', 'table_cake_2', 'nap_1', 'lie_read_2', 'cat_pet_1', 'crochet_3']) expect(isSeated(n), n).toBe(true);
+    expect(isSeated('idle_front')).toBe(false);
   });
 });

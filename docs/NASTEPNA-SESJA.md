@@ -62,3 +62,14 @@ Plan: docs/superpowers/plans/2026-10-07-szafa-ubrania.md — wszystkie kroki zro
 - Stoły: interakcja `coffee` (jedzenie/picie, serduszka). Okna: w dzień Gabi macha (`fun_wave`), w nocy patrzy (PlanCtx.night).
 - Pomysły na dalej: telewizor (siedzenie przed TV, migający ekran), siedzenie przy stole z krzesłami.
 
+## Nowe animacje z 10 arkuszy (2026-10-07)
+- Arkusze `assets/source/sheet-{birthday,expressions,cat,turnaround,plants2,table,lying,back,sitting,karaoke}.jpg` (okres 4, `holeTol` 15, skala z `scaleRef` albo ręczna `bodyScale` dla siedzenia/stołu/leżenia).
+- Ekstraktor: `noSeat` (stołek/ławka usuwane po kolorze brązu + szare prześwity/cień osiągalne od tła + największy kształt), `onlyLargest` (bez numerów i nutek), `seatMode`, `wardrobe.sheetClasses` (osobne klasy koloru koszulki dla arkusza „sitting”).
+- Gra:
+  - miny jako akcje mózgu (`yawn/stretch/think/idea/shy/laugh/love/bored`, `pickEmote`): głaskanie → śmiech/rumieniec, KitKat → zakochana, wolne chwile → losowa mina;
+  - interakcje z pozą względem przedmiotu (`GabiPose.at`: seat/lie/behind/front/under, `face`): relaks na siedzisku (telefon/herbata), leżenie na kanapie (manga, telefon), drzemka na leżąco, stół (kawa/ciasto/KitKat za stołem), okno od tyłu, TV (oglądanie + konsola, migający ekran `TV_SCREENS`), podlewanie konewką, kocie legowiska (głaskanie, przytulanie);
+  - nowe zajęcia: Karaoke (salon) i Taniec (wszędzie), z nutkami rysowanymi przez grę;
+  - kot chodzący po pokoju (`src/home/cat.ts`), stuknięty — Gabi go głaszcze; w nocy śpi w łóżku;
+  - Szafa: obrót dookoła i pozy po założeniu; ekran urodzinowy: animowana scenka; finał Świeczek: konfetti + dziękuję.
+- Znane ograniczenia: na klatkach z nowych arkuszy dolne nogawki mają kolor koszulki, więc pod spódnicą/sukienką wyglądają jak czarne rajstopy; w arkuszu „siedzenie” Gabi ma dłuższe, ciemniejsze włosy (styl generatora); pod udami siedzącej zostają cienkie kreski po stołku.
+

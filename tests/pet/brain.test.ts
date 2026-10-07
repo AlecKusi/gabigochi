@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ACTION_MS, ROOM_BOUNDS, animationName, createBrain, stepBrain, triggerBrain, wakeBrain, WAKE_PAUSE_MS, type BrainCtx } from '../../src/pet/brain';
+import { pickEmote as pickEmoteFn } from '../../src/pet/brain';
 
 const ctx = (patch: Partial<BrainCtx> = {}): BrainCtx => ({ now: 10_000, mood: 'happy', sleeping: false, rng: () => 0, ...patch });
 
@@ -82,5 +83,12 @@ describe('wakeBrain', () => {
     expect(b.nextDecisionAt).toBe(5000 + WAKE_PAUSE_MS);
     const after = stepBrain(b, 16, ctx({ now: 5000 + ACTION_MS.wave }));
     expect(after.nextDecisionAt).toBeGreaterThanOrEqual(5000 + WAKE_PAUSE_MS);
+  });
+
+  it('spontaniczne miny: zmęczona ziewa, smutna się nudzi, wesoła myśli/ma pomysł/przeciąga się/śmieje', () => {
+    expect(pickEmoteFn({ mood: 80, energy: 20 }, () => 0)).toBe('yawn');
+    expect(pickEmoteFn({ mood: 20, energy: 80 }, () => 0)).toBe('bored');
+    const happy = new Set([0, 0.3, 0.6, 0.9].map((v) => pickEmoteFn({ mood: 80, energy: 80 }, () => v)));
+    expect(happy).toEqual(new Set(['think', 'idea', 'stretch', 'laugh']));
   });
 });

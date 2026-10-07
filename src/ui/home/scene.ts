@@ -147,3 +147,21 @@ export function entryWalk(dir: -1 | 1, roomW: number): { x: number; targetX: num
     ? { x: ENTRY.edge, targetX: ROOM_BOUNDS.minX + ENTRY.steps, facing: 'right' }
     : { x: roomW - ENTRY.edge, targetX: ROOM_BOUNDS.maxX - ENTRY.steps, facing: 'left' };
 }
+
+/** Ekran telewizora (px natywne sprite'a: x0, y0, x1, y1) — tam miga obraz, gdy Gabi ogląda. */
+export const TV_SCREENS: Readonly<Record<string, readonly [number, number, number, number]>> = {
+  tv_retro: [16, 14, 32, 30],
+  tv_flat: [10, 3, 54, 28],
+};
+
+/** Prostokąt ekranu telewizora w px logicznych pokoju (z odbiciem przedmiotu) albo null. */
+export function screenRect(item: PlacedItem): { x: number; y: number; w: number; h: number } | null {
+  const r = TV_SCREENS[item.itemId];
+  const def = findItem(item.itemId);
+  if (!r || !def) return null;
+  const b = itemBox(item);
+  const s = def.scale;
+  const x0 = item.flip ? def.w - r[2] : r[0];
+  return { x: b.x + x0 * s, y: b.y + r[1] * s, w: (r[2] - r[0]) * s, h: (r[3] - r[1]) * s };
+}
+

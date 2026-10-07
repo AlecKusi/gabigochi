@@ -33,6 +33,8 @@ export interface DressOpts {
   seated: boolean;
   /** Obrazki ozdób z arkusza (`HeadSprite.sprite`); brak — ozdoby z arkusza pomijane. */
   art?: (sprite: string) => Pixels | null;
+  /** Klatka od tyłu (bez znaczka na piersi). */
+  back?: boolean;
 }
 
 /** Kolory i wzór do malowania jednego kawałka ubrania. */
@@ -47,6 +49,16 @@ export const SEATED_FRAMES: ReadonlySet<string> = new Set([
   'drag_4', 'tired_4', 'tired_5', 'hunger_5', 'crochet_1', 'crochet_2', 'crochet_3', 'crochet_4', 'crochet_5',
   'sit_crochet_1', 'sit_crochet_2', 'sit_crochet_3', 'sit_crochet_4', 'sit_crochet_5',
 ]);
+
+/** Poza siedząca/leżąca/kucająca (lista albo nowe arkusze: siedzenie, stół, leżenie, TV, głaskanie kota). */
+export function isSeated(name: string): boolean {
+  return SEATED_FRAMES.has(name) || /^(sit_|table_|nap_|lie_|tv_|console_|cat_pet_)/.test(name);
+}
+
+/** Klatki od tyłu: bez znaczków z przodu koszulki (serduszko, czaszka). */
+export function isBackView(name: string): boolean {
+  return /^(back_|tv_|console_)/.test(name) || name === 'turn_back';
+}
 
 /** Skóra nóg pod spódnicą: jasny, średni (ten sam — bez pasków po nogawkach), cień. */
 export const SKIN: readonly [RGB, RGB, RGB] = [hex('#facab1'), hex('#facab1'), hex('#da9588')];
@@ -175,7 +187,7 @@ function hatParts(def: ClothDef, opts: DressOpts): { art: Pixels; fit: { overlap
 export function dressPixels(src: Pixels, mask: Pixels | null, meta: FrameMeta, look: Look, opts: DressOpts): { px: Pixels; meta: FrameMeta } | null {
   if (!changesFrame(meta, look, opts)) return null;
   let res = { px: { w: src.w, h: src.h, data: new Uint8ClampedArray(src.data) } as Pixels, meta };
-  if (mask && meta.mask) recolorBody(src, mask, res.px, meta, look, opts.seated);
+  if (mask && meta.mask) recolorBody(src, mask, res.px, meta, look, opts.seated, opts.back === true);
   const headwear = headwearOf(look);
   if (opts.hat && headwear && meta.head && !meta.noHat) {
     for (const part of hatParts(headwear, opts)) res = addHat(res.px, res.meta, part.art, part.fit);
@@ -240,7 +252,7 @@ function inCentre(x: number, r: { min: number; max: number }, frac: number): boo
   return Math.abs(x - c) <= half;
 }
 
-function recolorBody(src: Pixels, mask: Pixels, out: Pixels, meta: FrameMeta, look: Look, seated: boolean): void {
+function recolorBody(src: Pixels, mask: Pixels, out: Pixels, meta: FrameMeta, look: Look, seated: boolean, back: boolean): void {
   const { w, h } = src;
   const shirt: number[] = [];
   const print: number[] = [];
@@ -272,7 +284,7 @@ function recolorBody(src: Pixels, mask: Pixels, out: Pixels, meta: FrameMeta, lo
     const all = [...shirt, ...print];
     for (const i of all) setPx(out, i, clothColor(paint, tones.get(i)!, i % w, Math.floor(i / w)));
     const stamp = upper.pattern ? STAMPS[upper.pattern] : undefined;
-    if (stamp && upper.patternColor) stampAt(out, w, all, print, hex(upper.patternColor), stamp);
+    if (stamp && upper.patternColor && !back) stampAt(out, w, all, print, hex(upper.patternColor), stamp);
     // dodatki: śliniaczek / chusta, gorset, kołnierzyk
     const rows = rowsOf(all, w);
     const ys = [...rows.keys()];

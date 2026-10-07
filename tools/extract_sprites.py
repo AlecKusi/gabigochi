@@ -137,6 +137,9 @@ def entry(spec, group):
         'holeTolAll': spec.get('holeTolAll', sh.get('holeTolAll', 15)),
         'mirror': spec.get('mirror', []),
         'flipX': spec.get('flipX', False),
+        'noSeat': spec.get('noSeat', []),
+        'seatMode': spec.get('seatMode', sh.get('seatMode', 'colour')),
+        'onlyLargest': spec.get('onlyLargest', sh.get('onlyLargest', False)),
         **{k: spec.get(k, []) for k in LIST_KEYS},
     }
 
@@ -1051,9 +1054,13 @@ def enclosed(cand, region, op, skip=None, frac=0.6):
     return out
 
 
+# Klasy kolorów nadpisane dla arkusza bieżącej klatki (`wardrobe.sheetClasses`) — ustawiane w save_wardrobe.
+_SHEET_CLASSES = {}
+
+
 def wardrobe_classes(arr):
     """Klasy kolorów pikseli wg reguł HSV z `wardrobe.classes` (odcień w stopniach, może przechodzić przez 0°)."""
-    rules = CFG['wardrobe']['classes']
+    rules = {**CFG['wardrobe']['classes'], **_SHEET_CLASSES}
     op = arr[:, :, 3] > 0
     out = {k: np.zeros(op.shape, bool) for k in rules}
 
@@ -1235,17 +1242,67 @@ def matches(name, patterns):
     return any(fnmatch.fnmatchcase(name, p) for p in patterns)
 
 
+def without_seat(im, region):
+    """`noSeat` (prostokąty w px arkusza): brązowy stołek / ławka spod Gabi znika — piksele brązowe (odcień
+    czerwono-pomarańczowy, nasycone, ciemne) w obszarze i ich kontur (ciemne piksele przy usuniętych, niestykające
+    się z jasną częścią postaci); na koniec zostaje tylko największy kształt (odpada cień pod stołkiem, resztki nóżek).
+    Gabi „siedzi/leży w powietrzu” — gra kładzie ją na meblu z pokoju."""
+    arr = np.array(im)
+    rgb = arr[:, :, :3].astype(float) / 255
+    mx, mn = rgb.max(axis=2), rgb.min(axis=2)
+    v = mx
+    sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
+    r, g, b = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
+    d = np.maximum(mx - mn, 1e-6)
+    hue = np.where(mx == r, ((g - b) / d) % 6, np.where(mx == g, (b - r) / d + 2, (r - g) / d + 4)) * 60
+    opaque = arr[:, :, 3] > 0
+    brown = opaque & region & ((hue <= 45) | (hue >= 340)) & (sat > 0.25) & (v < 0.62) & (v > 0.06)
+    dark = opaque & (v < 0.16)
+    drop = brown.copy()
+    # Szare prześwity między nóżkami i cień pod stołkiem: szarości osiągalne od tła/usuniętego stołka
+    # bez przechodzenia przez kontur (buty i nogi otoczone konturem zostają).
+    greyish = opaque & region & (sat < 0.15) & (v > 0.4)
+    h, w = drop.shape
+    queue = deque(zip(*np.nonzero(region & (drop | ~opaque))))
+    seen = region & (drop | ~opaque)
+    while queue:
+        y, x = queue.popleft()
+        for dy, dx in NEIGH4:
+            ny, nx = y + dy, x + dx
+            if 0 <= ny < h and 0 <= nx < w and not seen[ny, nx] and greyish[ny, nx]:
+                seen[ny, nx] = True
+                drop[ny, nx] = True
+                queue.append((ny, nx))
+    for _ in range(3):
+        near_drop = np.zeros_like(drop)
+        near_light = np.zeros_like(drop)
+        for dy, dx in NEIGH4:
+            near_drop |= shift(drop, dy, dx)
+            near_light |= shift(opaque & ~drop & ~dark, dy, dx)
+        drop |= region & dark & near_drop & ~near_light
+    arr[drop] = 0
+    (x0, y0, x1, y1), shape = largest_shape(Image.fromarray(arr, 'RGBA'))
+    arr[~shape] = 0
+    return Image.fromarray(arr, 'RGBA').crop((int(x0), int(y0), int(x1) + 1, int(y1) + 1))
+
+
 def without_stool(im, rect):
     """Klatka bez stołka (sekcja `derived`, pole `noStool`: [x0, y0, x1, y1] w px klatki): w prostokącie zostają tylko
     ubranie i buty (maski szafy) oraz kontur, który się z nimi styka — reszta (stołek, jego nóżki) znika.
     Gabi „siedzi w powietrzu”, więc da się ją posadzić na dowolnym meblu."""
+    h, w = im.height, im.width
+    x0, y0, x1, y1 = rect
+    region = np.zeros((h, w), bool)
+    region[max(0, y0):min(h, y1), max(0, x0):min(w, x1)] = True
+    return strip_region(im, region)
+
+
+def strip_region(im, region):
+    """W obszarze zostaje tylko ubranie i buty (maski szafy) oraz stykający się z nimi kontur."""
     shirt, printed, jeans, shoes, _ = wardrobe_masks(im)
     keep = shirt | printed | jeans | shoes
     arr = np.array(im)
     h, w = arr.shape[:2]
-    x0, y0, x1, y1 = rect
-    region = np.zeros((h, w), bool)
-    region[max(0, y0):min(h, y1), max(0, x0):min(w, x1)] = True
     lum = arr[:, :, :3].astype(int) @ np.array([299, 587, 114]) / 1000
     outline = (arr[:, :, 3] > 0) & (lum < 24)
     near_keep = np.zeros((h, w), bool)
@@ -1275,6 +1332,8 @@ def save_wardrobe(body, frames, portraits_im):
 
     for name in sorted(body):
         im, meta = body[name]['im'], frames[name]
+        _SHEET_CLASSES.clear()
+        _SHEET_CLASSES.update(cfg.get('sheetClasses', {}).get(body[name]['e']['sheet'], {}))
         if matches(name, cfg['exclude']):
             meta['mask'] = False
             tiles.append((name, im, None, None, 'wykluczona'))
@@ -1292,6 +1351,7 @@ def save_wardrobe(body, frames, portraits_im):
         if matches(name, cfg['noHat']):
             meta['noHat'] = True
         tiles.append((name, im, (shirt, printed, jeans, shoes), meta, '' if meta['mask'] else 'brak koszulki'))
+    _SHEET_CLASSES.clear()
     masked_portraits = []
     for name in cfg['portraits']:
         im = portraits_im[name]
@@ -1438,6 +1498,27 @@ def main():
         coords[name] = (xs[cols[0]:cols[-1] + 1], ys[rows[0]:rows[-1] + 1])
         assert images[name][2].size == (len(coords[name][0]), len(coords[name][1])), name
     save_bag_preview(retouched)
+    for name, (group, e, im) in list(images.items()):
+        if e['onlyLargest']:
+            # tylko postać: bez numerów klatek, nutek, kawałków sąsiednich rysunków
+            (x0, y0, x1, y1), shape = largest_shape(im)
+            arr = np.array(im)
+            arr[~shape] = 0
+            im = Image.fromarray(arr, 'RGBA').crop((int(x0), int(y0), int(x1) + 1, int(y1) + 1))
+            images[name] = (group, e, im)
+        if e['noSeat']:
+            xs, ys = coords[name]
+            region = erase_mask(xs, ys, e['noSeat'])
+            if e['seatMode'] == 'mask':
+                # stołek z jasnymi prześwitami i cieniem: zostaje samo ubranie i buty, potem największy kształt
+                im = strip_region(im, region)
+                (x0, y0, x1, y1), shape = largest_shape(im)
+                arr = np.array(im)
+                arr[~shape] = 0
+                im = Image.fromarray(arr, 'RGBA').crop((int(x0), int(y0), int(x1) + 1, int(y1) + 1))
+                images[name] = (group, e, im)
+            else:
+                images[name] = (group, e, without_seat(im, region))
 
     # Największy kształt każdej klatki ciała: wysokość ciała, stopy, kotwica.
     body = {}
@@ -1458,6 +1539,9 @@ def main():
         print(f'grupa {g:11s} mediana wysokości={float(np.median(heights[g])):.1f} skala={group_scale[g]:.3f}')
     sheet_scale = {}
     for sname, sh in CFG.get('sheets', {}).items():
+        if 'bodyScale' in sh:
+            sheet_scale[sname] = sh['bodyScale']  # arkusz bez stojącej Gabi (siedzenie, leżenie) — skala ręczna
+            continue
         if 'scaleRef' not in sh:
             continue  # arkusz samych przedmiotów — skala z `scale` arkusza albo wpisu
         ref = sh['scaleRef']

@@ -225,7 +225,7 @@
     "name": "Legowisko dla kota",
     "category": "decor",
     "layer": "floor",
-    "interaction": "cute",
+    "interaction": "cat",
     "price": 60
   },
   "cat_cave": {
@@ -235,7 +235,7 @@
     "name": "Domek dla kota",
     "category": "decor",
     "layer": "floor",
-    "interaction": "cute",
+    "interaction": "cat",
     "price": 90
   },
   "nightstand_mushroom": {
@@ -265,7 +265,7 @@
     "name": "Telewizor retro z konsolą",
     "category": "gaming",
     "layer": "floor",
-    "interaction": "play",
+    "interaction": "tv",
     "price": 280
   },
   "tv_flat": {
@@ -275,7 +275,7 @@
     "name": "Telewizor na szafce",
     "category": "gaming",
     "layer": "floor",
-    "interaction": "play",
+    "interaction": "tv",
     "price": 380
   },
   "gaming_desk": {
@@ -1376,5 +1376,25 @@
     "layer": "floor",
     "interaction": "coffee",
     "price": 180
+  },
+  "cat_sit": {
+    "w": 25,
+    "h": 35,
+    "scale": 0.55
+  },
+  "cat_walk": {
+    "w": 35,
+    "h": 34,
+    "scale": 0.55
+  },
+  "cat_sleep": {
+    "w": 32,
+    "h": 23,
+    "scale": 0.55
+  },
+  "cat_stretch": {
+    "w": 39,
+    "h": 42,
+    "scale": 0.55
   }
 }

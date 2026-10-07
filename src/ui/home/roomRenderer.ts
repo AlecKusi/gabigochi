@@ -36,6 +36,8 @@ export interface RoomFrame {
   /** Zaznaczony w trybie urządzania. */
   selectedUid: string | null;
   gabi: GabiLayer | null;
+  /** Dodatkowe postacie przed meblami (kotek) — rysowane po przedmiotach. */
+  extras?: readonly GabiLayer[];
 }
 
 /** Promień poświaty zapalonej lampki (px logiczne). */
@@ -136,6 +138,12 @@ export function createRoomRenderer(): RoomRenderer {
       } else {
         drawItem(ctx, k, e, f);
       }
+    }
+    for (const g of f.extras ?? []) {
+      ctx.save();
+      ctx.globalAlpha = g.alpha;
+      g.draw(ctx, k);
+      ctx.restore();
     }
     for (const it of visible) if (isLitLamp(it)) drawGlow(ctx, k, it, f.night);
     const sel = f.selectedUid ? f.items.find((i) => i.uid === f.selectedUid) : undefined;

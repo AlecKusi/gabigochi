@@ -13,9 +13,20 @@ import { screenHeader } from '../screenHeader';
 const W = 72;
 const H = 76;
 const FEET = 72;
-/** Spoczynek → machanie: co ile i jak długo (ms). */
-const WAVE_EVERY = 3400;
-const WAVE_MS = 1100;
+/** Pozy po założeniu ubrania. */
+const SHOW_OFF = ['pose_tada', 'pose_peace', 'pose_curtsy', 'pose_twirl'];
+/** Obrót dookoła (pokazanie stroju z każdej strony). */
+const TURN = ['turn_front', 'turn_left34', 'turn_side', 'turn_back', 'turn_right34', 'turn_front'];
+const TURN_MS = 450;
+const CYCLE_MS = 9000;
+
+/** Podgląd w spoczynku: stoi, obraca się dookoła, stoi, macha. */
+function previewFrame(t: number): string {
+  const c = t % CYCLE_MS;
+  if (c >= 3000 && c < 3000 + TURN.length * TURN_MS) return TURN[Math.floor((c - 3000) / TURN_MS)];
+  if (c >= 7000 && c < 8100) return 'fun_wave';
+  return 'idle_front';
+}
 /** Spacer w podglądzie: zakres i prędkość (px log./s). */
 const WALK_MIN = 18;
 const WALK_MAX = W - 18;
@@ -45,6 +56,14 @@ export function wardrobeScreen(app: App): Screen {
   let walkDir: 1 | -1 = 1;
   let last = performance.now();
   let pop = 0;
+  /** Poza po założeniu ubrania („ta-da”, piątka, dyg, obrót spódnicy). */
+  let poseName = 'pose_tada';
+  let poseUntil = 0;
+  const showOff = () => {
+    pop = performance.now() + 360;
+    poseName = SHOW_OFF[Math.floor(Math.random() * SHOW_OFF.length)];
+    poseUntil = performance.now() + 1600;
+  };
   /** Przymierzane ubranie (podgląd bez kupowania) — znika po zakupie, założeniu albo zmianie zakładki. */
   let trying: { id: string; outfit: Outfit } | null = null;
 
@@ -65,7 +84,7 @@ export function wardrobeScreen(app: App): Screen {
       x = walkX;
       flip = anim.flipForRight && walkDir > 0;
     } else {
-      name = t % WAVE_EVERY < WAVE_MS ? frameAt(resolveAnimation(ANIMATIONS, 'wave'), t) : frameAt(resolveAnimation(ANIMATIONS, 'idle'), t);
+      name = poseUntil > t ? poseName : previewFrame(t);
     }
     const fig = app.figures.get(name, trying ? { outfit: trying.outfit } : undefined);
     // „Hop” po założeniu ubrania: krótkie spłaszczenie i podskok.
@@ -153,7 +172,7 @@ export function wardrobeScreen(app: App): Screen {
         app.store.update(() => (dressed.ok ? dressed.state : bought.state));
         app.toast(`${def.name} — nowa rzecz w szafie!`);
         app.celebrate();
-        pop = performance.now() + 360;
+        showOff();
         render(true);
       });
     } else if (worn) {
@@ -163,7 +182,7 @@ export function wardrobeScreen(app: App): Screen {
           const r = takeOff(st, def.slot);
           return r.ok ? r.state : st;
         });
-        pop = performance.now() + 360;
+        showOff();
         render(true);
       });
     } else {
@@ -172,7 +191,7 @@ export function wardrobeScreen(app: App): Screen {
         const r = wear(app.store.get(), def.id);
         if (!r.ok) return;
         app.store.update(() => r.state);
-        pop = performance.now() + 360;
+        showOff();
         render(true);
       });
     }

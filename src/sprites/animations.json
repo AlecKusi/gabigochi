@@ -17,5 +17,13 @@
   "crazy": { "frames": ["crazy"], "fps": 1 },
   "drag_pick": { "frames": ["drag_1"], "fps": 1 },
   "drag_dangle": { "frames": ["drag_2", "drag_3", "drag_5", "drag_3"], "fps": 3 },
-  "drag_panic": { "frames": ["drag_4"], "fps": 1 }
+  "drag_panic": { "frames": ["drag_4"], "fps": 1 },
+  "yawn": { "frames": ["expr_yawn"], "fps": 1 },
+  "stretch": { "frames": ["expr_stretch"], "fps": 1 },
+  "think": { "frames": ["expr_think"], "fps": 1 },
+  "idea": { "frames": ["expr_idea"], "fps": 1 },
+  "shy": { "frames": ["expr_shy"], "fps": 1 },
+  "laugh": { "frames": ["expr_laugh", "idle_front"], "fps": 3 },
+  "love": { "frames": ["expr_love"], "fps": 1 },
+  "bored": { "frames": ["expr_bored"], "fps": 1 }
 }

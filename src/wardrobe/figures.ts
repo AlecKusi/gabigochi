@@ -1,6 +1,6 @@
 import type { Outfit } from '../core/types';
 import { FRAMES, PORTRAIT_MASKS, hasClothesMask, spriteUrl, type FrameMeta, type SpriteMap } from '../sprites/loader';
-import { SEATED_FRAMES, dressPixels, lookOf, type Pixels } from './dresser';
+import { dressPixels, isBackView, isSeated, lookOf, type Pixels } from './dresser';
 import { outfitKey } from './outfit';
 
 /** Klatka postaci gotowa do `drawSprite`: obrazek (oryginał albo przebrany canvas) i jego metadane. */
@@ -88,7 +88,7 @@ export function createFigures(sprites: SpriteMap, masks: SpriteMap, outfit: () =
         const h = hats.get(sprite);
         return h ? px(`hat:${sprite}`, h) : null;
       };
-      const r = dressPixels(px(name, img), mask ? px(`mask:${name}`, mask) : null, meta, lookOf(o), { hat, seated: SEATED_FRAMES.has(name), art });
+      const r = dressPixels(px(name, img), mask ? px(`mask:${name}`, mask) : null, meta, lookOf(o), { hat, seated: isSeated(name), art, back: isBackView(name) });
       if (r) entry = { fig: { img: canvasOf(r.px), meta: r.meta } };
     } catch (err) {
       // Bez canvasa (albo uszkodzona maska) zostaje oryginał — gra działa dalej.

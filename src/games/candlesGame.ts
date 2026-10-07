@@ -160,7 +160,8 @@ export const candlesGame: MiniGame = {
       party += dt;
       ctx.fillStyle = '#2a1f3d';
       ctx.fillRect(0, 0, W, H);
-      const wave = env.figures.get('fun_wave');
+      // finał: konfetti, a potem „dziękuję” z serduszkami
+      const wave = env.figures.get(party < 1100 ? 'bday_confetti' : 'bday_thanks');
       const bob = Math.floor(party / 300) % 2;
       present((d, k) => {
         if (wave) drawSprite(d, k, wave.img, wave.meta, { x: W / 2, feetY: 150, flip: false, bob, squash: 0, jump: 0 });

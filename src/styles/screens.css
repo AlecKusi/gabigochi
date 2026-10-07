@@ -183,6 +183,7 @@ img.px.avatar.crisp { image-rendering: pixelated; image-rendering: crisp-edges; 
 .bday-hero { position: relative; }
 .portrait-big { width: 264px; animation: portrait-in 600ms cubic-bezier(.2, 1.4, .4, 1); }
 .wave-sprite { position: absolute; right: -40px; bottom: -6px; height: 114px; width: auto; animation: hop 1.2s steps(2) infinite; }
+.bday-anim { position: absolute; right: -62px; bottom: -6px; height: 180px; width: auto; }
 .bday-title { font-size: 30px; text-shadow: 3px 3px 0 var(--ink); }
 .bday-wishes { padding: 14px 16px; color: var(--text); text-align: left; font-size: 17px; line-height: 1.4; max-width: 360px; display: grid; gap: 8px; }
 .signature { text-align: right; color: var(--text-soft); }

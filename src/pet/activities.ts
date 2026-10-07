@@ -1,4 +1,4 @@
-export type ActivityId = 'study' | 'nursing' | 'phone' | 'crochet' | 'music';
+export type ActivityId = 'study' | 'nursing' | 'phone' | 'crochet' | 'music' | 'karaoke' | 'dance';
 
 export interface ActivityDef {
   id: ActivityId;
@@ -23,6 +23,8 @@ export interface ActivityDef {
   seated?: Readonly<Record<string, string>>;
   avatar?: string;
   lines: string[];
+  /** Nad Gabi unoszą się nutki (karaoke, taniec — klatki bez nutek). */
+  notes?: boolean;
 }
 
 export const CROSSFADE_MS = 400;
@@ -64,6 +66,18 @@ export const ACTIVITIES: Record<ActivityId, ActivityDef> = {
     frames: ['music_3', 'music_4'],
     outro: 'music_5', outroMs: 1500, centered: [],
     lines: ['Ale kawałek!', 'La la laaa!', 'Tańczymy!'],
+  },
+  karaoke: {
+    id: 'karaoke', name: 'Karaoke', kind: 'loop', fps: 1.4,
+    frames: ['karaoke_2', 'karaoke_3', 'karaoke_4', 'karaoke_5'],
+    centered: [], notes: true,
+    lines: ['Śpiewam dla Ciebie!', 'La la laaa!', 'Brawo ja!'],
+  },
+  dance: {
+    id: 'dance', name: 'Taniec', kind: 'loop', fps: 2,
+    frames: ['dance_1', 'dance_2', 'dance_3', 'dance_4'],
+    centered: [], notes: true,
+    lines: ['Tańczymy!', 'Raz, dwa, trzy!', 'Ale imprezka!'],
   },
 };
 

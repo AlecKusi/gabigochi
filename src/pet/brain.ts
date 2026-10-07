@@ -1,7 +1,10 @@
 import type { MoodLevel } from '../core/types';
 import type { StatusAnim } from './status';
 
-export type PetAction = 'idle' | 'walk' | 'eat' | 'wave' | 'talk' | 'happy' | 'angry' | 'scared' | 'crazy';
+export type PetAction =
+  | 'idle' | 'walk' | 'eat' | 'wave' | 'talk' | 'happy' | 'angry' | 'scared' | 'crazy'
+  // codzienne miny
+  | 'yawn' | 'stretch' | 'think' | 'idea' | 'shy' | 'laugh' | 'love' | 'bored';
 export type TimedAction = Exclude<PetAction, 'idle' | 'walk'>;
 
 export interface Brain {
@@ -26,7 +29,18 @@ export interface BrainCtx {
 export const ROOM_BOUNDS = { minX: 24, maxX: 104, walkSpeed: 14 } as const;
 /** Po przebudzeniu postać stoi (macha) co najmniej tyle, zanim ruszy w drogę. */
 export const WAKE_PAUSE_MS = 2500;
-export const ACTION_MS: Record<TimedAction, number> = { eat: 1600, wave: 1200, talk: 2500, happy: 900, angry: 2000, scared: 1800, crazy: 2500 };
+export const ACTION_MS: Record<TimedAction, number> = {
+  eat: 1600, wave: 1200, talk: 2500, happy: 900, angry: 2000, scared: 1800, crazy: 2500,
+  yawn: 1600, stretch: 1600, think: 2200, idea: 1500, shy: 1600, laugh: 1500, love: 1800, bored: 2200,
+};
+
+/** Spontaniczna mina w wolnej chwili: zmęczona ziewa, smutna się nudzi, a w dobrym humorze — myśli, wpada na pomysł, przeciąga się, śmieje. */
+export function pickEmote(needs: { mood: number; energy: number }, rng: () => number): TimedAction {
+  if (needs.energy < 35 && rng() < 0.6) return 'yawn';
+  if (needs.mood < 35) return rng() < 0.7 ? 'bored' : 'think';
+  const pool: TimedAction[] = ['think', 'idea', 'stretch', 'laugh'];
+  return pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))];
+}
 const WALK_CHANCE: Record<MoodLevel, number> = { happy: 0.7, ok: 0.45, sad: 0.15 };
 const PAUSE_MS: Record<MoodLevel, number> = { happy: 2000, ok: 3500, sad: 6000 };
 

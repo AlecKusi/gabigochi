@@ -55,25 +55,40 @@ describe('kroki interakcji', () => {
   });
 });
 
-describe('meble: drzemka, kawa, okno', () => {
-  it('drzemka na kanapie: Gabi przysypia na siedzisku, dodaje energii', () => {
+describe('meble: drzemka, stół, okno, TV, siedziska, kotek', () => {
+  it('drzemka na kanapie na leżąco, dodaje energii', () => {
     const [step] = interactionSteps('nap', { hasRail: false })!;
-    expect(step.gabi).toMatchObject({ kind: 'frames', frames: ['tired_5'], seat: true });
+    expect(step.gabi).toMatchObject({ kind: 'frames', frames: ['nap_1', 'nap_2'], at: 'lie' });
     expect(interactionReward('nap')).toEqual({ mood: 1, energy: 6 });
   });
 
-  it('kawa przy stoliku: je i pije, serduszka', () => {
-    const [step] = interactionSteps('coffee', { hasRail: false })!;
-    expect(step.gabi).toMatchObject({ kind: 'frames', frames: ['fun_eat', 'idle_front'] });
-    expect(step.effect).toBe('hearts');
-    expect(interactionReward('coffee')?.mood).toBeGreaterThan(0);
+  it('przy stole: kawa, ciasto albo KitKat (wariant), Gabi za stołem', () => {
+    const kinds = [0, 0.5, 0.99].map((v) => interactionSteps('coffee', { hasRail: false, variant: v })![0]);
+    expect(kinds.map((st) => st.line)).toEqual(['coffee', 'cake', 'kitkat']);
+    for (const st of kinds) expect(st.gabi).toMatchObject({ kind: 'frames', at: 'behind' });
   });
 
-  it('okno: w dzień macha, w nocy tylko patrzy', () => {
-    const day = interactionSteps('window', { hasRail: false })![0].gabi;
-    const night = interactionSteps('window', { hasRail: false, night: true })![0].gabi;
-    expect(day.kind === 'frames' && day.frames).toContain('fun_wave');
-    expect(night.kind === 'frames' && night.frames).toEqual(['idle_front']);
+  it('okno od tyłu: w dzień macha, w nocy tylko patrzy', () => {
+    const wave = (night: boolean) => interactionSteps('window', { hasRail: false, night })![2].gabi;
+    const day = wave(false);
+    const nightPose = wave(true);
+    expect(day.kind === 'frames' && day.frames).toContain('back_wave');
+    expect(nightPose.kind === 'frames' && nightPose.frames).toEqual(['back_idle']);
+  });
+
+  it('telewizor: oglądanie i konsola przed ekranem, ekran miga', () => {
+    const steps = interactionSteps('tv', { hasRail: false })!;
+    for (const st of steps) {
+      expect(st.effect).toBe('screen');
+      expect(st.gabi).toMatchObject({ at: 'front' });
+    }
+  });
+
+  it('siedzisko: relaks z telefonem albo herbatką; kanapa na leżąco; kotek', () => {
+    expect(interactionSteps('relax', { hasRail: false, variant: 0 })![1].line).toBe('relaxPhone');
+    expect(interactionSteps('relax', { hasRail: false, variant: 0.9 })![1].line).toBe('tea');
+    expect(interactionSteps('lounge', { hasRail: false })!.every((st) => st.gabi.kind === 'frames' && st.gabi.at === 'lie')).toBe(true);
+    expect(interactionSteps('cat', { hasRail: false })!.some((st) => st.effect === 'hearts')).toBe(true);
   });
 });
 
