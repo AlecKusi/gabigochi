@@ -18,8 +18,11 @@ Nauka przy biurku, toaleta, prysznic (z turbanem), wanna (turban + suszarka), um
 - Klatka mycia rąk ma w arkuszu inaczej narysowane lustro → mały przeskok przy umywalce.
 - Gdy Gabi stoi na małym siedzisku (pufa), stuknięcie w siedzisko trafia w Gabi (głaskanie) — szydełko wtedy z panelu albo po odejściu Gabi.
 
-## Następne większe kroki (z pierwotnego planu, etap 2)
-- Minigry: Bricks n Balls, Sudoku, Szyfrokrzyżówki (słowa osobiste od użytkownika).
+## Minigry etapu 2 — zrobione (2026-10-07)
+Bricks n Balls, Sudoku (3 poziomy, notatki, zapis w toku), Szyfrokrzyżówka (polskie litery, podpowiedzi, zapis w toku) — na liście minigier, sprawdzone w przeglądarce.
+- Słowa osobiste do krzyżówek: `src/games/cryptoWords.ts` (`PERSONAL_WORDS`) — do podmiany przez użytkownika; słowa > 11 liter (np. PIELĘGNIARKA) się nie mieszczą.
+
+## Następne większe kroki (z pierwotnego planu)
 - Szafa: sukienki i czapki (stroje na postaci).
 
 ## Do decyzji użytkownika
