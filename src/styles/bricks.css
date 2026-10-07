@@ -1,0 +1,13 @@
+/* Bricks n Balls */
+.bricks-canvas { touch-action: none; -webkit-user-select: none; user-select: none; }
+.bricks-ff {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 2;
+  min-width: 56px;
+  min-height: 44px;
+  font-size: 18px;
+}
+.bricks-ff[hidden] { display: none; }
+.bricks-ff.on { --btn-bg: var(--coin); --btn-shade: #d9a92a; --btn-fg: var(--text); }
