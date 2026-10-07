@@ -1,23 +1,27 @@
-# Gdzie skończyliśmy (2026-10-06)
+# Gdzie skończyliśmy (2026-10-07)
 
-## Stan gałęzi
-- `etap-1` — **działająca wersja** (269 testów, build OK): 4 pokoje (salon, sypialnia, pracownia, łazienka), tapety/podłogi, meble z magazynem i trybem „Urządzaj”, sklep z zakładką „Meble”, łazienka wycięta (przedmioty + klatki animacji), zajęcia, animacje stanów, przeciąganie, sen w łóżku.
-- `wip/interakcje` — **niedokończone** Task 6 planu `docs/superpowers/plans/2026-10-06-mieszkanie.md` (+ sekcja „Uzupełnienia”): interakcje z meblami, łazienka w akcji, rośliny, zajęcia w wyznaczonych miejscach. Agent przerwany limitem; `npx tsc --noEmit` **nie przechodzi**.
+## Stan
+Gałąź `etap-1` — **działająca wersja** (testy, typy i build przechodzą). Mieszkanie jest kompletne:
+- 4 pokoje (salon, sypialnia, pracownia, łazienka), przechodzenie strzałkami i przesunięciem palca;
+- tryb „Urządzaj” (przesuwanie z siatką, odbijanie, magazyn, tapety i podłogi), sklep z zakładką „Meble” (8 kategorii);
+- interakcje z meblami: podlewanie roślin, czytanie mang, granie, słodziaki, lampki, kalendarz, okno; łazienka (toaleta, prysznic, wanna, umywalka z wycieraniem rąk przy wieszaku, suszarka) z animacjami; bonus humoru raz na godzinę na przedmiot;
+- rośliny wysychają (24 h kropla, 72 h zwiędnięte), Gabi przypomina „Kwiatki chcą pić!”;
+- zajęcia w wyznaczonych miejscach: nauka przy biurku do nauki, szydełko na siedzisku (stuknięcie siedziska też je zaczyna), praktyka w pracowni, muzyka w salonie, telefon wszędzie; panel „Zajęcia” z podpisami i przejściem do właściwego pokoju;
+- wcześniejsze: zajęcia, stany i emocje, przeciąganie palcem, sen w łóżku z kotem, minigry, sklep z jedzeniem.
 
-## Co jest na `wip/interakcje` (częściowo)
-- `src/home/activitySpots.ts` — reguły miejsc zajęć (nauka przy biurku, szydełko na siedzisku, praktyka w pracowni, muzyka w salonie).
-- `src/home/interactionPlan.ts` — sekwencje interakcji (łazienka itd.).
-- `src/ui/home/interactions.ts` — odtwarzacz interakcji.
-- `src/ui/home/bustPose.ts` — składanie popiersi (turban, suszarka) z nogami z `idle_front`.
-- zmiany w: `room.ts`, `roomRenderer.ts`, `scene.ts`, `activityPlayer.ts`, `activitiesSheet.ts`, `plants.ts`, `content.ts`, `components.css`.
+Gałąź `wip/interakcje` jest już scalona (można ją usunąć).
 
-## Następne kroki
-1. `git checkout wip/interakcje`, przejrzeć diff względem `etap-1`, dokończyć Task 6 (aż `tsc`/testy/build przejdą), dopisać testy czystych modułów (`activitySpots`, `interactionPlan`).
-2. Weryfikacja w przeglądarce (Task 7): każda interakcja, łazienka, podlewanie, zajęcia w miejscach, panel „Zajęcia” z wyszarzeniem.
-3. Scalić do `etap-1`.
-4. Do decyzji użytkownika: treść życzeń w `src/content.ts`, zgoda na publiczny link (GitHub Pages).
+## Do sprawdzenia przy następnej okazji (w przeglądarce)
+- prysznic i wanna (kupić w sklepie → postawić w łazience → stuknąć), wieszak z ręcznikiem przy umywalce;
+- złożone pozy turban/suszarka (popiersie + nogi z `idle_front`) — czy wyglądają naturalnie;
+- szydełko na pufie w salonie, auto-start zajęć w różnych pokojach.
+
+## Do decyzji użytkownika
+- treść życzeń w `src/content.ts`;
+- zgoda na publiczny link (GitHub Pages; workflow gotowy w `.github/workflows/deploy.yml`, gałąź `main`).
 
 ## Uwagi techniczne
 - Python do narzędzi: `/c/gvenv/Scripts/python` (venv w repo nie działa przez długie ścieżki).
-- Paleta jest zamrożona w `tools/palette.json`; nowe arkusze rozszerzają ją `--extend-palette K <arkusz>` (stare PNG bez zmian).
+- Paleta zamrożona w `tools/palette.json`; nowe arkusze: `--extend-palette K <arkusz>` (stare PNG bez zmian).
 - W podglądzie trzymaj tylko jedną kartę z grą — dwie nadpisują sobie zapis.
+- W trybie deweloperskim `window.__room` pokazuje stan pokoju (mózg, droga, zajęcie, interakcja) — pomocne przy testach.

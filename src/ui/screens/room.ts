@@ -8,8 +8,8 @@ import { feed, finishActivity, petCharacter, setSleeping } from '../../core/econ
 import { moodLevel } from '../../core/needs';
 import { dayNumber } from '../../core/time';
 import type { GameState, PlacedItem, RoomId } from '../../core/types';
-import { activityAllowedIn, activityAvailability, availabilityHint, pickActivityHere, seatNear, spotAnchor, type Spot } from '../../home/activitySpots';
-import { GABI_BED, findItem, itemById, itemFrames } from '../../home/catalog';
+import { SEATS, activityAllowedIn, activityAvailability, availabilityHint, pickActivityHere, seatNear, spotAnchor, type Spot } from '../../home/activitySpots';
+import { GABI_BED, findItem, itemById, itemFrames, type Interaction } from '../../home/catalog';
 import { interactionSteps, rewardInteraction, toggleLamp, type InteractionLine } from '../../home/interactionPlan';
 import { ROOMS, hitItem, itemBox } from '../../home/layout';
 import { shouldNagPlants, water } from '../../home/plants';
@@ -28,7 +28,7 @@ import { h, icon } from '../dom';
 import { openFridge } from '../fridge';
 import { createEditMode } from '../home/editMode';
 import { BUSTS, drawBust } from '../home/bustPose';
-import { createInteractionPlayer, drawWaterDrops, hasTowelRail, poseFrame, stageChanges, type InteractionRun, type InteractionView } from '../home/interactions';
+import { createInteractionPlayer, drawWaterDrops, hasTowelRail, poseFrame, stageChanges, type InteractionRun, type InteractionView, type StageChanges } from '../home/interactions';
 import { itemSource, preloadItems } from '../home/itemSprites';
 import { createRoomNav, slideStage } from '../home/roomNav';
 import { createRoomRenderer, type GabiLayer, type RoomFrame } from '../home/roomRenderer';
@@ -127,7 +127,7 @@ export function roomScreen(app: App): Screen {
       const it = hitItem(store.get().rooms[viewRoom].items, x, y);
       // W trybie urządzania każdy przedmiot się przesuwa; poza nim tylko te, z którymi Gabi coś robi, „łapią” dotyk.
       if (edit.active) return it === null;
-      return !petAt(x, y) && (it === null || findItem(it.itemId)?.interaction === 'none');
+      return !petAt(x, y) && (it === null || itemUse(it) === 'none');
     },
     onNavigate: (dir) => goToRoom(neighborRoom(viewRoom, dir), dir, true),
   });
@@ -372,18 +372,24 @@ export function roomScreen(app: App): Screen {
     return pick(content.lines[key]);
   }
 
+  /** Co Gabi robi z przedmiotem po stuknięciu: interakcja z katalogu, a siedzisko — szydełkowanie na nim. */
+  function itemUse(it: PlacedItem): Interaction {
+    const kind = findItem(it.itemId)?.interaction ?? 'none';
+    return kind === 'none' && SEATS.includes(it.itemId) ? 'crochet' : kind;
+  }
+
   /**
    * Stuknięcie przedmiotu z interakcją (poza trybem urządzania): Gabi idzie do niego i po dojściu coś z nim robi.
    * Biurko → nauka przy nim, koszyk z włóczką → szydełko na najbliższym siedzisku, głośniki → muzyka.
    */
   function useItem(it: PlacedItem, t: number): void {
-    const kind = findItem(it.itemId)?.interaction ?? 'none';
+    const kind = itemUse(it);
     if (kind === 'none') return;
     // to samo jeszcze trwa albo Gabi już tam idzie
     if (interaction.current?.uid === it.uid || (pending?.kind === 'item' && pending.uid === it.uid)) return;
     const items = store.get().rooms[viewRoom].items;
     if (kind === 'study' || kind === 'crochet') {
-      const seat = kind === 'study' ? it : seatNear(items, it.x);
+      const seat = kind === 'study' || SEATS.includes(it.itemId) ? it : seatNear(items, it.x);
       if (!seat) {
         say(pick(content.lines.noSeat), 2400);
         return;
@@ -531,8 +537,8 @@ export function roomScreen(app: App): Screen {
 
   /** Stuknięcie w postać bez przesunięcia: głaskanie, a przy 5 stuknięciach w 3 s złość. */
   function tapPet(now: number): void {
-    if (stopActivity(now)) {
-      // Stuknięcie w trakcie zajęcia tylko je kończy — bez głaskania i bez liczenia do złości.
+    if (stopActivity(now) || cancelErrands()) {
+      // Stuknięcie w trakcie zajęcia/interakcji tylko je kończy — bez głaskania i bez liczenia do złości.
       say(pick(content.lines.activityStop), 2000);
       return;
     }
@@ -624,7 +630,12 @@ export function roomScreen(app: App): Screen {
       say(st.line);
     }
     const idle = brain.action === 'idle' || brain.action === 'walk';
-    if (!activity.current && !edit.active && t >= activity.nextAt && status === null && idle) beginActivity(pickActivity(Math.random), t);
+    if (!activity.current && !edit.active && !pending && !interaction.current && t >= activity.nextAt && status === null && idle) {
+      // Samo z siebie tylko to, co da się zrobić w tym pokoju (do mebla Gabi najpierw podchodzi).
+      const id = pickActivityHere(store.get(), viewRoom, ACTIVITY_IDS, Math.random);
+      if (id) requestActivity(id, t);
+      else activity.postpone(t);
+    }
   }
 
   /** Gabi w łóżku: klatki snu/pobudki w miejscu łóżka (zamiast pustego łóżka). */
@@ -646,6 +657,91 @@ export function roomScreen(app: App): Screen {
       },
     };
   }
+
+  /**
+   * Gabi w trakcie interakcji: klatka z Gabi przy wieszaku (wieszak ukryty), poza z klatek postaci,
+   * popiersie z nogami (turban, suszarka) albo nic — gdy Gabi jest częścią klatki przedmiotu (prysznic, wanna…).
+   */
+  function interactionLayer(iv: InteractionView, stage: StageChanges, alpha: number): GabiLayer | null {
+    const x = brain.x;
+    if (stage.other) {
+      const { item, sprite } = stage.other;
+      const a = itemFrameAnchor(item, itemById(item.itemId), sprite);
+      return {
+        orderY: a.feetY,
+        alpha,
+        draw: (ctx, k) => {
+          const src = itemSource(sprite);
+          if (src) drawSprite(ctx, k, src, a.meta, { x: a.x, feetY: a.feetY, flip: item.flip, bob: 0, squash: 0, jump: 0 });
+        },
+      };
+    }
+    const pose = iv.step.gabi;
+    if (pose.kind === 'hidden') return null;
+    return {
+      orderY: FEET_Y,
+      alpha,
+      draw: (ctx, k) => {
+        drawShadowAt(ctx, k, x, FEET_Y, 0);
+        if (pose.kind === 'frames') {
+          const name = poseFrame(pose, iv.inStepMs);
+          const img = app.sprites.get(name);
+          const meta = FRAMES[name];
+          if (img && meta) drawSprite(ctx, k, img, meta, { x, feetY: FEET_Y, flip: false, bob: 0, squash: 0, jump: 0 });
+          return;
+        }
+        const body = app.sprites.get('idle_front');
+        const bust = app.sprites.get(pose.bust);
+        const bodyMeta = FRAMES.idle_front;
+        const bustMeta = FRAMES[pose.bust];
+        if (body && bust && bodyMeta && bustMeta) {
+          drawBust(ctx, k, { body, bust }, { body: bodyMeta, bust: bustMeta }, BUSTS[pose.bust], x, FEET_Y);
+        }
+      },
+    };
+  }
+
+  /** Meble ukryte w tej klatce: zastąpione Gabi (łóżko w czasie snu, biurko/siedzisko zajęcia, wieszak przy wycieraniu). */
+  function hiddenItems(stage: StageChanges, bed: PlacedItem | null, act: unknown): Set<string> {
+    const hidden = new Set(stage.hidden);
+    if (bed) hidden.add(bed.uid);
+    if (act && activitySpot && activitySpot.room === viewRoom) hidden.add(activitySpot.uid);
+    return hidden;
+  }
+
+  /** Stuknięcie przedmiotu z interakcją (bez przesunięcia, poza urządzaniem i nie w postać) → `useItem`. */
+  const onItemDown = (e: PointerEvent) => {
+    if (edit.active || !e.isPrimary || store.get().sleeping || wakeUntil > 0) return;
+    const { x, y } = px.toLogical(e);
+    if (petAt(x, y)) return;
+    // Najwyższy przedmiot, z którym da się coś zrobić (krzesło przed biurkiem nie zasłania biurka, chyba że samo jest siedziskiem).
+    const usable = store.get().rooms[viewRoom].items.filter((i) => itemUse(i) !== 'none');
+    const it = hitItem(usable, x, y);
+    if (!it) return;
+    itemDown = { id: e.pointerId, x: e.clientX, y: e.clientY, uid: it.uid };
+  };
+  const onItemUp = (e: PointerEvent) => {
+    const d = itemDown;
+    itemDown = null;
+    if (!d || d.id !== e.pointerId || edit.active || destroyed) return;
+    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 10) return;
+    const it = store.get().rooms[viewRoom].items.find((i) => i.uid === d.uid);
+    if (it) useItem(it, performance.now());
+  };
+  const onItemCancel = () => {
+    itemDown = null;
+  };
+  if (import.meta.env.DEV) {
+    (window as unknown as Record<string, unknown>).__room = {
+      get brain() { return brain; },
+      get pending() { return pending; },
+      get act() { return activity.current; },
+      get inter() { return interaction.current; },
+    };
+  }
+  canvas.addEventListener('pointerdown', onItemDown);
+  window.addEventListener('pointerup', onItemUp);
+  window.addEventListener('pointercancel', onItemCancel);
 
   function frame(t: number): void {
     if (destroyed) return;
@@ -672,9 +768,18 @@ export function roomScreen(app: App): Screen {
     const held = inBed ? null : drag.pose(t);
     const free = !inBed && !held;
     if (free) stepActivity(t, status);
+    if (free) stepInteraction(t);
+    // Droga do przedmiotu/mebla: po dojściu (mózg skończył spacer w celu) interakcja albo zajęcie.
+    if (free && pending) {
+      if (pending.room !== viewRoom) pending = null;
+      else if (brain.action === 'idle' && Math.abs(brain.x - pending.x) < 1) arrive(pending, t);
+      else if (brain.action === 'idle') brain = { ...brain, action: 'walk', targetX: pending.x };
+    }
     // W trakcie zajęcia Gabi stoi (mózg nie jest krokowany), a zamiast animacji rysujemy klatki zajęcia.
     const act = free ? activity.view(t, brain.x) : null;
-    if (free && !act) {
+    // Interakcja z przedmiotem (prysznic, podlewanie…): Gabi stoi przy nim w pozie kroku.
+    const iv: InteractionView | null = free && !act ? interaction.view(t) : null;
+    if (free && !act && !iv) {
       brain = stepBrain(brain, dt, { now: t, mood: moodLevel(s.needs), sleeping: false, rng: Math.random, canWalk: status === null });
     }
 
@@ -682,9 +787,13 @@ export function roomScreen(app: App): Screen {
     const face = avatarFor(status, emotion, t);
     setAvatar(act?.def.avatar && status === null && emotion === null ? act.def.avatar : face);
 
-    let gabi: GabiLayer;
+    const stage = stageChanges(iv, items);
+    let gabi: GabiLayer | null;
     if (inBed) {
       gabi = bedLayer(t, s.sleeping, alpha, bed);
+    } else if (iv) {
+      lastAnim = '';
+      gabi = interactionLayer(iv, stage, alpha);
     } else if (act) {
       lastAnim = '';
       gabi = {
@@ -731,18 +840,28 @@ export function roomScreen(app: App): Screen {
       night: s.sleeping,
       now: Date.now(),
       t,
-      // Śpiąca Gabi to klatka z łóżkiem — puste łóżko znika; przy urządzaniu zostaje, a przygaszona Gabi leży na nim.
-      hiddenUid: inBed && bed && !edit.active ? bed.uid : null,
+      hidden: hiddenItems(stage, inBed && !edit.active ? bed : null, act),
+      states: stage.states,
       selectedUid: edit.selectedUid,
       gabi,
     };
     px.clear();
     renderer.drawBackground(bg, f);
     renderer.drawOverlays(fx, f);
+    if (iv?.step.effect === 'water') {
+      const plant = items.find((i) => i.uid === iv.run.uid);
+      if (plant) drawWaterDrops(fx, itemBox(plant), iv.inStepMs);
+    }
     drawHearts(dt);
     px.compose((ctx, k) => renderer.drawItems(ctx, k, f));
 
-    if (free && !act && !edit.active && t >= nextChatAt) {
+    const errand = iv !== null || pending !== null;
+    if (free && !act && !errand && !edit.active && shouldNagPlants(room.items, Date.now(), t, lastPlantNag)) {
+      lastPlantNag = t;
+      say(pick(content.lines.plantsThirsty), 2600);
+      nextChatAt = Math.max(nextChatAt, t + 8000);
+    }
+    if (free && !act && !errand && !edit.active && t >= nextChatAt) {
       nextChatAt = t + 20_000 + Math.random() * 10_000;
       if (s.needs.mood >= SPONTANEOUS_HAPPY.minMood && Math.random() < SPONTANEOUS_HAPPY.chance) {
         jump(t);
@@ -775,6 +894,9 @@ export function roomScreen(app: App): Screen {
       edit.destroy();
       roomNav.destroy();
       canvas.removeEventListener('pointerdown', onBedDown);
+      canvas.removeEventListener('pointerdown', onItemDown);
+      window.removeEventListener('pointerup', onItemUp);
+      window.removeEventListener('pointercancel', onItemCancel);
       px.dispose();
       clearTimeout(speechTimer);
       clearTimeout(treatTimer);
