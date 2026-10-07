@@ -4,3 +4,4 @@ dev-dist/
 tools/.venv/
 tools/out/
 __pycache__/
+.claude/worktrees/
