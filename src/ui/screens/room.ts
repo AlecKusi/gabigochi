@@ -104,19 +104,17 @@ function drawShadowAt(ctx: CanvasRenderingContext2D, k: number, x: number, feetY
 
 /** Migający obraz telewizora: zmieniające się kolory sceny i jasny pasek przesuwający się w dół. */
 const SCREEN_COLORS = ['#7fb0ff', '#c79bff', '#9cf2d2', '#ffd27a', '#ff9ec4'];
-function drawScreenFlicker(fx: CanvasRenderingContext2D, r: { x: number; y: number; w: number; h: number }, t: number): void {
-  const x = Math.round(r.x);
-  const y = Math.round(r.y);
-  const w = Math.round(r.w);
-  const h = Math.round(r.h);
-  fx.save();
-  fx.globalAlpha = 0.55 + 0.15 * Math.sin(t / 90);
-  fx.fillStyle = SCREEN_COLORS[Math.floor(t / 900) % SCREEN_COLORS.length];
-  fx.fillRect(x, y, w, h);
-  fx.globalAlpha = 0.35;
-  fx.fillStyle = '#ffffff';
-  fx.fillRect(x, y + (Math.floor(t / 120) % Math.max(1, h)), w, 1);
-  fx.restore();
+function drawScreenFlicker(ctx: CanvasRenderingContext2D, k: number, r: { x: number; y: number; w: number; h: number }, t: number): void {
+  const d = deviceRect(k, r);
+  const line = deviceRect(k, { x: r.x, y: r.y + (Math.floor(t / 120) % Math.max(1, Math.round(r.h))), w: r.w, h: 1 });
+  ctx.save();
+  ctx.globalAlpha = 0.55 + 0.15 * Math.sin(t / 90);
+  ctx.fillStyle = SCREEN_COLORS[Math.floor(t / 900) % SCREEN_COLORS.length];
+  ctx.fillRect(d.x, d.y, d.w, d.h);
+  ctx.globalAlpha = 0.35;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(line.x, line.y, line.w, line.h);
+  ctx.restore();
 }
 
 /** Nutki (pixel art) unoszące się nad Gabi przy karaoke i tańcu. */
@@ -1016,6 +1014,13 @@ export function roomScreen(app: App): Screen {
     }
     if (!s.sleeping && interaction.current?.kind !== 'cat' && pending?.kind !== 'cat') cat = stepCat(cat, dt, t, Math.random);
     const extras = catVisible() ? [catLayer(t, alpha)] : [];
+    // obraz w telewizorze rysowany razem z nim — Gabi siedząca przed ekranem go zasłania
+    const itemOverlays = new Map<string, (ctx: CanvasRenderingContext2D, k: number) => void>();
+    if (iv?.step.effect === 'screen') {
+      const tv = items.find((i) => i.uid === iv.run.uid);
+      const r = tv ? screenRect(tv) : null;
+      if (tv && r) itemOverlays.set(tv.uid, (ctx, k) => drawScreenFlicker(ctx, k, r, t));
+    }
     const f: RoomFrame = {
       room: viewRoom,
       looks: room,
@@ -1028,6 +1033,7 @@ export function roomScreen(app: App): Screen {
       selectedUid: edit.selectedUid,
       gabi,
       extras,
+      itemOverlays,
     };
     px.clear();
     renderer.drawBackground(bg, f);
@@ -1036,11 +1042,6 @@ export function roomScreen(app: App): Screen {
       const m = FRAMES[act.cur.frame];
       const top = m ? act.cur.feetY - (m.foot ?? m.h) * m.scale : act.cur.feetY - 56;
       drawNotes(fx, act.cur.x, top, t);
-    }
-    if (iv?.step.effect === 'screen') {
-      const tv = items.find((i) => i.uid === iv.run.uid);
-      const r = tv ? screenRect(tv) : null;
-      if (r) drawScreenFlicker(fx, r, t);
     }
     if (iv?.step.effect === 'water') {
       const plant = items.find((i) => i.uid === iv.run.uid);

@@ -36,6 +36,8 @@ export interface RoomFrame {
   /** Zaznaczony w trybie urządzania. */
   selectedUid: string | null;
   gabi: GabiLayer | null;
+  /** Rysunek na przedmiocie zaraz po nim (uid → rysowanie w px urządzenia), np. obraz w telewizorze — pod postacią przed nim. */
+  itemOverlays?: ReadonlyMap<string, (ctx: CanvasRenderingContext2D, k: number) => void>;
   /** Dodatkowe postacie przed meblami (kotek) — rysowane po przedmiotach. */
   extras?: readonly GabiLayer[];
 }
@@ -137,6 +139,7 @@ export function createRoomRenderer(): RoomRenderer {
         ctx.restore();
       } else {
         drawItem(ctx, k, e, f);
+        f.itemOverlays?.get(e.uid)?.(ctx, k);
       }
     }
     for (const g of f.extras ?? []) {

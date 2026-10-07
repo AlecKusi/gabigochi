@@ -138,6 +138,7 @@ def entry(spec, group):
         'mirror': spec.get('mirror', []),
         'flipX': spec.get('flipX', False),
         'noSeat': spec.get('noSeat', []),
+        'sampleMode': sh.get('sampleMode', 'pixel'),
         'seatMode': spec.get('seatMode', sh.get('seatMode', 'colour')),
         'onlyLargest': spec.get('onlyLargest', sh.get('onlyLargest', False)),
         **{k: spec.get(k, []) for k in LIST_KEYS},
@@ -181,8 +182,12 @@ def best_offset(grad, period):
     return max(np.arange(0, period, 0.25), key=score)
 
 
-def sample(img, box, period):
+def sample(img, box, period, mode='pixel', bg=None):
     """Próbkuje siatkę pikseli o danym okresie: mediana środka każdej komórki.
+
+    `mode` "smooth" — arkusz narysowany gładko (bez prawdziwej siatki): cała komórka, a kontur ma pierwszeństwo —
+    gdy >= 30% pikseli komórki jest ciemnych (kontur, czarna koszulka), komórka dostaje medianę ciemnych pikseli,
+    inaczej medianę jasnych; cienkie linie nie rwą się, wypełnienia nie mieszają się z konturem.
 
     Zwraca też środki komórek w pikselach arkusza: (xs, ys).
     """
@@ -197,14 +202,26 @@ def sample(img, box, period):
     w = int((reg.shape[1] - ox) / period)
     h = int((reg.shape[0] - oy) / period)
     out = np.zeros((h, w, 3))
-    inset = period * 0.25
+    inset = 0 if mode == 'smooth' else period * 0.25
     for j in range(h):
         ya = int(round(oy + j * period + inset))
         yb = max(ya + 1, int(round(oy + (j + 1) * period - inset)))
         for i in range(w):
             xa = int(round(ox + i * period + inset))
             xb = max(xa + 1, int(round(ox + (i + 1) * period - inset)))
-            out[j, i] = np.median(reg[ya:yb, xa:xb].reshape(-1, 3), axis=0)
+            px = reg[ya:yb, xa:xb].reshape(-1, 3)
+            if mode == 'smooth':
+                if bg is not None:
+                    # wygładzone brzegi: kratka w większości z tła = tło; inaczej tło nie bierze udziału
+                    near_bg = np.abs(px - bg).sum(axis=1) < 45
+                    if near_bg.mean() >= 0.5:
+                        out[j, i] = bg
+                        continue
+                    px = px[~near_bg]
+                lum = px @ np.array([0.299, 0.587, 0.114])
+                dark = lum < 70
+                px = px[dark] if dark.mean() >= 0.4 else (px[~dark] if (~dark).any() else px)
+            out[j, i] = np.median(px, axis=0)
     xs = rx0 + ox + (np.arange(w) + 0.5) * period
     ys = ry0 + oy + (np.arange(h) + 0.5) * period
     return out, xs, ys
@@ -1449,7 +1466,7 @@ def collect():
             else:
                 box, margin, min_blob, hole_tol = tight_box(img, e['rect'], bg), period / 2, 12, e['holeTol']
             # Arkusz ma jedną siatkę pikseli dla całej postaci — próbkujemy ją wprost, bez przeskalowania.
-            cells, xs, ys = sample(img, box, period)
+            cells, xs, ys = sample(img, box, period, e['sampleMode'], bg)
             erased = erase_mask(xs, ys, e['erase'])
             cells[erased] = bg
             mask = (background_mask(cells, bg, min_blob, hole_tol, e['halo'])

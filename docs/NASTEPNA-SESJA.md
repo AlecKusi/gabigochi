@@ -72,4 +72,6 @@ Plan: docs/superpowers/plans/2026-10-07-szafa-ubrania.md — wszystkie kroki zro
   - kot chodzący po pokoju (`src/home/cat.ts`), stuknięty — Gabi go głaszcze; w nocy śpi w łóżku;
   - Szafa: obrót dookoła i pozy po założeniu; ekran urodzinowy: animowana scenka; finał Świeczek: konfetti + dziękuję.
 - Znane ograniczenia: na klatkach z nowych arkuszy dolne nogawki mają kolor koszulki, więc pod spódnicą/sukienką wyglądają jak czarne rajstopy; w arkuszu „siedzenie” Gabi ma dłuższe, ciemniejsze włosy (styl generatora); pod udami siedzącej zostają cienkie kreski po stołku.
+- Poprawki jakości: arkusze narysowane gładko (miny, urodziny, kot, rośliny, stół, leżenie, siedzenie) mają `sampleMode: "smooth"` — cała kratka, tło pomijane (bez szarej obwódki), kontur ma pierwszeństwo przy >= 40% ciemnych pikseli; stół i leżenie próbkowane rzadszą kratką (4,65 i 6), żeby piksel miał taką wielkość jak w reszcie (skala ~0,93). Arkusze z prawdziwą siatką (obrót, widok od tyłu, karaoke) bez zmian.
+- Obraz w telewizorze rysowany razem z telewizorem (`RoomFrame.itemOverlays`), a nie na warstwie efektów — Gabi przed ekranem go zasłania.
 
