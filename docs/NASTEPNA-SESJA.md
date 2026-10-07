@@ -11,10 +11,16 @@ Gałąź `etap-1` — **działająca wersja** (testy, typy i build przechodzą).
 
 Gałąź `wip/interakcje` jest już scalona (można ją usunąć).
 
-## Do sprawdzenia przy następnej okazji (w przeglądarce)
-- prysznic i wanna (kupić w sklepie → postawić w łazience → stuknąć), wieszak z ręcznikiem przy umywalce;
-- złożone pozy turban/suszarka (popiersie + nogi z `idle_front`) — czy wyglądają naturalnie;
-- szydełko na pufie w salonie, auto-start zajęć w różnych pokojach.
+## Sprawdzone w przeglądarce (2026-10-07)
+Nauka przy biurku, toaleta, prysznic (z turbanem), wanna (turban + suszarka), umywalka z wycieraniem rąk przy wieszaku, podlewanie, szydełko na pufie z panelu, panel „Zajęcia” z podpisami miejsc.
+
+## Drobiazgi (znane, do ewentualnej poprawki)
+- Klatka mycia rąk ma w arkuszu inaczej narysowane lustro → mały przeskok przy umywalce.
+- Gdy Gabi stoi na małym siedzisku (pufa), stuknięcie w siedzisko trafia w Gabi (głaskanie) — szydełko wtedy z panelu albo po odejściu Gabi.
+
+## Następne większe kroki (z pierwotnego planu, etap 2)
+- Minigry: Bricks n Balls, Sudoku, Szyfrokrzyżówki (słowa osobiste od użytkownika).
+- Szafa: sukienki i czapki (stroje na postaci).
 
 ## Do decyzji użytkownika
 - treść życzeń w `src/content.ts`;
