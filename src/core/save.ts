@@ -2,8 +2,10 @@ import { GABI_BED, findItem } from '../home/catalog';
 import { ROOMS, clampToLayer } from '../home/layout';
 import { DEFAULT_LOOKS, LATER_DEFAULT_LOOKS, defaultLookIds, findLook } from '../home/looks';
 import { STARTER_LAYOUT, createHome, type HomeState } from '../home/starter';
+import { CLOTH_SLOTS, findCloth } from '../wardrobe/catalog';
+import { defaultOutfit } from '../wardrobe/outfit';
 import { createState } from './state';
-import type { GameState, PlacedItem, RoomId, RoomState } from './types';
+import type { GameState, Outfit, PlacedItem, RoomId, RoomState } from './types';
 
 export const SAVE_KEY = 'gabigochi.save';
 export const BACKUP_KEY = 'gabigochi.save_backup';
@@ -193,15 +195,42 @@ function readHome(x: Record<string, unknown>, now: number): { home: HomeState; r
   return { home: { rooms, inventory, ownedLooks, currentRoom, itemCooldowns, nextUid }, repaired };
 }
 
-/** Zapis v1 → v2 (dochodzi mieszkanie), v2 → odczyt z naprawą mieszkania. `null` — zapis nie do odczytania. */
+/**
+ * Odczytuje szafę (kupione ubrania i strój). Pola dodane po pierwszej wersji zapisu v2, więc nic tu nie jest
+ * „uszkodzeniem”: braki dostają wartości domyślne, nieznane identyfikatory wypadają, a strój zawiera tylko
+ * ubrania posiadane, z właściwego slotu (sukienka wygrywa z koszulką i dołem) — wszystko po cichu.
+ */
+function readWardrobe(x: Record<string, unknown>): { outfit: Outfit; ownedClothes: string[] } {
+  const owned = new Set<string>();
+  if (Array.isArray(x.ownedClothes)) {
+    for (const id of x.ownedClothes) if (typeof id === 'string' && findCloth(id)) owned.add(id);
+  }
+  const outfit = defaultOutfit();
+  if (isRecord(x.outfit)) {
+    for (const slot of CLOTH_SLOTS) {
+      const id = x.outfit[slot];
+      if (typeof id === 'string' && owned.has(id) && findCloth(id)?.slot === slot) outfit[slot] = id;
+    }
+    if (outfit.dress !== null) {
+      outfit.top = null;
+      outfit.bottom = null;
+    }
+  }
+  return { outfit, ownedClothes: [...owned] };
+}
+
+/** Zapis v1 → v2 (dochodzą mieszkanie i szafa), v2 → odczyt z naprawą mieszkania. `null` — zapis nie do odczytania. */
 function migrate(x: unknown, now: number): { state: GameState; repaired: boolean } | null {
   if (!isRecord(x) || !isValidCore(x)) return null;
   if (x.version === 1) {
-    return { state: { ...(x as unknown as Omit<GameState, 'version'>), version: 2, ...createHome(now) }, repaired: false };
+    return {
+      state: { ...(x as unknown as Omit<GameState, 'version'>), version: 2, ...readWardrobe({}), ...createHome(now) },
+      repaired: false,
+    };
   }
   if (x.version === 2) {
     const { home, repaired } = readHome(x, now);
-    return { state: { ...(x as unknown as GameState), ...home }, repaired };
+    return { state: { ...(x as unknown as GameState), ...readWardrobe(x), ...home }, repaired };
   }
   return null;
 }

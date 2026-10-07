@@ -20,5 +20,7 @@ describe('createState', () => {
     expect(s.currentRoom).toBe('salon');
     expect(s.rooms).toEqual(createHome(now).rooms);
     expect(s.inventory).toEqual({});
+    expect(s.outfit).toEqual({ head: null, top: null, bottom: null, dress: null });
+    expect(s.ownedClothes).toEqual([]);
   });
 });

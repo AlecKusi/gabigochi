@@ -1,4 +1,5 @@
 import { createHome } from '../home/starter';
+import { defaultOutfit } from '../wardrobe/outfit';
 import { CONFIG } from './config';
 import { dayKey } from './time';
 import type { GameState } from './types';
@@ -17,6 +18,8 @@ export function createState(now: number): GameState {
     lastPetAt: 0,
     seenBirthday: false,
     records: {},
+    outfit: defaultOutfit(),
+    ownedClothes: [],
     ...createHome(now),
   };
 }

@@ -20,4 +20,18 @@ describe('ICONS', () => {
   it('każde jedzenie ma ikonę', () => {
     for (const f of FOODS) expect(ICONS[f.id]).toBeDefined();
   });
+
+  it('ikony ozdób głowy: 12–16 px szerokości, niewysokie, bez pustych skrajnych wierszy', () => {
+    for (const name of ['hat_party', 'crown', 'cat_ears', 'flower', 'beret', 'bow'] as const) {
+      const art = ICONS[name];
+      expect(art, name).toBeDefined();
+      expect(art[0].length, name).toBeGreaterThanOrEqual(12);
+      expect(art[0].length, name).toBeLessThanOrEqual(16);
+      expect(art.length, name).toBeLessThanOrEqual(16);
+      expect(art[0].replace(/\./g, '').length, `${name}: górny wiersz`).toBeGreaterThan(0);
+      expect(art[art.length - 1].replace(/\./g, '').length, `${name}: dolny wiersz`).toBeGreaterThan(0);
+      const fills = new Set(art.join('').replace(/[.k]/g, ''));
+      expect(fills.size, `${name}: kolory wypełnienia`).toBeGreaterThanOrEqual(2);
+    }
+  });
 });

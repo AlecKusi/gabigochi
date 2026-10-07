@@ -18,6 +18,7 @@ export const PALETTE: Readonly<Record<string, string>> = {
   P: '#7a4fb3',
   l: '#e6d7ff',
   i: '#ff9ec4',
+  I: '#d9608f', // ciemny róż (cień)
   u: '#5aa8f0',
   U: '#2f5fae',
 };

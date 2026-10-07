@@ -29,6 +29,17 @@ export interface RoomState {
   items: PlacedItem[];
 }
 
+/** Miejsce na ciele: ozdoba głowy, koszulka, spodnie/spódnica, sukienka (zastępuje koszulkę i dół). */
+export type ClothSlot = 'head' | 'top' | 'bottom' | 'dress';
+
+/** Co Gabi ma na sobie; `null` — oryginalne ubranie z rysunku (czarna koszulka z nadrukiem, dżinsy) albo brak ozdoby. */
+export interface Outfit {
+  head: string | null;
+  top: string | null;
+  bottom: string | null;
+  dress: string | null;
+}
+
 export interface GameState {
   version: 2;
   createdAt: number;
@@ -50,6 +61,10 @@ export interface GameState {
   currentRoom: RoomId;
   /** uid przedmiotu → kiedy ostatnio dał bonus humoru za interakcję. */
   itemCooldowns: Record<string, number>;
+  /** Aktualny strój Gabi (identyfikatory z katalogu ubrań). */
+  outfit: Outfit;
+  /** Kupione ubrania (identyfikatory z katalogu ubrań). */
+  ownedClothes: string[];
   /** Licznik do nadawania unikalnych `uid` postawionym przedmiotom. */
   nextUid: number;
 }
