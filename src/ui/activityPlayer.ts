@@ -1,6 +1,7 @@
 import { ACTIVITIES, activityDuration, activityFrame, nextActivityDelay, type ActivityDef, type ActivityId } from '../pet/activities';
 import { FEET_Y } from '../pet/room';
 import { FRAMES, type FrameMeta } from '../sprites/loader';
+import type { Figures } from '../wardrobe/figures';
 import { drawSprite } from './pixelStage';
 
 /** Środek pokoju, w którym stoją sceny z rekwizytami (biurko, łóżko pacjenta) — tak jak łóżko Gabi. */
@@ -173,14 +174,13 @@ export function createActivityPlayer(now: number, rng: () => number = Math.rando
 }
 
 /** Rysuje zajęcie w pikselach urządzenia: przy przenikaniu najpierw poprzednia scena (1 − blend), potem bieżąca (blend). */
-export function drawActivity(ctx: CanvasRenderingContext2D, k: number, sprites: ReadonlyMap<string, CanvasImageSource>, v: ActivityView): void {
+export function drawActivity(ctx: CanvasRenderingContext2D, k: number, figures: Pick<Figures, 'get'>, v: ActivityView): void {
   const layers: [Placed, number][] = v.prev ? [[v.prev, 1 - v.blend], [v.cur, v.blend]] : [[v.cur, 1]];
   for (const [p, alpha] of layers) {
-    const img = sprites.get(p.frame);
-    const meta = FRAMES[p.frame];
-    if (!img || !meta || alpha <= 0) continue;
+    const fig = figures.get(p.frame);
+    if (!fig || alpha <= 0) continue;
     ctx.globalAlpha = alpha;
-    drawSprite(ctx, k, img, meta, { x: p.x, feetY: p.feetY, flip: false, bob: 0, squash: 0, jump: 0 });
+    drawSprite(ctx, k, fig.img, fig.meta, { x: p.x, feetY: p.feetY, flip: false, bob: 0, squash: 0, jump: 0 });
   }
   ctx.globalAlpha = 1;
 }

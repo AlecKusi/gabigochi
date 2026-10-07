@@ -1,5 +1,4 @@
 import { content } from '../content';
-import { FRAMES } from '../sprites/loader';
 import { drawSprite } from '../ui/pixelStage';
 import { makeCanvas, runLoop } from './canvas';
 import { CANDLES, blowCandle, createCandles, stepCandles, type CandlesState } from './candlesLogic';
@@ -161,11 +160,10 @@ export const candlesGame: MiniGame = {
       party += dt;
       ctx.fillStyle = '#2a1f3d';
       ctx.fillRect(0, 0, W, H);
-      const wave = env.sprites.get('fun_wave');
-      const meta = FRAMES.fun_wave;
+      const wave = env.figures.get('fun_wave');
       const bob = Math.floor(party / 300) % 2;
       present((d, k) => {
-        if (wave && meta) drawSprite(d, k, wave, meta, { x: W / 2, feetY: 150, flip: false, bob, squash: 0, jump: 0 });
+        if (wave) drawSprite(d, k, wave.img, wave.meta, { x: W / 2, feetY: 150, flip: false, bob, squash: 0, jump: 0 });
         text(d, k, content.wishesTitle, '700', 12, '#ffd34d', 30);
         text(d, k, 'Wszystkiego najlepszego!', '400', 8, '#f3ecff', 46);
       });

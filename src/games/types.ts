@@ -1,9 +1,12 @@
 import type { IconName } from '../art/icons';
 import type { SpriteMap } from '../sprites/loader';
+import type { Figures } from '../wardrobe/figures';
 
 export interface GameEnv {
   body: HTMLElement;
   sprites: SpriteMap;
+  /** Klatki Gabi w bieżącym stroju. */
+  figures: Figures;
   signal: AbortSignal;
   setHud(text: string): void;
 }

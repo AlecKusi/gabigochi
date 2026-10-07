@@ -14,7 +14,7 @@ import { Store } from './core/store';
 import { allActivityFrames } from './pet/activities';
 import { ANIMATIONS, allFrameNames } from './sprites/animations';
 import framesMeta from './sprites/frames.generated.json';
-import { loadSprites } from './sprites/loader';
+import { FRAMES, PORTRAIT_MASKS, loadSprites, maskUrl } from './sprites/loader';
 import { h } from './ui/dom';
 import { mountInstall } from './ui/install';
 import { birthdayScreen } from './ui/screens/birthday';
@@ -23,6 +23,7 @@ import { profileScreen } from './ui/screens/profile';
 import { roomScreen } from './ui/screens/room';
 import { shopScreen } from './ui/screens/shop';
 import { wardrobeScreen } from './ui/screens/wardrobe';
+import { createFigures } from './wardrobe/figures';
 
 const SCREENS: Record<ScreenName, ScreenFactory> = {
   birthday: birthdayScreen,
@@ -101,8 +102,10 @@ async function boot(): Promise<void> {
       ...framesMeta.body,
       ...Object.keys(framesMeta.portraits),
     ]);
-    const sprites = await loadSprites([...names]);
-    app = createApp(root, store, sprites, SCREENS);
+    const maskNames = [...Object.keys(FRAMES).filter((n) => FRAMES[n]?.mask), ...PORTRAIT_MASKS];
+    const [sprites, masks] = await Promise.all([loadSprites([...names]), loadSprites(maskNames, maskUrl)]);
+    const figures = createFigures(sprites, masks, () => store.get().outfit);
+    app = createApp(root, store, sprites, figures, SCREENS);
     try {
       // Gry rysują tekst na canvasie – font musi być gotowy przed pierwszym użyciem.
       await Promise.all([document.fonts.load('400 10px "Pixelify Sans"'), document.fonts.load('700 12px "Pixelify Sans"')]);

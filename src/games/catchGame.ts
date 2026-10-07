@@ -1,7 +1,6 @@
 import { ICONS } from '../art/icons';
 import { artCanvas } from '../art/pixels';
 import { ANIMATIONS, frameAt, resolveAnimation } from '../sprites/animations';
-import { FRAMES } from '../sprites/loader';
 import { drawSprite } from '../ui/pixelStage';
 import { makeCanvas, runLoop } from './canvas';
 import { CATCH, createCatch, stepCatch } from './catchLogic';
@@ -44,10 +43,9 @@ export const catchGame: MiniGame = {
         fx.fillRect(0, 0, CATCH.W, CATCH.H);
       }
       const name = s.moving !== 0 ? frameAt(walk, walkT) : 'idle_front';
-      const img = env.sprites.get(name);
-      const meta = FRAMES[name];
+      const fig = env.figures.get(name);
       present((d, k) => {
-        if (img && meta) drawSprite(d, k, img, meta, { x: s.playerX, feetY: CATCH.playerY, flip: walk.flipForRight && s.moving > 0, bob: 0, squash: 0, jump: 0 });
+        if (fig) drawSprite(d, k, fig.img, fig.meta, { x: s.playerX, feetY: CATCH.playerY, flip: walk.flipForRight && s.moving > 0, bob: 0, squash: 0, jump: 0 });
       });
     };
 

@@ -20,7 +20,7 @@ import { FEET_Y, ROOM_H, ROOM_W } from '../../pet/room';
 import { pick, pickLine } from '../../pet/speech';
 import { ANGRY_TAPS, SUGAR_RUSH, avatarFor, countRecent, statusAnimation, type StatusAnim } from '../../pet/status';
 import { ANIMATIONS, frameAt, resolveAnimation } from '../../sprites/animations';
-import { DISPLAY_HEIGHT, FRAMES, spriteUrl } from '../../sprites/loader';
+import { DISPLAY_HEIGHT } from '../../sprites/loader';
 import { openActivities } from '../activitiesSheet';
 import { SCENE_AT, createActivityPlayer, drawActivity, fitSpot, hitsScene, type Placed } from '../activityPlayer';
 import { coinCounter } from '../coinCounter';
@@ -94,7 +94,7 @@ export function roomScreen(app: App): Screen {
   const speech = h('div', { class: 'speech px-box hidden', 'aria-live': 'polite' });
   const coins = coinCounter(s0.coins);
   const dayLabel = h('span', {}, `Dzień ${dayNumber(s0.createdAt, Date.now())}`);
-  const avatar = h('img', { class: 'px avatar', src: spriteUrl('portrait_a'), alt: '' });
+  const avatar = h('img', { class: 'px avatar', src: app.figures.url('portrait_a'), alt: '' });
   const bars = {
     hunger: needBar('hunger', 'Głód', 'apple'),
     mood: needBar('mood', 'Humor', 'heart'),
@@ -228,7 +228,7 @@ export function roomScreen(app: App): Screen {
   function setAvatar(name: string): void {
     if (name === avatarName) return;
     avatarName = name;
-    avatar.src = spriteUrl(name);
+    avatar.src = app.figures.url(name);
     avatar.classList.toggle('crisp', name !== 'portrait_a');
   }
 
@@ -361,6 +361,7 @@ export function roomScreen(app: App): Screen {
         drag.cancel();
         requestActivity(id, performance.now());
       },
+      (name) => app.figures.url(name),
     );
   }
 
@@ -646,14 +647,13 @@ export function roomScreen(app: App): Screen {
       animStart = t;
     }
     const frameName = frameAt(resolveAnimation(ANIMATIONS, name), t - animStart);
-    const img = app.sprites.get(frameName);
-    const meta = FRAMES[frameName];
+    const fig = app.figures.get(frameName);
     const at = bed ? itemAnchor(bed, itemById(GABI_BED)) : SCENE_AT;
     return {
       orderY: bed ? bed.y : SCENE_AT.feetY,
       alpha,
       draw: (ctx, k) => {
-        if (img && meta) drawSprite(ctx, k, img, meta, { x: at.x, feetY: at.feetY, flip: bed?.flip ?? false, bob: 0, squash: 0, jump: 0 });
+        if (fig) drawSprite(ctx, k, fig.img, fig.meta, { x: at.x, feetY: at.feetY, flip: bed?.flip ?? false, bob: 0, squash: 0, jump: 0 });
       },
     };
   }
@@ -685,17 +685,15 @@ export function roomScreen(app: App): Screen {
         drawShadowAt(ctx, k, x, FEET_Y, 0);
         if (pose.kind === 'frames') {
           const name = poseFrame(pose, iv.inStepMs);
-          const img = app.sprites.get(name);
-          const meta = FRAMES[name];
-          if (img && meta) drawSprite(ctx, k, img, meta, { x, feetY: FEET_Y, flip: false, bob: 0, squash: 0, jump: 0 });
+          const fig = app.figures.get(name);
+          if (fig) drawSprite(ctx, k, fig.img, fig.meta, { x, feetY: FEET_Y, flip: false, bob: 0, squash: 0, jump: 0 });
           return;
         }
-        const body = app.sprites.get('idle_front');
-        const bust = app.sprites.get(pose.bust);
-        const bodyMeta = FRAMES.idle_front;
-        const bustMeta = FRAMES[pose.bust];
-        if (body && bust && bodyMeta && bustMeta) {
-          drawBust(ctx, k, { body, bust }, { body: bodyMeta, bust: bustMeta }, BUSTS[pose.bust], x, FEET_Y);
+        // nogi bez ozdoby głowy — ozdobę (jeśli pasuje) ma popiersie
+        const body = app.figures.get('idle_front', { hat: false });
+        const bust = app.figures.get(pose.bust);
+        if (body && bust) {
+          drawBust(ctx, k, { body: body.img, bust: bust.img }, { body: body.meta, bust: bust.meta }, BUSTS[pose.bust], x, FEET_Y);
         }
       },
     };
@@ -801,7 +799,7 @@ export function roomScreen(app: App): Screen {
         alpha,
         draw: (ctx, k) => {
           if (!act.cur.centered) drawShadowAt(ctx, k, act.cur.x, FEET_Y, 0);
-          drawActivity(ctx, k, app.sprites, act);
+          drawActivity(ctx, k, app.figures, act);
         },
       };
     } else {
@@ -813,11 +811,10 @@ export function roomScreen(app: App): Screen {
       }
       const anim = resolveAnimation(ANIMATIONS, name);
       const frameName = frameAt(anim, t - animStart);
-      const img = app.sprites.get(frameName);
-      const meta = FRAMES[frameName];
+      const fig = app.figures.get(frameName);
       let x = brain.x;
       let feetY = FEET_Y;
-      if (held) ({ x, feetY } = drag.place(meta));
+      if (held) ({ x, feetY } = drag.place(fig?.meta));
       const bob = name === 'idle' ? Math.floor(t / 750) % 2 : 0;
       const squash = free && t < squashUntil ? 0.08 * Math.sin(((squashUntil - t) / 220) * Math.PI) : 0;
       const jumping = free && brain.action === 'happy' && jumpStart >= 0 && t - jumpStart < JUMP_MS;
@@ -828,7 +825,7 @@ export function roomScreen(app: App): Screen {
         alpha,
         draw: (ctx, k) => {
           drawShadowAt(ctx, k, x, FEET_Y, held ? FEET_Y - feetY : jumpH);
-          if (img && meta) drawSprite(ctx, k, img, meta, { x, feetY, flip, bob, squash, jump: jumpH });
+          if (fig) drawSprite(ctx, k, fig.img, fig.meta, { x, feetY, flip, bob, squash, jump: jumpH });
         },
       };
     }

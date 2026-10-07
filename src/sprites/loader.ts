@@ -5,7 +5,7 @@ export type SpriteMap = Map<string, HTMLImageElement>;
 export const spriteUrl = (name: string): string => `${import.meta.env.BASE_URL}sprites/${name}.png`;
 
 /** Wczytuje sprite'y; brakujący lub uszkodzony obrazek jest po prostu pomijany (wywołujący sprawdzają `get()`). */
-export async function loadSprites(names: string[]): Promise<SpriteMap> {
+export async function loadSprites(names: string[], url: (name: string) => string = spriteUrl): Promise<SpriteMap> {
   const entries = await Promise.all(
     names.map(
       (name) =>
@@ -13,7 +13,7 @@ export async function loadSprites(names: string[]): Promise<SpriteMap> {
           const img = new Image();
           img.onload = () => resolve([name, img]);
           img.onerror = () => resolve(null);
-          img.src = spriteUrl(name);
+          img.src = url(name);
         }),
     ),
   );

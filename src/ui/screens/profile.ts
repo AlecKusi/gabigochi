@@ -2,7 +2,6 @@ import type { App, Screen } from '../../app';
 import { content } from '../../content';
 import { dayNumber } from '../../core/time';
 import { GAMES } from '../../games';
-import { spriteUrl } from '../../sprites/loader';
 import { h, icon } from '../dom';
 import { screenHeader } from '../screenHeader';
 
@@ -22,7 +21,7 @@ export function profileScreen(app: App): Screen {
       h(
         'div',
         { class: 'profile-card px-box' },
-        h('img', { class: 'px portrait-mid', src: spriteUrl('portrait_a'), alt: '' }),
+        h('img', { class: 'px portrait-mid', src: app.figures.url('portrait_a'), alt: '' }),
         h('h2', {}, content.name),
         h('p', {}, `Dzień ${dayNumber(s.createdAt, Date.now())} w ${content.appName}`),
       ),

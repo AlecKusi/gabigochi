@@ -33,7 +33,7 @@ export function runGame(game: MiniGame, app: App, onResult: (result: GameResult)
     close.addEventListener('click', () => finish(settled ?? aborted));
 
     void game
-      .play({ body, sprites: app.sprites, signal: controller.signal, setHud: (t) => { hud.textContent = t; } })
+      .play({ body, sprites: app.sprites, figures: app.figures, signal: controller.signal, setHud: (t) => { hud.textContent = t; } })
       .then((score) => {
         if (finished) return;
         const reward = game.reward(score);

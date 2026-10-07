@@ -12,7 +12,12 @@ export interface ActivityCardState {
  * Wysuwany panel „Zajęcia”: stuknięcie w dostępną kartę zaczyna zajęcie (pokój decyduje, czy od razu, czy po
  * przejściu do mebla / innego pokoju). Zwraca funkcję zamykającą.
  */
-export function openActivities(host: HTMLElement, stateOf: (id: ActivityId) => ActivityCardState, onPick: (id: ActivityId) => void): () => void {
+export function openActivities(
+  host: HTMLElement,
+  stateOf: (id: ActivityId) => ActivityCardState,
+  onPick: (id: ActivityId) => void,
+  frameUrl: (name: string) => string = spriteUrl,
+): () => void {
   let closed = false;
   const close = () => {
     if (closed) return;
@@ -39,7 +44,7 @@ export function openActivities(host: HTMLElement, stateOf: (id: ActivityId) => A
           onPick(id);
         },
       },
-      h('img', { class: 'px', src: spriteUrl(def.frames[0]), alt: '', draggable: 'false' }),
+      h('img', { class: 'px', src: frameUrl(def.frames[0]), alt: '', draggable: 'false' }),
       h('span', {}, def.name),
       st.hint ? h('small', { class: 'activity-hint' }, st.hint) : null,
     );
