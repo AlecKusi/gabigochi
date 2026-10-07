@@ -34,3 +34,6 @@ Bricks n Balls, Sudoku (3 poziomy, notatki, zapis w toku), Szyfrokrzyżówka (po
 - Paleta zamrożona w `tools/palette.json`; nowe arkusze: `--extend-palette K <arkusz>` (stare PNG bez zmian).
 - W podglądzie trzymaj tylko jedną kartę z grą — dwie nadpisują sobie zapis.
 - W trybie deweloperskim `window.__room` pokazuje stan pokoju (mózg, droga, zajęcie, interakcja) — pomocne przy testach.
+
+## Szafa i ubrania (w toku, 2026-10-07)
+Plan: docs/superpowers/plans/2026-10-07-szafa-ubrania.md. Zrobione: Task 1 (maski ubrań, punkt głowy, kolana — public/masks, frames.generated.json) i Task 2 (katalog 22 ubrań, strój i zakupy w src/wardrobe, pola w zapisie, ikony ozdób głowy). Zostało: Task 3 (przemalowanie stroju w czasie gry + wpięcie we wszystkie miejsca rysowania postaci), Task 4 (ekran Szafy, wieszak w pokoju), Task 5 (weryfikacja).
