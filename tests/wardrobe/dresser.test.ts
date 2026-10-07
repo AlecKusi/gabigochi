@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { defaultOutfit } from '../../src/wardrobe/outfit';
 import {
   HEAD_FIT,
+  hatFactor,
+  scalePixels,
   isBackView,
   isSeated,
   OUTLINE,
@@ -223,5 +225,15 @@ describe('ubieralnia — części czyste', () => {
     expect(isBackView('turn_front')).toBe(false);
     for (const n of ['sit_tea_1', 'table_cake_2', 'nap_1', 'lie_read_2', 'cat_pet_1', 'crochet_3']) expect(isSeated(n), n).toBe(true);
     expect(isSeated('idle_front')).toBe(false);
+  });
+
+  it('ozdoba na klatkach z drobniejszymi pikselami jest powiększona', () => {
+    expect(hatFactor(1.02)).toBe(1);
+    expect(hatFactor(0.84)).toBe(1);
+    expect(hatFactor(0.46)).toBe(2);
+    const big = scalePixels(artPixels(['k.', '.k']), 2);
+    expect([big.w, big.h]).toEqual([4, 4]);
+    expect(big.data[(1 * 4 + 1) * 4 + 3]).toBe(255);
+    expect(big.data[(0 * 4 + 2) * 4 + 3]).toBe(0);
   });
 });

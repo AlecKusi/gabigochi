@@ -190,9 +190,36 @@ export function dressPixels(src: Pixels, mask: Pixels | null, meta: FrameMeta, l
   if (mask && meta.mask) recolorBody(src, mask, res.px, meta, look, opts.seated, opts.back === true);
   const headwear = headwearOf(look);
   if (opts.hat && headwear && meta.head && !meta.noHat) {
-    for (const part of hatParts(headwear, opts)) res = addHat(res.px, res.meta, part.art, part.fit);
+    // Klatki z drobniejszymi pikselami (gładkie arkusze, skala ~0,45) — ozdoba powiększona, żeby w grze była tej samej wielkości.
+    const f = hatFactor(meta.scale);
+    for (const part of hatParts(headwear, opts)) {
+      res = addHat(res.px, res.meta, scalePixels(part.art, f), { overlap: part.fit.overlap * f, dx: part.fit.dx });
+    }
   }
   return res;
+}
+
+/** Skala klatek, dla których rysowano ozdoby (px natywne ≈ 0,9–1,5 px logicznego). */
+const HAT_REF_SCALE = 0.93;
+
+/** Całkowite powiększenie ozdoby dla klatki o skali `scale` (zwykłe klatki: 1). */
+export function hatFactor(scale: number): number {
+  return Math.max(1, Math.round(HAT_REF_SCALE / scale));
+}
+
+/** Powiększenie pikseli całkowitym czynnikiem (najbliższy sąsiad). */
+export function scalePixels(px: Pixels, f: number): Pixels {
+  if (f === 1) return px;
+  const w = px.w * f;
+  const h = px.h * f;
+  const data = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const s = ((Math.floor(y / f) * px.w) + Math.floor(x / f)) * 4;
+      data.set(px.data.subarray(s, s + 4), (y * w + x) * 4);
+    }
+  }
+  return { w, h, data };
 }
 
 function setPx(px: Pixels, i: number, c: RGB): void {

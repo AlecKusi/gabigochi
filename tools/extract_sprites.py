@@ -1355,8 +1355,18 @@ def save_wardrobe(body, frames, portraits_im):
             meta['mask'] = False
             tiles.append((name, im, None, None, 'wykluczona'))
             continue
-        shirt, printed, jeans, shoes, head = wardrobe_masks(im, matches(name, cfg['topOnly']), cfg['headIgnore'].get(name, []),
+        # Klatki z drobniejszymi pikselami (gładkie arkusze, skala < 0,7): maski liczone na obrazie pomniejszonym
+        # dwukrotnie — progi rozpoznawania są dobrane do zwykłej wielkości piksela — i rozciągane z powrotem.
+        f = 2 if meta['scale'] < 0.7 else 1
+        src = im.resize(((im.width + 1) // 2, (im.height + 1) // 2), Image.NEAREST) if f == 2 else im
+        shirt, printed, jeans, shoes, head = wardrobe_masks(src, matches(name, cfg['topOnly']), cfg['headIgnore'].get(name, []),
                                                            matches(name, cfg['headSilhouette']))
+        if f == 2:
+            opaque = np.asarray(im)[:, :, 3] > 0
+            up = lambda m: np.kron(m, np.ones((2, 2), bool))[:im.height, :im.width] & opaque
+            shirt, printed, jeans, shoes = up(shirt), up(printed), up(jeans), up(shoes)
+            if head:
+                head = {'x': head['x'] * 2 + 0.5, 'y': head['y'] * 2, 'w': head['w'] * 2}
         meta['mask'] = bool(shirt.any())
         if meta['mask']:
             write(name, shirt, printed, jeans)
