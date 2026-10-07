@@ -1,0 +1,104 @@
+/* Sudoku — importowane z src/games/sudokuGame.ts */
+
+.sd-panel { padding: 18px; width: min(100%, 320px); text-align: center; display: grid; gap: 12px; }
+.sd-panel h2 { font-size: 22px; }
+.sd-panel p { font-size: 16px; color: var(--text-soft); }
+.sd-levels { display: grid; gap: 10px; }
+.sd-level { justify-content: space-between; }
+.sd-level-coins { display: inline-flex; align-items: center; gap: 4px; font-size: 18px; }
+
+.sd-root { width: min(100%, 420px); display: flex; flex-direction: column; gap: 10px; }
+
+.sd-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--ink);
+}
+.sd-box {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.sd-cell {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  place-items: center;
+  background: var(--panel);
+  color: var(--accent-2);
+  font-size: clamp(18px, 6.2vw, 27px);
+  line-height: 1;
+  cursor: pointer;
+}
+.sd-cell.given { color: var(--ink); font-weight: 700; }
+.sd-cell.peer { background: var(--panel-2); }
+.sd-cell.same { background: #c7aef0; }
+.sd-cell.sel { background: var(--coin); }
+.sd-cell.bad { color: var(--danger); }
+.sd-cell.bad.user { background: #ffd2da; }
+.sd-cell.bad.user.sel { background: #ffb3c1; }
+
+.sd-notes {
+  position: absolute;
+  inset: 1px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  place-items: center;
+  font-size: clamp(8px, 2.7vw, 11px);
+  font-weight: 400;
+  color: var(--text-soft);
+  pointer-events: none;
+}
+.sd-notes span { visibility: hidden; }
+.sd-notes span.on { visibility: visible; }
+.sd-notes span.hl { color: #fff; background: var(--accent); padding: 0 1px; }
+
+.sd-grid.won .sd-cell { animation: sd-wave 600ms steps(4) var(--d) both; }
+@keyframes sd-wave {
+  40% { background: var(--coin); transform: translateY(-3px); }
+  100% { background: #e3ffd9; }
+}
+
+.sd-tools { display: flex; gap: 4px; }
+.sd-tool { flex: 1; min-width: 0; font-size: 15px; padding: 10px 4px; }
+.sd-tool.on { --btn-bg: var(--accent); --btn-shade: var(--accent-2); --btn-fg: #fff; }
+
+.sd-keypad { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 5px; padding: 0 2px; }
+.sd-key {
+  --key-bg: var(--accent);
+  --key-shade: var(--accent-2);
+  height: 54px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: #fff;
+  background: var(--key-bg);
+  box-shadow: 0 0 0 2px var(--ink), inset 0 -3px 0 0 var(--key-shade);
+  cursor: pointer;
+  transition: transform 80ms steps(2);
+}
+.sd-key:active { transform: translateY(2px); box-shadow: 0 0 0 2px var(--ink), inset 0 2px 0 0 var(--key-shade); }
+.sd-key-digit { font-size: 24px; line-height: 1; }
+.sd-key-count { font-size: 11px; line-height: 1; min-height: 11px; opacity: .8; }
+.sd-key.done { opacity: .4; }
+.sd-keypad.pencil .sd-key { --key-bg: var(--panel-2); --key-shade: #c5b2ea; color: var(--accent-2); }
+.sd-keypad.pencil .sd-key-digit { font-size: 18px; }
