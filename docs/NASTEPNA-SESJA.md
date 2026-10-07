@@ -55,3 +55,10 @@ Plan: docs/superpowers/plans/2026-10-07-szafa-ubrania.md — wszystkie kroki zro
 - 20 okien w nowej kategorii sklepu „Okna” (stare okna też tam). Okno słoneczne ma nocny wariant (`window_day_night`, stan `night` — rysowany, gdy Gabi śpi). Drzwi balkonowe, okno panoramiczne i drzwi przesuwne stoją na podłodze (warstwa `floor`).
 - Portrety z arkuszy gotyckiego i kawaii nie są użyte (można by je pokazać w nagłówku przy danym stylu).
 
+## Meble z arkusza i interakcje z meblami (2026-10-07)
+- Arkusz `assets/source/sheet-furniture2.jpg` (okres 4, paleta +8 → 168 kolorów tylko dla niego): 5 kanap, 5 foteli, 6 krzeseł/stołków, 5 stołów (kategoria Meble).
+- Klatki pochodne w ekstraktorze (sekcja `derived` w frames.json, `without_stool`): `sit_crochet_1..5` = szydełkowanie bez stołka. Szydełko przy siedzisku używa ich (`ActivityDef.seated`), Gabi siedzi na widocznym meblu (`seatAnchor`, `SEAT_LIFT` — hoker wyżej); biurko przy nauce nadal ukryte.
+- `SEATS` obejmuje kanapy, fotele, krzesła; `SOFAS`: stuknięcie przy energii < 60 → drzemka na kanapie (`nap`, klatka `tired_5` na siedzisku, +6 energii), inaczej szydełko.
+- Stoły: interakcja `coffee` (jedzenie/picie, serduszka). Okna: w dzień Gabi macha (`fun_wave`), w nocy patrzy (PlanCtx.night).
+- Pomysły na dalej: telewizor (siedzenie przed TV, migający ekran), siedzenie przy stole z krzesłami.
+

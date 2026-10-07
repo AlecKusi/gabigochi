@@ -45,6 +45,7 @@ interface Paint {
 /** Klatki, w których nogi nie stoją pionowo — wiersz kolan nic tu nie znaczy. */
 export const SEATED_FRAMES: ReadonlySet<string> = new Set([
   'drag_4', 'tired_4', 'tired_5', 'hunger_5', 'crochet_1', 'crochet_2', 'crochet_3', 'crochet_4', 'crochet_5',
+  'sit_crochet_1', 'sit_crochet_2', 'sit_crochet_3', 'sit_crochet_4', 'sit_crochet_5',
 ]);
 
 /** Skóra nóg pod spódnicą: jasny, średni (ten sam — bez pasków po nogawkach), cień. */

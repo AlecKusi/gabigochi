@@ -55,6 +55,28 @@ describe('kroki interakcji', () => {
   });
 });
 
+describe('meble: drzemka, kawa, okno', () => {
+  it('drzemka na kanapie: Gabi przysypia na siedzisku, dodaje energii', () => {
+    const [step] = interactionSteps('nap', { hasRail: false })!;
+    expect(step.gabi).toMatchObject({ kind: 'frames', frames: ['tired_5'], seat: true });
+    expect(interactionReward('nap')).toEqual({ mood: 1, energy: 6 });
+  });
+
+  it('kawa przy stoliku: je i pije, serduszka', () => {
+    const [step] = interactionSteps('coffee', { hasRail: false })!;
+    expect(step.gabi).toMatchObject({ kind: 'frames', frames: ['fun_eat', 'idle_front'] });
+    expect(step.effect).toBe('hearts');
+    expect(interactionReward('coffee')?.mood).toBeGreaterThan(0);
+  });
+
+  it('okno: w dzień macha, w nocy tylko patrzy', () => {
+    const day = interactionSteps('window', { hasRail: false })![0].gabi;
+    const night = interactionSteps('window', { hasRail: false, night: true })![0].gabi;
+    expect(day.kind === 'frames' && day.frames).toContain('fun_wave');
+    expect(night.kind === 'frames' && night.frames).toEqual(['idle_front']);
+  });
+});
+
 describe('bonusy i lampki', () => {
   const base = (): GameState => ({ ...createState(NOW), needs: { hunger: 50, mood: 50, energy: 50 } });
 

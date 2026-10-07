@@ -1235,6 +1235,27 @@ def matches(name, patterns):
     return any(fnmatch.fnmatchcase(name, p) for p in patterns)
 
 
+def without_stool(im, rect):
+    """Klatka bez stołka (sekcja `derived`, pole `noStool`: [x0, y0, x1, y1] w px klatki): w prostokącie zostają tylko
+    ubranie i buty (maski szafy) oraz kontur, który się z nimi styka — reszta (stołek, jego nóżki) znika.
+    Gabi „siedzi w powietrzu”, więc da się ją posadzić na dowolnym meblu."""
+    shirt, printed, jeans, shoes, _ = wardrobe_masks(im)
+    keep = shirt | printed | jeans | shoes
+    arr = np.array(im)
+    h, w = arr.shape[:2]
+    x0, y0, x1, y1 = rect
+    region = np.zeros((h, w), bool)
+    region[max(0, y0):min(h, y1), max(0, x0):min(w, x1)] = True
+    lum = arr[:, :, :3].astype(int) @ np.array([299, 587, 114]) / 1000
+    outline = (arr[:, :, 3] > 0) & (lum < 24)
+    near_keep = np.zeros((h, w), bool)
+    for dy, dx in NEIGH4:
+        near_keep |= shift(keep, dy, dx)
+    drop = region & (arr[:, :, 3] > 0) & ~keep & ~(outline & near_keep)
+    arr[drop] = 0
+    return Image.fromarray(arr, 'RGBA')
+
+
 def save_wardrobe(body, frames, portraits_im):
     """Maski ubrań (public/masks/<klatka>.png: R = koszulka bez nadruku, G = nadruk, B = dżinsy; 255/0, rozmiar
     klatki) i metadane dla ubieralni dopisane do `frames`: `mask` (czy jest maska), `head` {x, y, w} (px natywne,
@@ -1452,6 +1473,13 @@ def main():
     for name in CFG['body']:
         if body[name]['e']['alignBottom']:
             align_bottom(body, name, *body[name]['e']['alignBottom'])
+
+    # Klatki pochodne (np. szydełkowanie bez stołka — Gabi siedzi na meblu z pokoju): metadane jak w klatce źródłowej.
+    for name, spec in CFG.get('derived', {}).items():
+        src = body[spec['from']]
+        im = without_stool(src['im'], spec['noStool']) if 'noStool' in spec else src['im'].copy()
+        body[name] = {**src, 'name': name, 'im': im}
+        print(f'{name:12s} <- {spec["from"]}')
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     frames = {}

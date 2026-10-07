@@ -4,8 +4,17 @@ import { ROOMS, ROOM_NAMES } from './layout';
 
 /** Biurko, przy którym Gabi się uczy. */
 export const STUDY_DESK = 'writing_desk';
-/** Siedziska, na których Gabi szydełkuje. */
-export const SEATS: readonly string[] = ['pouf', 'bean_bag', 'office_chair', 'gaming_chair_purple', 'gaming_chair_pink'];
+/** Kanapy: Gabi szydełkuje na nich albo — zmęczona — ucina sobie drzemkę. */
+export const SOFAS: readonly string[] = ['sofa_cozy', 'sofa_kawaii', 'sofa_gothic', 'sofa_leather', 'loveseat'];
+/** Siedziska, na których Gabi szydełkuje (siedzi na meblu, mebel zostaje widoczny). */
+export const SEATS: readonly string[] = [
+  'pouf', 'bean_bag', 'office_chair', 'gaming_chair_purple', 'gaming_chair_pink',
+  ...SOFAS,
+  'armchair_cozy', 'armchair_bunny', 'armchair_gothic', 'hanging_chair', 'armchair_wingback',
+  'chair_wooden', 'chair_upholstered', 'bar_stool', 'pouf_frog', 'office_chair_black', 'chair_gothic',
+];
+/** O ile (px logiczne) siedzisko jest wyżej niż stołek z klatek szydełkowania (hoker — nogi w powietrzu). */
+export const SEAT_LIFT: Readonly<Record<string, number>> = { bar_stool: 9, hanging_chair: 3 };
 
 /** Gdzie wolno zająć się danym zajęciem. */
 export type SpotRule =
@@ -103,6 +112,11 @@ export function seatNear(items: readonly PlacedItem[], x: number): PlacedItem | 
 /** Miejsce sceny zajęcia przy meblu: środek dolnej krawędzi mebla (jego linia stóp). */
 export function spotAnchor(item: PlacedItem): { x: number; feetY: number } {
   return { x: item.x, feetY: item.y };
+}
+
+/** Gdzie posadzić Gabi na siedzisku: stopy tuż przed meblem (rysowana nad nim), podniesione o wysokość siedziska. */
+export function seatAnchor(item: PlacedItem): { x: number; feetY: number } {
+  return { x: item.x, feetY: item.y + 1 - (SEAT_LIFT[item.itemId] ?? 0) };
 }
 
 /** Podpis karty zajęcia w panelu (null — bez podpisu). */

@@ -12,6 +12,15 @@ describe('placeActivityFrame', () => {
   });
 });
 
+describe('szydełko na meblu', () => {
+  it('przy siedzisku klatki bez stołka, w miejscu siedziska', () => {
+    const spot = { x: 50, feetY: 137 };
+    expect(placeActivityFrame(ACTIVITIES.crochet, 'crochet_2', 30, spot)).toEqual({ frame: 'sit_crochet_2', x: 50, feetY: 137, centered: true });
+    expect(placeActivityFrame(ACTIVITIES.crochet, 'crochet_2', 30)).toMatchObject({ frame: 'crochet_2', x: 30 });
+    for (const f of Object.values(ACTIVITIES.crochet.seated!)) expect(framesMeta.body).toContain(f);
+  });
+});
+
 describe('frameRect / hitsScene', () => {
   const meta = { w: 40, h: 20, anchorX: 20, scale: 0.5 };
   it('prostokąt klatki wokół kotwicy, stopy na dole', () => {

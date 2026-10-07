@@ -8,6 +8,9 @@ import {
   activitiesHere,
   availabilityHint,
   pickActivityHere,
+  SEATS,
+  SOFAS,
+  seatAnchor,
   seatNear,
   spotAnchor,
 } from '../../src/home/activitySpots';
@@ -82,5 +85,12 @@ describe('reguły miejsc zajęć', () => {
 
   it('każde zajęcie ma regułę', () => {
     for (const id of ACTIVITY_IDS) expect(ACTIVITY_RULES[id]).toBeDefined();
+  });
+
+  it('siedziska: kanapy i nowe meble, Gabi na siedzisku (hoker wyżej)', () => {
+    for (const id of SOFAS) expect(SEATS).toContain(id);
+    for (const id of ['armchair_bunny', 'chair_wooden', 'pouf_frog', 'hanging_chair']) expect(SEATS).toContain(id);
+    expect(seatAnchor({ uid: 'a', itemId: 'sofa_cozy', x: 40, y: 136, flip: false })).toEqual({ x: 40, feetY: 137 });
+    expect(seatAnchor({ uid: 'b', itemId: 'bar_stool', x: 90, y: 140, flip: false }).feetY).toBeLessThan(141);
   });
 });

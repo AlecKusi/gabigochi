@@ -1187,5 +1187,194 @@
     "layer": "floor",
     "interaction": "window",
     "price": 400
+  },
+  "sofa_cozy": {
+    "w": 50,
+    "h": 31,
+    "name": "Przytulna kanapa",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 300
+  },
+  "sofa_kawaii": {
+    "w": 48,
+    "h": 30,
+    "name": "Różowa sofa z poduszkami",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 340
+  },
+  "sofa_gothic": {
+    "w": 50,
+    "h": 32,
+    "name": "Gotycka sofa",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 380
+  },
+  "sofa_leather": {
+    "w": 49,
+    "h": 22,
+    "name": "Skórzana kanapa",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 320
+  },
+  "loveseat": {
+    "w": 42,
+    "h": 22,
+    "name": "Mała sofa z kocem",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 240
+  },
+  "armchair_cozy": {
+    "w": 33,
+    "h": 31,
+    "name": "Przytulny fotel",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 180
+  },
+  "armchair_bunny": {
+    "w": 26,
+    "h": 32,
+    "name": "Fotel-króliczek",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 220
+  },
+  "armchair_gothic": {
+    "w": 23,
+    "h": 34,
+    "name": "Gotycki fotel",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 240
+  },
+  "hanging_chair": {
+    "w": 25,
+    "h": 34,
+    "name": "Wiszący fotel",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 260
+  },
+  "armchair_wingback": {
+    "w": 28,
+    "h": 33,
+    "name": "Fotel uszak z podnóżkiem",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 220
+  },
+  "chair_wooden": {
+    "w": 18,
+    "h": 29,
+    "name": "Drewniane krzesło",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 60
+  },
+  "chair_upholstered": {
+    "w": 19,
+    "h": 30,
+    "name": "Tapicerowane krzesło",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 90
+  },
+  "bar_stool": {
+    "w": 15,
+    "h": 24,
+    "name": "Hoker",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 70
+  },
+  "pouf_frog": {
+    "w": 18,
+    "h": 19,
+    "name": "Pufa-żabka",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 90
+  },
+  "office_chair_black": {
+    "w": 20,
+    "h": 30,
+    "name": "Czarny fotel biurowy",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 120
+  },
+  "chair_gothic": {
+    "w": 18,
+    "h": 29,
+    "name": "Gotyckie metalowe krzesło",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 110
+  },
+  "dining_table": {
+    "w": 45,
+    "h": 39,
+    "name": "Stół z krzesłami",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "coffee",
+    "price": 260
+  },
+  "coffee_table": {
+    "w": 30,
+    "h": 24,
+    "name": "Stolik kawowy",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "coffee",
+    "price": 110
+  },
+  "round_table": {
+    "w": 27,
+    "h": 31,
+    "name": "Okrągły stolik z kwiatkiem",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "coffee",
+    "price": 140
+  },
+  "side_table_gothic": {
+    "w": 21,
+    "h": 35,
+    "name": "Gotycki stolik ze świecznikiem",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "coffee",
+    "price": 150
+  },
+  "glass_table": {
+    "w": 34,
+    "h": 27,
+    "name": "Szklany stolik",
+    "category": "furniture",
+    "layer": "floor",
+    "interaction": "coffee",
+    "price": 180
   }
 }

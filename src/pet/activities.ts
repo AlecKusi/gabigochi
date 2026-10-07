@@ -19,6 +19,8 @@ export interface ActivityDef {
    * zostaje w ostatniej pełnej scenie przed zbliżeniem (`zoomBase`).
    */
   zoom?: string[];
+  /** Przy meblu do siedzenia: klatki bez własnego stołka (Gabi siedzi na meblu, mebel widoczny). */
+  seated?: Readonly<Record<string, string>>;
   avatar?: string;
   lines: string[];
 }
@@ -53,6 +55,7 @@ export const ACTIVITIES: Record<ActivityId, ActivityDef> = {
     id: 'crochet', name: 'Szydełko', kind: 'loop', fps: 1,
     frames: ['crochet_1', 'crochet_2', 'crochet_3', 'crochet_4'],
     outro: 'crochet_5', outroMs: 2000, centered: [],
+    seated: { crochet_1: 'sit_crochet_1', crochet_2: 'sit_crochet_2', crochet_3: 'sit_crochet_3', crochet_4: 'sit_crochet_4', crochet_5: 'sit_crochet_5' },
     lines: ['Zaraz skończę ten rząd!', 'Oczko, oczko…', 'Sweterek dla kotka!'],
   },
   music: {
@@ -126,6 +129,7 @@ export function allActivityFrames(): string[] {
     d.frames.forEach((f) => s.add(f));
     d.intro?.forEach((f) => s.add(f));
     if (d.outro) s.add(d.outro);
+    Object.values(d.seated ?? {}).forEach((f) => s.add(f));
   }
   return [...s];
 }

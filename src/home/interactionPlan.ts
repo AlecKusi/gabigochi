@@ -14,15 +14,15 @@ import { canReward, markReward } from './rewards';
 export type GabiPose =
   /** Gabi jest częścią klatki przedmiotu (np. pod prysznicem) — postaci nie rysujemy. */
   | { kind: 'hidden' }
-  /** Klatki postaci w miejscu Gabi (pętla). */
-  | { kind: 'frames'; frames: readonly string[]; fps: number }
+  /** Klatki postaci w miejscu Gabi (pętla); `seat` — na meblu (np. drzemka na kanapie), nie obok niego. */
+  | { kind: 'frames'; frames: readonly string[]; fps: number; seat?: boolean }
   /** Popiersie z arkusza łazienki złożone z nogami z `idle_front`. */
   | { kind: 'bust'; bust: 'gabi_turban' | 'gabi_hairdryer' };
 
 /** Klucze kwestii (`content.lines`) wypowiadanych w interakcjach; `calendar` i `window` są składane w pokoju. */
 export type InteractionLine =
   | 'water' | 'read' | 'play' | 'cute' | 'calendar' | 'window'
-  | 'toilet' | 'shower' | 'showerDone' | 'bath' | 'bathRelax' | 'sink' | 'towel' | 'hairdryer';
+  | 'toilet' | 'shower' | 'showerDone' | 'bath' | 'bathRelax' | 'sink' | 'towel' | 'hairdryer' | 'nap' | 'coffee';
 
 export type InteractionEffect = 'water' | 'hearts';
 
@@ -48,6 +48,8 @@ export const TOWEL_RAIL = 'towel_rail';
 export interface PlanCtx {
   /** Czy w pokoju wisi wieszak z ręcznikiem. */
   hasRail: boolean;
+  /** Noc za oknem (w nocy Gabi nie macha przez okno, tylko patrzy w gwiazdy). */
+  night?: boolean;
 }
 
 /**
@@ -69,7 +71,14 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
     case 'calendar':
       return [{ ms: 2200, item: null, gabi: { kind: 'frames', frames: ['fun_talk'], fps: 1 }, line: 'calendar' }];
     case 'window':
-      return [{ ms: 2200, item: null, gabi: IDLE, line: 'window' }];
+      // w dzień macha sąsiadom przez okno
+      return [{ ms: 2400, item: null, gabi: ctx.night ? IDLE : { kind: 'frames', frames: ['fun_wave', 'idle_front'], fps: 2.5 }, line: 'window' }];
+    case 'nap':
+      // drzemka na kanapie: Gabi przysypia na siedzisku
+      return [{ ms: 9000, item: null, gabi: { kind: 'frames', frames: ['tired_5'], fps: 1, seat: true }, line: 'nap' }];
+    case 'coffee':
+      // przerwa przy stoliku: kawa, herbatka, ciasteczko
+      return [{ ms: 3600, item: null, gabi: { kind: 'frames', frames: ['fun_eat', 'idle_front'], fps: 1.2 }, line: 'coffee', effect: 'hearts' }];
     case 'wardrobe':
       // chwila przy wieszaku, potem ekran Szafy (w pokoju)
       return [{ ms: 500, item: null, gabi: IDLE }];
@@ -140,6 +149,10 @@ export function interactionReward(kind: Interaction): { mood: number; energy: nu
       return { mood: 2, energy: -2 };
     case 'cute':
       return { mood: 1, energy: 0 };
+    case 'coffee':
+      return { mood: 2, energy: 2 };
+    case 'nap':
+      return { mood: 1, energy: 6 };
     default:
       return null;
   }

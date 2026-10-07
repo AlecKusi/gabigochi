@@ -8,7 +8,7 @@ import { feed, finishActivity, petCharacter, setSleeping } from '../../core/econ
 import { moodLevel } from '../../core/needs';
 import { dayNumber } from '../../core/time';
 import type { GameState, PlacedItem, RoomId } from '../../core/types';
-import { SEATS, activityAllowedIn, activityAvailability, availabilityHint, pickActivityHere, seatNear, spotAnchor, type Spot } from '../../home/activitySpots';
+import { SEATS, SOFAS, activityAllowedIn, activityAvailability, availabilityHint, pickActivityHere, seatAnchor, seatNear, spotAnchor, type Spot } from '../../home/activitySpots';
 import { GABI_BED, findItem, itemById, itemFrames, type Interaction } from '../../home/catalog';
 import { interactionSteps, rewardInteraction, toggleLamp, type InteractionLine } from '../../home/interactionPlan';
 import { ROOMS, hitItem, itemBox } from '../../home/layout';
@@ -64,9 +64,11 @@ const ITEM_TAP_SLOP = 12;
 const PLANT_NAG_CHANCE = 0.5;
 /** Nocą (wg zegara) Gabi przy oknie mówi o gwiazdach. */
 const isNightHour = (d: Date) => d.getHours() >= 21 || d.getHours() < 6;
+/** Poniżej tej energii stuknięcie kanapy to drzemka, a nie szydełko. */
+const NAP_ENERGY = 60;
 
 /** Dokąd Gabi idzie i co zrobi po dojściu (do `x` w pokoju `room`). */
-type Errand = { kind: 'item'; uid: string } | { kind: 'activity'; id: ActivityId; spot: Spot | null };
+type Errand = { kind: 'item'; uid: string; use?: Interaction } | { kind: 'activity'; id: ActivityId; spot: Spot | null };
 type Pending = Errand & { x: number; room: RoomId };
 
 /**
@@ -301,7 +303,8 @@ export function roomScreen(app: App): Screen {
     squashUntil = 0;
     const it = spot && spot.room === viewRoom ? store.get().rooms[viewRoom].items.find((i) => i.uid === spot.uid) : undefined;
     activitySpot = it ? spot : null;
-    activity.start(id, t, it ? fitSpot(ACTIVITIES[id], spotAnchor(it), ROOM_W) : null);
+    const def = ACTIVITIES[id];
+    activity.start(id, t, it ? fitSpot(def, def.seated ? seatAnchor(it) : spotAnchor(it), ROOM_W) : null);
   }
 
   /** Po zajęciu: ze sceny (na środku pokoju / przy meblu) Gabi wychodzi w jej miejscu, a pogawędka nie zagłusza kwestii. */
@@ -376,6 +379,8 @@ export function roomScreen(app: App): Screen {
   /** Co Gabi robi z przedmiotem po stuknięciu: interakcja z katalogu, a siedzisko — szydełkowanie na nim. */
   function itemUse(it: PlacedItem): Interaction {
     const kind = findItem(it.itemId)?.interaction ?? 'none';
+    // Zmęczona Gabi na kanapie ucina sobie drzemkę, wypoczęta — szydełkuje.
+    if (kind === 'none' && SOFAS.includes(it.itemId) && store.get().needs.energy < NAP_ENERGY) return 'nap';
     return kind === 'none' && SEATS.includes(it.itemId) ? 'crochet' : kind;
   }
 
@@ -414,7 +419,7 @@ export function roomScreen(app: App): Screen {
     if (!interactionSteps(kind, { hasRail: false })) return;
     stopActivity(t);
     cancelErrands();
-    walkTo(approachX(it, brain.x), { kind: 'item', uid: it.uid });
+    walkTo(approachX(it, brain.x), { kind: 'item', uid: it.uid, use: kind });
   }
 
   /** Gabi doszła: zajęcie albo interakcja z przedmiotem (lampka przełącza się od razu). */
@@ -426,8 +431,8 @@ export function roomScreen(app: App): Screen {
     }
     const items = store.get().rooms[viewRoom].items;
     const it = items.find((i) => i.uid === p.uid);
-    const kind = it ? findItem(it.itemId)?.interaction : undefined;
-    const steps = it && kind ? interactionSteps(kind, { hasRail: hasTowelRail(items) }) : null;
+    const kind = it ? (p.use ?? findItem(it.itemId)?.interaction) : undefined;
+    const steps = it && kind ? interactionSteps(kind, { hasRail: hasTowelRail(items), night: isNightHour(new Date()) }) : null;
     if (!it || !kind || !steps) return;
     brain = { ...brain, action: 'idle', targetX: brain.x, facing: it.x < brain.x ? 'left' : 'right' };
     if (kind === 'lamp') store.update((s) => {
@@ -682,15 +687,18 @@ export function roomScreen(app: App): Screen {
     }
     const pose = iv.step.gabi;
     if (pose.kind === 'hidden') return null;
+    // Poza na meblu (drzemka na kanapie): Gabi na siedzisku, a nie obok niego.
+    const seatItem = pose.kind === 'frames' && pose.seat ? store.get().rooms[viewRoom].items.find((i) => i.uid === iv.run.uid) : undefined;
+    const at = seatItem ? seatAnchor(seatItem) : { x, feetY: FEET_Y };
     return {
-      orderY: FEET_Y,
+      orderY: seatItem ? seatItem.y + 1 : at.feetY,
       alpha,
       draw: (ctx, k) => {
-        drawShadowAt(ctx, k, x, FEET_Y, 0);
+        if (!seatItem) drawShadowAt(ctx, k, x, FEET_Y, 0);
         if (pose.kind === 'frames') {
           const name = poseFrame(pose, iv.inStepMs);
           const fig = app.figures.get(name);
-          if (fig) drawSprite(ctx, k, fig.img, fig.meta, { x, feetY: FEET_Y, flip: false, bob: 0, squash: 0, jump: 0 });
+          if (fig) drawSprite(ctx, k, fig.img, fig.meta, { x: at.x, feetY: at.feetY, flip: false, bob: 0, squash: 0, jump: 0 });
           return;
         }
         // nogi bez ozdoby głowy — ozdobę (jeśli pasuje) ma popiersie
@@ -703,11 +711,19 @@ export function roomScreen(app: App): Screen {
     };
   }
 
+  /** Kolejność rysowania zajęcia przy meblu do siedzenia: przed meblem, nawet gdy Gabi jest nad jego linią. */
+  function seatOrderY(feetY: number): number {
+    if (!activitySpot || activitySpot.room !== viewRoom || !activity.current?.seated) return feetY;
+    const seat = store.get().rooms[viewRoom].items.find((i) => i.uid === activitySpot!.uid);
+    return seat ? Math.max(feetY, seat.y + 1) : feetY;
+  }
+
   /** Meble ukryte w tej klatce: zastąpione Gabi (łóżko w czasie snu, biurko/siedzisko zajęcia, wieszak przy wycieraniu). */
   function hiddenItems(stage: StageChanges, bed: PlacedItem | null, act: unknown): Set<string> {
     const hidden = new Set(stage.hidden);
     if (bed) hidden.add(bed.uid);
-    if (act && activitySpot && activitySpot.room === viewRoom) hidden.add(activitySpot.uid);
+    // Biurko zastępuje scena nauki; na siedzisku Gabi siedzi na widocznym meblu.
+    if (act && activitySpot && activitySpot.room === viewRoom && !activity.current?.seated) hidden.add(activitySpot.uid);
     return hidden;
   }
 
@@ -799,7 +815,8 @@ export function roomScreen(app: App): Screen {
     } else if (act) {
       lastAnim = '';
       gabi = {
-        orderY: act.cur.feetY,
+        // na siedzisku (podniesiona, np. hoker) — kolejność od linii mebla, żeby była przed nim
+        orderY: seatOrderY(act.cur.feetY),
         alpha,
         draw: (ctx, k) => {
           if (!act.cur.centered) drawShadowAt(ctx, k, act.cur.x, FEET_Y, 0);

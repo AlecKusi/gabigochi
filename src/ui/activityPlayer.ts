@@ -28,7 +28,7 @@ export interface ActivitySpot {
 }
 
 export function placeActivityFrame(def: ActivityDef, frame: string, petX: number, spot: ActivitySpot | null = null): Placed {
-  if (spot) return { frame, x: spot.x, feetY: spot.feetY, centered: true };
+  if (spot) return { frame: def.seated?.[frame] ?? frame, x: spot.x, feetY: spot.feetY, centered: true };
   const centered = def.centered.includes(frame);
   return centered ? { frame, ...SCENE_AT, centered } : { frame, x: petX, feetY: FEET_Y, centered };
 }

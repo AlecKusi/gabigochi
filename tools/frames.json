@@ -32,6 +32,13 @@
     "headSilhouette": ["angry"],
     "portraits": ["portrait_a", "portrait_b"]
   },
+  "derived": {
+    "sit_crochet_1": { "from": "crochet_1", "noStool": [0, 34, 13, 60] },
+    "sit_crochet_2": { "from": "crochet_2", "noStool": [0, 34, 13, 60] },
+    "sit_crochet_3": { "from": "crochet_3", "noStool": [0, 34, 13, 60] },
+    "sit_crochet_4": { "from": "crochet_4", "noStool": [0, 34, 13, 60] },
+    "sit_crochet_5": { "from": "crochet_5", "noStool": [0, 34, 13, 60] }
+  },
   "sheets": {
     "status": { "path": "assets/source/sheet-status.jpg", "background": [208, 207, 212], "gridPeriod": 7.82, "keep": "all", "scaleRef": "sad_cry" },
     "drag":   { "path": "assets/source/sheet-drag.jpg",   "background": [207, 206, 211], "gridPeriod": 7.82, "keep": "all", "scaleRef": "drag_1" },
@@ -46,7 +53,8 @@
     "headwear":   { "path": "assets/source/sheet-headwear.jpg",   "background": [209, 212, 219], "gridPeriod": 5.2, "paletteColours": 160, "itemPreview": "headwear_preview" },
     "windows":    { "path": "assets/source/sheet-windows.jpg",    "background": [207, 210, 217], "gridPeriod": 2.6, "paletteColours": 160, "itemPreview": "windows_preview" },
     "goth":       { "path": "assets/source/sheet-goth.jpg",       "background": [207, 206, 211], "gridPeriod": 4.0, "paletteColours": 160, "itemPreview": "goth_preview" },
-    "kawaii":     { "path": "assets/source/sheet-kawaii.jpg",     "background": [207, 206, 211], "gridPeriod": 4.0, "paletteColours": 160, "itemPreview": "kawaii_preview" }
+    "kawaii":     { "path": "assets/source/sheet-kawaii.jpg",     "background": [207, 206, 211], "gridPeriod": 4.0, "paletteColours": 160, "itemPreview": "kawaii_preview" },
+    "furniture2": { "path": "assets/source/sheet-furniture2.jpg", "background": [206, 206, 210], "gridPeriod": 4.0, "paletteColours": 168, "itemPreview": "furniture2_preview" }
   },
   "body": {
     "idle_front": { "holeTol": 15, "rect": [34, 47, 127, 266],
@@ -318,6 +326,27 @@
     "window_sakura": { "sheet": "windows", "rect": [625, 623, 749, 757], "name": "Okno z sakurą", "category": "window", "layer": "wall", "interaction": "window", "price": 220 },
     "balcony_door": { "sheet": "windows", "rect": [21, 879, 101, 1003], "name": "Drzwi balkonowe", "category": "window", "layer": "floor", "interaction": "window", "price": 300, "scale": 1.3 },
     "window_bay": { "sheet": "windows", "rect": [233, 879, 445, 1003], "name": "Okno panoramiczne z siedziskiem", "category": "window", "layer": "floor", "interaction": "window", "price": 350 },
-    "sliding_door": { "sheet": "windows", "rect": [477, 879, 749, 1003], "name": "Przesuwne drzwi do ogrodu", "category": "window", "layer": "floor", "interaction": "window", "price": 400, "scale": 1.1 }
+    "sliding_door": { "sheet": "windows", "rect": [477, 879, 749, 1003], "name": "Przesuwne drzwi do ogrodu", "category": "window", "layer": "floor", "interaction": "window", "price": 400, "scale": 1.1 },
+    "sofa_cozy": { "sheet": "furniture2", "rect": [31, 113, 239, 245], "name": "Przytulna kanapa", "category": "furniture", "layer": "floor", "interaction": "none", "price": 300 },
+    "sofa_kawaii": { "sheet": "furniture2", "rect": [271, 113, 471, 241], "name": "Różowa sofa z poduszkami", "category": "furniture", "layer": "floor", "interaction": "none", "price": 340 },
+    "sofa_gothic": { "sheet": "furniture2", "rect": [507, 101, 715, 235], "name": "Gotycka sofa", "category": "furniture", "layer": "floor", "interaction": "none", "price": 380 },
+    "sofa_leather": { "sheet": "furniture2", "rect": [47, 255, 251, 351], "name": "Skórzana kanapa", "category": "furniture", "layer": "floor", "interaction": "none", "price": 320 },
+    "loveseat": { "sheet": "furniture2", "rect": [291, 257, 467, 352], "name": "Mała sofa z kocem", "category": "furniture", "layer": "floor", "interaction": "none", "price": 240 },
+    "armchair_cozy": { "sheet": "furniture2", "rect": [29, 417, 165, 549], "name": "Przytulny fotel", "category": "furniture", "layer": "floor", "interaction": "none", "price": 180 },
+    "armchair_bunny": { "sheet": "furniture2", "rect": [195, 413, 303, 547], "name": "Fotel-króliczek", "category": "furniture", "layer": "floor", "interaction": "none", "price": 220 },
+    "armchair_gothic": { "sheet": "furniture2", "rect": [339, 409, 439, 549], "name": "Gotycki fotel", "category": "furniture", "layer": "floor", "interaction": "none", "price": 240 },
+    "hanging_chair": { "sheet": "furniture2", "rect": [487, 409, 595, 549], "name": "Wiszący fotel", "category": "furniture", "layer": "floor", "interaction": "none", "price": 260 },
+    "armchair_wingback": { "sheet": "furniture2", "rect": [621, 409, 739, 549], "name": "Fotel uszak z podnóżkiem", "category": "furniture", "layer": "floor", "interaction": "none", "price": 220 },
+    "chair_wooden": { "sheet": "furniture2", "rect": [43, 633, 121, 757], "name": "Drewniane krzesło", "category": "furniture", "layer": "floor", "interaction": "none", "price": 60 },
+    "chair_upholstered": { "sheet": "furniture2", "rect": [163, 631, 247, 755], "name": "Tapicerowane krzesło", "category": "furniture", "layer": "floor", "interaction": "none", "price": 90 },
+    "bar_stool": { "sheet": "furniture2", "rect": [293, 653, 357, 755], "name": "Hoker", "category": "furniture", "layer": "floor", "interaction": "none", "price": 70 },
+    "pouf_frog": { "sheet": "furniture2", "rect": [403, 669, 483, 753], "name": "Pufa-żabka", "category": "furniture", "layer": "floor", "interaction": "none", "price": 90 },
+    "office_chair_black": { "sheet": "furniture2", "rect": [519, 627, 607, 755], "name": "Czarny fotel biurowy", "category": "furniture", "layer": "floor", "interaction": "none", "price": 120 },
+    "chair_gothic": { "sheet": "furniture2", "rect": [647, 633, 729, 755], "name": "Gotyckie metalowe krzesło", "category": "furniture", "layer": "floor", "interaction": "none", "price": 110 },
+    "dining_table": { "sheet": "furniture2", "rect": [27, 839, 213, 997], "name": "Stół z krzesłami", "category": "furniture", "layer": "floor", "interaction": "coffee", "price": 260 },
+    "coffee_table": { "sheet": "furniture2", "rect": [223, 881, 349, 981], "name": "Stolik kawowy", "category": "furniture", "layer": "floor", "interaction": "coffee", "price": 110 },
+    "round_table": { "sheet": "furniture2", "rect": [363, 853, 479, 985], "name": "Okrągły stolik z kwiatkiem", "category": "furniture", "layer": "floor", "interaction": "coffee", "price": 140 },
+    "side_table_gothic": { "sheet": "furniture2", "rect": [499, 839, 591, 985], "name": "Gotycki stolik ze świecznikiem", "category": "furniture", "layer": "floor", "interaction": "coffee", "price": 150 },
+    "glass_table": { "sheet": "furniture2", "rect": [607, 869, 745, 985], "name": "Szklany stolik", "category": "furniture", "layer": "floor", "interaction": "coffee", "price": 180 }
   }
 }

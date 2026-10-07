@@ -7,7 +7,7 @@ export type ItemLayer = 'wall' | 'floor' | 'rug';
 
 export const INTERACTIONS = [
   'water', 'read', 'play', 'study', 'crochet', 'music', 'cute', 'lamp', 'calendar', 'window',
-  'toilet', 'shower', 'bath', 'sink', 'hairdryer', 'wardrobe', 'none',
+  'toilet', 'shower', 'bath', 'sink', 'hairdryer', 'wardrobe', 'coffee', 'nap', 'none',
 ] as const;
 export type Interaction = (typeof INTERACTIONS)[number];
 
