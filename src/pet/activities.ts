@@ -14,6 +14,11 @@ export interface ActivityDef {
   outroMs?: number;
   /** Klatki rysowane na środku pokoju (sceny z rekwizytami). */
   centered: string[];
+  /**
+   * Zbliżenia (kadry z uciętym biurkiem/łóżkiem — tak narysowane): pokazywane w okienku nad Gabi, a sama Gabi
+   * zostaje w ostatniej pełnej scenie przed zbliżeniem (`zoomBase`).
+   */
+  zoom?: string[];
   avatar?: string;
   lines: string[];
 }
@@ -25,14 +30,16 @@ export const ACTIVITIES: Record<ActivityId, ActivityDef> = {
   study: {
     id: 'study', name: 'Nauka', kind: 'story', sceneMs: 4500,
     frames: ['study_1', 'study_2', 'study_3', 'study_4', 'study_5'],
-    centered: ['study_1', 'study_2', 'study_3', 'study_4', 'study_5'],
+    centered: ['study_1'],
+    zoom: ['study_2', 'study_3', 'study_4', 'study_5'],
     avatar: 'face_study',
     lines: ['Jeszcze jeden rozdział…', 'Kolokwium z anatomii!', 'Muszę to zapamiętać.'],
   },
   nursing: {
     id: 'nursing', name: 'Praktyka', kind: 'story', sceneMs: 4500,
     frames: ['nurse_1', 'nurse_2', 'nurse_3', 'nurse_4', 'nurse_5'],
-    centered: ['nurse_3', 'nurse_4'],
+    centered: ['nurse_4'],
+    zoom: ['nurse_3'],
     avatar: 'face_study',
     lines: ['Siostra Gabi na dyżurze!', 'Proszę się nie ruszać…', 'Wszystko będzie dobrze.'],
   },
@@ -86,6 +93,18 @@ export function activityFrame(def: ActivityDef, elapsedMs: number, totalMs: numb
   const n = def.frames.length;
   const idx = Math.floor((loopT / 1000) * (def.fps ?? 1)) % n;
   return { frame: def.frames[idx], prev: null, blend: 1 };
+}
+
+export function isZoom(def: ActivityDef, frame: string): boolean {
+  return def.zoom?.includes(frame) ?? false;
+}
+
+/** Klatka postaci w czasie zbliżenia: ostatnia pełna scena przed nim (albo sama klatka, gdy to nie zbliżenie). */
+export function zoomBase(def: ActivityDef, frame: string): string {
+  if (!isZoom(def, frame)) return frame;
+  const i = def.frames.indexOf(frame);
+  for (let j = i - 1; j >= 0; j--) if (!isZoom(def, def.frames[j])) return def.frames[j];
+  return def.frames.find((f) => !isZoom(def, f)) ?? frame;
 }
 
 export function activityDuration(def: ActivityDef, rng: () => number): number {

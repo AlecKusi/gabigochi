@@ -204,7 +204,7 @@
     "fun_eat": {
       "w": 23,
       "h": 67,
-      "anchorX": 10.37,
+      "anchorX": 10.89,
       "foot": 67,
       "scale": 0.8358,
       "mask": true,
@@ -218,7 +218,7 @@
     "fun_talk": {
       "w": 36,
       "h": 67,
-      "anchorX": 12.78,
+      "anchorX": 12.82,
       "foot": 67,
       "scale": 0.8358,
       "mask": true,
@@ -232,15 +232,15 @@
     "fun_wave": {
       "w": 28,
       "h": 67,
-      "anchorX": 16.02,
+      "anchorX": 16.75,
       "foot": 67,
       "scale": 0.8358,
       "mask": true,
       "knee": 48,
       "head": {
-        "x": 12.5,
+        "x": 16.0,
         "y": 0,
-        "w": 17
+        "w": 18
       }
     },
     "gabi_hairdryer": {
@@ -357,7 +357,7 @@
     "idle_front": {
       "w": 23,
       "h": 55,
-      "anchorX": 11.08,
+      "anchorX": 10.82,
       "foot": 55,
       "scale": 1.0182,
       "mask": true,
@@ -700,21 +700,21 @@
     "walk_a1": {
       "w": 20,
       "h": 42,
-      "anchorX": 8.24,
+      "anchorX": 8.5,
       "foot": 42,
       "scale": 1.3333,
       "mask": true,
       "knee": 34,
       "head": {
-        "x": 8.0,
-        "y": 1,
+        "x": 8.5,
+        "y": 0,
         "w": 16
       }
     },
     "walk_a2": {
       "w": 21,
       "h": 42,
-      "anchorX": 10.35,
+      "anchorX": 9.52,
       "foot": 42,
       "scale": 1.3333,
       "mask": true,
@@ -728,7 +728,7 @@
     "walk_a3": {
       "w": 21,
       "h": 42,
-      "anchorX": 10.88,
+      "anchorX": 10.38,
       "foot": 42,
       "scale": 1.3333,
       "mask": true,
@@ -742,14 +742,14 @@
     "walk_a4": {
       "w": 17,
       "h": 43,
-      "anchorX": 8.88,
+      "anchorX": 8.4,
       "foot": 43,
       "scale": 1.3333,
       "mask": true,
       "knee": 33,
       "head": {
         "x": 8.5,
-        "y": 1,
+        "y": 0,
         "w": 17
       }
     }

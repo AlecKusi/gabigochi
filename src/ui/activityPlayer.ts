@@ -1,8 +1,8 @@
-import { ACTIVITIES, activityDuration, activityFrame, nextActivityDelay, type ActivityDef, type ActivityId } from '../pet/activities';
-import { FEET_Y } from '../pet/room';
+import { ACTIVITIES, activityDuration, activityFrame, isZoom, nextActivityDelay, zoomBase, type ActivityDef, type ActivityId } from '../pet/activities';
+import { FEET_Y, ROOM_W } from '../pet/room';
 import { FRAMES, type FrameMeta } from '../sprites/loader';
 import type { Figures } from '../wardrobe/figures';
-import { drawSprite } from './pixelStage';
+import { deviceRect, drawSprite } from './pixelStage';
 
 /** Środek pokoju, w którym stoją sceny z rekwizytami (biurko, łóżko pacjenta) — tak jak łóżko Gabi. */
 export const SCENE_AT = { x: 64, feetY: FEET_Y + 2 } as const;
@@ -41,6 +41,7 @@ export function fitSpot(def: ActivityDef, spot: ActivitySpot, roomW: number, fra
   let left = 0;
   let right = 0;
   for (const name of [...(def.intro ?? []), ...def.frames, ...(def.outro ? [def.outro] : [])]) {
+    if (isZoom(def, name)) continue; // zbliżenia są w okienku, nie przy meblu
     const m = frames[name];
     if (!m) continue;
     left = Math.max(left, m.anchorX * m.scale);
@@ -72,6 +73,27 @@ export interface ActivityView {
   prev: Placed | null;
   /** Udział bieżącej klatki 0–1. */
   blend: number;
+  /** Okienko zbliżenia nad Gabi (kadry z uciętymi rekwizytami) albo null. */
+  zoom: ZoomView | null;
+}
+
+/** Okienko zbliżenia: przezroczystość ramki i klatki w środku z udziałami (przy przenikaniu dwie). */
+export interface ZoomView {
+  alpha: number;
+  layers: [frame: string, alpha: number][];
+}
+
+/** Gabi i zbliżenie w danej chwili historyjki: zbliżenie nie zmienia klatki postaci (zostaje scena bazowa). */
+export function splitZoom(def: ActivityDef, frame: string, prev: string | null, blend: number): { cur: string; prev: string | null; blend: number; zoom: ZoomView | null } {
+  const cur = zoomBase(def, frame);
+  const before = prev ? zoomBase(def, prev) : null;
+  const zCur = isZoom(def, frame);
+  const zPrev = prev !== null && isZoom(def, prev);
+  let zoom: ZoomView | null = null;
+  if (zCur && zPrev) zoom = { alpha: 1, layers: [[prev!, 1 - blend], [frame, blend]] };
+  else if (zCur) zoom = { alpha: prev ? blend : 1, layers: [[frame, 1]] };
+  else if (zPrev) zoom = { alpha: 1 - blend, layers: [[prev!, 1]] };
+  return before !== null && before !== cur ? { cur, prev: before, blend, zoom } : { cur, prev: null, blend: 1, zoom };
 }
 
 export interface ActivityStep {
@@ -121,8 +143,9 @@ export function createActivityPlayer(now: number, rng: () => number = Math.rando
   let nextAt = now + nextActivityDelay(rng);
 
   function frameNow(r: Running, t: number, petX: number) {
-    const f = activityFrame(r.def, t - r.startedAt, r.totalMs);
-    return { f, cur: placeActivityFrame(r.def, f.frame, petX, r.spot) };
+    const raw = activityFrame(r.def, t - r.startedAt, r.totalMs);
+    const f = splitZoom(r.def, raw.frame, raw.prev, raw.blend);
+    return { f, cur: placeActivityFrame(r.def, f.cur, petX, r.spot) };
   }
 
   function end(t: number): void {
@@ -168,7 +191,7 @@ export function createActivityPlayer(now: number, rng: () => number = Math.rando
     view(t, petX) {
       if (!run) return null;
       const { f, cur } = frameNow(run, t, petX);
-      return { def: run.def, cur, prev: f.prev ? placeActivityFrame(run.def, f.prev, petX, run.spot) : null, blend: f.blend };
+      return { def: run.def, cur, prev: f.prev ? placeActivityFrame(run.def, f.prev, petX, run.spot) : null, blend: f.blend, zoom: f.zoom };
     },
   };
 }
@@ -183,4 +206,67 @@ export function drawActivity(ctx: CanvasRenderingContext2D, k: number, figures: 
     drawSprite(ctx, k, fig.img, fig.meta, { x: p.x, feetY: p.feetY, flip: false, bob: 0, squash: 0, jump: 0 });
   }
   ctx.globalAlpha = 1;
+  if (v.zoom) drawZoom(ctx, k, figures, v.def, v.cur, v.zoom);
+}
+
+/** Wymiary okienka zbliżenia (px logiczne): jednakowe dla wszystkich zbliżeń zajęcia, z marginesem. */
+export function zoomBox(def: ActivityDef, frames: Record<string, FrameMeta | undefined> = FRAMES): { w: number; h: number } {
+  let w = 0;
+  let h = 0;
+  for (const name of def.zoom ?? []) {
+    const m = frames[name];
+    if (!m) continue;
+    w = Math.max(w, m.w * m.scale);
+    h = Math.max(h, m.h * m.scale);
+  }
+  return { w: Math.ceil(w) + 2 * ZOOM_PAD, h: Math.ceil(h) + 2 * ZOOM_PAD };
+}
+
+const ZOOM_PAD = 3;
+/** Odstęp okienka od czubka sceny i ogonek wskazujący Gabi (px logiczne). */
+const ZOOM_GAP = 6;
+const INK = '#1b1326';
+const PAPER = '#f3ecff';
+
+/** Gdzie stoi okienko zbliżenia nad sceną `cur` (px logiczne): nad głową, w granicach pokoju. */
+export function zoomRect(def: ActivityDef, cur: Placed, frames: Record<string, FrameMeta | undefined> = FRAMES): { x: number; y: number; w: number; h: number; tipX: number } {
+  const box = zoomBox(def, frames);
+  const m = frames[cur.frame];
+  const top = m ? frameRect(m, cur.x, cur.feetY).y : cur.feetY - 60;
+  const x = Math.round(Math.max(1, Math.min(ROOM_W - 1 - box.w, cur.x - box.w / 2)));
+  const y = Math.max(1, Math.round(top - ZOOM_GAP - box.h));
+  return { x, y, w: box.w, h: box.h, tipX: Math.round(Math.max(x + 4, Math.min(x + box.w - 5, cur.x))) };
+}
+
+function drawZoom(ctx: CanvasRenderingContext2D, k: number, figures: Pick<Figures, 'get'>, def: ActivityDef, cur: Placed, zoom: ZoomView): void {
+  const r = zoomRect(def, cur);
+  const fill = (x: number, y: number, w: number, h: number, c: string) => {
+    const d = deviceRect(k, { x, y, w, h });
+    ctx.fillStyle = c;
+    ctx.fillRect(d.x, d.y, d.w, d.h);
+  };
+  ctx.save();
+  ctx.globalAlpha = zoom.alpha;
+  // ramka z zaokrąglonymi rogami (po pikselu) i ogonek w dół
+  fill(r.x + 1, r.y, r.w - 2, r.h, INK);
+  fill(r.x, r.y + 1, r.w, r.h - 2, INK);
+  fill(r.x + 1, r.y + 1, r.w - 2, r.h - 2, PAPER);
+  for (let i = 0; i < 3; i++) {
+    fill(r.tipX - 2 + i, r.y + r.h - 1 + i, 4 - 2 * i, 1, INK);
+    if (i < 2) fill(r.tipX - 1 + i, r.y + r.h - 1 + i, 2 - 2 * i, 1, PAPER);
+  }
+  ctx.restore();
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  for (const [frame, a] of zoom.layers) {
+    const fig = figures.get(frame);
+    if (!fig || a <= 0) continue;
+    const w = fig.meta.w * fig.meta.scale;
+    const h = fig.meta.h * fig.meta.scale;
+    // w środku, przy dolnej krawędzi okienka
+    const d = deviceRect(k, { x: r.x + (r.w - w) / 2, y: r.y + r.h - ZOOM_PAD - h, w, h });
+    ctx.globalAlpha = zoom.alpha * a;
+    ctx.drawImage(fig.img, d.x, d.y, d.w, d.h);
+  }
+  ctx.restore();
 }

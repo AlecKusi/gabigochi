@@ -43,3 +43,8 @@ Plan: docs/superpowers/plans/2026-10-07-szafa-ubrania.md — wszystkie kroki zro
 - Ekran Szafy (`src/ui/screens/wardrobe.ts`): podgląd (spoczynek ↔ machanie, „Pokaż spacer”), zakładki Sukienki/Góra/Dół/Głowa, kupno = od razu założenie, Załóż/Zdejmij, „Zdejmij wszystko”.
 - Wieszak `clothes_rack` (interakcja `wardrobe`): stuknięcie → Gabi podchodzi → Szafa. Nowa gra: w sypialni (x 104, y 132); stare zapisy: po cichu do magazynu.
 - Drobne niedoskonałości: ozdoba na klatkach przechylonych (drag) nie obraca się; przy słuchawkach (music_1/2) ozdoba siedzi nad pałąkiem; przy biurku (study_*) nogi pod biurkiem zostają w dżinsach; miny w nagłówku (face_*) nie mają maski — koszulka na nich zostaje czarna.
+
+## Poprawki (2026-10-07)
+- Prześwitujące włosy w klatkach głównego arkusza (spoczynek, chód, machanie, jedzenie, rozmowa): jasne włosy były blisko koloru tła i ekstraktor brał je za dziury — wpisy mają teraz `holeTol: 15` (jak arkusze `keep: all`).
+- Zbliżenia z uciętymi rekwizytami (nauka 2–5, pacjent w łóżku `nurse_3`) — tak są narysowane w arkuszu. Pokazujemy je w okienku-ramce nad Gabi (`ActivityDef.zoom`, `splitZoom`, `zoomRect` w `src/ui/activityPlayer.ts`); Gabi zostaje w ostatniej pełnej scenie (przy biurku `study_1`, przy pacjencie w pozie `nurse_2`).
+
