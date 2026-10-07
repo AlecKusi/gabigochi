@@ -8,6 +8,30 @@
   "anchorRows": 8,
   "bagColor": { "hue": [330, 45], "satMax": 0.24, "valMin": 0.5 },
   "outlineValMax": 0.1,
+  "wardrobe": {
+    "classes": {
+      "outline":   { "hue": [0, 360],   "sat": [0.0, 1.0],  "val": [0.0, 0.05] },
+      "shirt":     { "hue": [230, 275], "sat": [0.1, 0.55], "val": [0.1, 0.22] },
+      "shade":     { "hue": [230, 290], "sat": [0.0, 1.0],  "val": [0.05, 0.1] },
+      "mid":       { "hue": [250, 270], "sat": [0.15, 0.4], "val": [0.22, 0.32] },
+      "jeans":     { "hue": [200, 235], "sat": [0.18, 0.5], "val": [0.2, 0.47] },
+      "red":       { "hue": [335, 15],  "sat": [0.55, 1.0], "val": [0.35, 1.0] },
+      "printDark": { "hue": [320, 60],  "sat": [0.2, 1.0],  "val": [0.1, 0.35] },
+      "print":     { "hue": [0, 360],   "sat": [0.0, 0.25], "val": [0.35, 1.0] },
+      "grey":      { "hue": [0, 360],   "sat": [0.0, 0.12], "val": [0.35, 1.0] },
+      "grey2":     { "hue": [200, 320], "sat": [0.0, 0.25], "val": [0.35, 1.0] },
+      "cuff":      { "hue": [260, 320], "sat": [0.1, 0.35], "val": [0.3, 0.5] },
+      "light":     { "hue": [60, 360],  "sat": [0.0, 0.2],  "val": [0.6, 1.0] },
+      "light2":    { "hue": [0, 360],   "sat": [0.0, 0.08], "val": [0.7, 1.0] },
+      "hair":      { "hue": [255, 300], "sat": [0.04, 0.5], "val": [0.35, 1.0] }
+    },
+    "exclude": ["nurse_*", "bed_*"],
+    "topOnly": ["study_*", "gabi_hairdryer", "gabi_turban"],
+    "noHat": ["gabi_turban"],
+    "headIgnore": { "angry": [[19, 0, 26, 8]] },
+    "headSilhouette": ["angry"],
+    "portraits": ["portrait_a", "portrait_b"]
+  },
   "sheets": {
     "status": { "path": "assets/source/sheet-status.jpg", "background": [208, 207, 212], "gridPeriod": 7.82, "keep": "all", "scaleRef": "sad_cry" },
     "drag":   { "path": "assets/source/sheet-drag.jpg",   "background": [207, 206, 211], "gridPeriod": 7.82, "keep": "all", "scaleRef": "drag_1" },

@@ -6,406 +6,752 @@
       "h": 66,
       "anchorX": 14.95,
       "foot": 66,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 48,
+      "head": {
+        "x": 10.0,
+        "y": 2,
+        "w": 19
+      }
     },
     "bed_1": {
       "w": 90,
       "h": 68,
       "anchorX": 47.0,
       "foot": 67,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": false
     },
     "bed_3": {
       "w": 89,
       "h": 65,
       "anchorX": 44.0,
       "foot": 65,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": false
     },
     "bed_4": {
       "w": 90,
       "h": 66,
       "anchorX": 45.0,
       "foot": 66,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": false
     },
     "bed_4z": {
       "w": 90,
       "h": 66,
       "anchorX": 45.0,
       "foot": 66,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": false
     },
     "crazy": {
       "w": 26,
       "h": 64,
       "anchorX": 14.5,
       "foot": 64,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 46,
+      "head": {
+        "x": 14.5,
+        "y": 0,
+        "w": 18
+      }
     },
     "crochet_1": {
       "w": 27,
       "h": 49,
       "anchorX": 10.53,
       "foot": 49,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 37,
+      "head": {
+        "x": 10.5,
+        "y": 0,
+        "w": 20
+      }
     },
     "crochet_2": {
       "w": 30,
       "h": 49,
       "anchorX": 9.53,
       "foot": 49,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 37,
+      "head": {
+        "x": 11.0,
+        "y": 0,
+        "w": 19
+      }
     },
     "crochet_3": {
       "w": 32,
       "h": 49,
       "anchorX": 9.53,
       "foot": 49,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 37,
+      "head": {
+        "x": 11.5,
+        "y": 0,
+        "w": 19
+      }
     },
     "crochet_4": {
       "w": 24,
       "h": 49,
       "anchorX": 8.53,
       "foot": 49,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 36,
+      "head": {
+        "x": 10.5,
+        "y": 0,
+        "w": 20
+      }
     },
     "crochet_5": {
       "w": 37,
       "h": 50,
       "anchorX": 12.53,
       "foot": 50,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 38,
+      "head": {
+        "x": 14.0,
+        "y": 0,
+        "w": 19
+      }
     },
     "drag_1": {
       "w": 23,
       "h": 69,
       "anchorX": 10.42,
       "foot": 69,
-      "scale": 0.9032
+      "scale": 0.9032,
+      "mask": true,
+      "knee": 53,
+      "head": {
+        "x": 10.5,
+        "y": 7,
+        "w": 20
+      }
     },
     "drag_2": {
       "w": 47,
       "h": 73,
       "anchorX": 22.93,
       "foot": 73,
-      "scale": 0.9032
+      "scale": 0.9032,
+      "mask": true,
+      "knee": 54,
+      "head": {
+        "x": 22.5,
+        "y": 8,
+        "w": 20
+      }
     },
     "drag_3": {
       "w": 54,
       "h": 61,
       "anchorX": 35.15,
       "foot": 61,
-      "scale": 0.9032
+      "scale": 0.9032,
+      "mask": true,
+      "knee": 42,
+      "head": {
+        "x": 35.0,
+        "y": 3,
+        "w": 19
+      }
     },
     "drag_4": {
       "w": 67,
       "h": 43,
       "anchorX": 16.02,
       "foot": 43,
-      "scale": 0.9032
+      "scale": 0.9032,
+      "mask": true,
+      "knee": 33,
+      "head": {
+        "x": 13.5,
+        "y": 0,
+        "w": 17
+      }
     },
     "drag_5": {
       "w": 50,
       "h": 58,
       "anchorX": 25.93,
       "foot": 58,
-      "scale": 0.9032
+      "scale": 0.9032,
+      "mask": true,
+      "knee": 40,
+      "head": {
+        "x": 32.0,
+        "y": 0,
+        "w": 19
+      }
     },
     "fun_eat": {
       "w": 23,
       "h": 67,
       "anchorX": 10.37,
       "foot": 67,
-      "scale": 0.8358
+      "scale": 0.8358,
+      "mask": true,
+      "knee": 48,
+      "head": {
+        "x": 11.0,
+        "y": 0,
+        "w": 17
+      }
     },
     "fun_talk": {
       "w": 36,
       "h": 67,
       "anchorX": 12.78,
       "foot": 67,
-      "scale": 0.8358
+      "scale": 0.8358,
+      "mask": true,
+      "knee": 46,
+      "head": {
+        "x": 13.0,
+        "y": 0,
+        "w": 18
+      }
     },
     "fun_wave": {
       "w": 28,
       "h": 67,
       "anchorX": 16.02,
       "foot": 67,
-      "scale": 0.8358
+      "scale": 0.8358,
+      "mask": true,
+      "knee": 48,
+      "head": {
+        "x": 12.5,
+        "y": 0,
+        "w": 17
+      }
     },
     "gabi_hairdryer": {
       "w": 43,
       "h": 32,
       "anchorX": 12.47,
       "foot": 32,
-      "scale": 1.5556
+      "scale": 1.5556,
+      "mask": true,
+      "head": {
+        "x": 14.5,
+        "y": 0,
+        "w": 22
+      }
     },
     "gabi_turban": {
       "w": 17,
       "h": 34,
       "anchorX": 7.85,
       "foot": 34,
-      "scale": 1.5556
+      "scale": 1.5556,
+      "mask": true,
+      "head": {
+        "x": 8.0,
+        "y": 0,
+        "w": 17
+      },
+      "noHat": true
     },
     "happy": {
       "w": 39,
       "h": 65,
       "anchorX": 19.5,
       "foot": 60,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 44,
+      "head": {
+        "x": 19.0,
+        "y": 1,
+        "w": 18
+      }
     },
     "hunger_1": {
       "w": 27,
       "h": 65,
       "anchorX": 11.15,
       "foot": 65,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 47,
+      "head": {
+        "x": 11.0,
+        "y": 0,
+        "w": 19
+      }
     },
     "hunger_2": {
       "w": 28,
       "h": 65,
       "anchorX": 11.0,
       "foot": 65,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 47,
+      "head": {
+        "x": 11.0,
+        "y": 0,
+        "w": 19
+      }
     },
     "hunger_3": {
       "w": 44,
       "h": 78,
       "anchorX": 10.08,
       "foot": 78,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 59,
+      "head": {
+        "x": 10.0,
+        "y": 13,
+        "w": 19
+      }
     },
     "hunger_4": {
       "w": 26,
       "h": 61,
       "anchorX": 15.7,
       "foot": 61,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 44,
+      "head": {
+        "x": 15.5,
+        "y": 0,
+        "w": 20
+      }
     },
     "hunger_5": {
       "w": 40,
       "h": 42,
       "anchorX": 21.97,
       "foot": 42,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 35,
+      "head": {
+        "x": 22.0,
+        "y": 0,
+        "w": 19
+      }
     },
     "idle_front": {
       "w": 23,
       "h": 55,
       "anchorX": 11.08,
       "foot": 55,
-      "scale": 1.0182
+      "scale": 1.0182,
+      "mask": true,
+      "knee": 42,
+      "head": {
+        "x": 11.0,
+        "y": 0,
+        "w": 17
+      }
     },
     "music_1": {
       "w": 29,
       "h": 60,
       "anchorX": 13.23,
       "foot": 60,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 45,
+      "head": {
+        "x": 13.5,
+        "y": 0,
+        "w": 18
+      }
     },
     "music_2": {
       "w": 26,
       "h": 59,
       "anchorX": 13.23,
       "foot": 59,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 43,
+      "head": {
+        "x": 11.0,
+        "y": 0,
+        "w": 20
+      }
     },
     "music_3": {
       "w": 32,
       "h": 60,
       "anchorX": 14.23,
       "foot": 60,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 45,
+      "head": {
+        "x": 13.5,
+        "y": 1,
+        "w": 22
+      }
     },
     "music_4": {
       "w": 33,
       "h": 62,
       "anchorX": 12.23,
       "foot": 62,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 48,
+      "head": {
+        "x": 15.5,
+        "y": 4,
+        "w": 18
+      }
     },
     "music_5": {
       "w": 32,
       "h": 59,
       "anchorX": 13.23,
       "foot": 59,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 44,
+      "head": {
+        "x": 15.5,
+        "y": 0,
+        "w": 19
+      }
     },
     "nurse_1": {
       "w": 31,
       "h": 67,
       "anchorX": 12.5,
       "foot": 67,
-      "scale": 0.8358
+      "scale": 0.8358,
+      "mask": false
     },
     "nurse_2": {
       "w": 32,
       "h": 69,
       "anchorX": 13.15,
       "foot": 69,
-      "scale": 0.8358
+      "scale": 0.8358,
+      "mask": false
     },
     "nurse_3": {
       "w": 55,
       "h": 36,
       "anchorX": 27.5,
       "foot": 36,
-      "scale": 0.8358
+      "scale": 0.8358,
+      "mask": false
     },
     "nurse_4": {
       "w": 41,
       "h": 57,
       "anchorX": 20.5,
       "foot": 57,
-      "scale": 0.8358
+      "scale": 0.8358,
+      "mask": false
     },
     "nurse_5": {
       "w": 39,
       "h": 66,
       "anchorX": 16.46,
       "foot": 66,
-      "scale": 0.8358
+      "scale": 0.8358,
+      "mask": false
     },
     "phone_1": {
       "w": 29,
       "h": 60,
       "anchorX": 10.5,
       "foot": 60,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 44,
+      "head": {
+        "x": 10.5,
+        "y": 0,
+        "w": 19
+      }
     },
     "phone_2": {
       "w": 22,
       "h": 60,
       "anchorX": 9.5,
       "foot": 60,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 45,
+      "head": {
+        "x": 11.0,
+        "y": 0,
+        "w": 19
+      }
     },
     "phone_3": {
       "w": 25,
       "h": 59,
       "anchorX": 9.5,
       "foot": 59,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 44,
+      "head": {
+        "x": 10.0,
+        "y": 0,
+        "w": 18
+      }
     },
     "phone_4": {
       "w": 25,
       "h": 56,
       "anchorX": 6.5,
       "foot": 56,
-      "scale": 0.9492
+      "scale": 0.9492,
+      "mask": true,
+      "knee": 41,
+      "head": {
+        "x": 15.0,
+        "y": 0,
+        "w": 20
+      }
     },
     "sad_cry": {
       "w": 25,
       "h": 63,
       "anchorX": 10.85,
       "foot": 63,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 45,
+      "head": {
+        "x": 11.0,
+        "y": 0,
+        "w": 18
+      }
     },
     "scared": {
       "w": 29,
       "h": 64,
       "anchorX": 13.65,
       "foot": 64,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 46,
+      "head": {
+        "x": 13.5,
+        "y": 0,
+        "w": 18
+      }
     },
     "study_1": {
       "w": 62,
       "h": 81,
       "anchorX": 31.0,
       "foot": 81,
-      "scale": 0.8358
+      "scale": 0.8358,
+      "mask": true,
+      "head": {
+        "x": 14.0,
+        "y": 0,
+        "w": 22
+      }
     },
     "study_2": {
       "w": 31,
       "h": 42,
       "anchorX": 15.5,
       "foot": 42,
-      "scale": 0.8358
+      "scale": 0.8358,
+      "mask": true,
+      "head": {
+        "x": 19.5,
+        "y": 0,
+        "w": 23
+      }
     },
     "study_3": {
       "w": 34,
       "h": 43,
       "anchorX": 17.0,
       "foot": 43,
-      "scale": 0.8358
+      "scale": 0.8358,
+      "mask": true,
+      "head": {
+        "x": 17.0,
+        "y": 0,
+        "w": 21
+      }
     },
     "study_4": {
       "w": 51,
       "h": 44,
       "anchorX": 25.5,
       "foot": 44,
-      "scale": 0.8358
+      "scale": 0.8358,
+      "mask": true,
+      "head": {
+        "x": 22.5,
+        "y": 0,
+        "w": 21
+      }
     },
     "study_5": {
       "w": 56,
       "h": 41,
       "anchorX": 28.0,
       "foot": 41,
-      "scale": 0.8358
+      "scale": 0.8358,
+      "mask": true,
+      "head": {
+        "x": 24.0,
+        "y": 0,
+        "w": 20
+      }
     },
     "tired_1": {
       "w": 28,
       "h": 60,
       "anchorX": 10.0,
       "foot": 60,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 43,
+      "head": {
+        "x": 10.0,
+        "y": 0,
+        "w": 18
+      }
     },
     "tired_2": {
       "w": 24,
       "h": 59,
       "anchorX": 10.85,
       "foot": 59,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 42,
+      "head": {
+        "x": 11.0,
+        "y": 0,
+        "w": 18
+      }
     },
     "tired_3": {
       "w": 31,
       "h": 59,
       "anchorX": 18.22,
       "foot": 59,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 43,
+      "head": {
+        "x": 18.0,
+        "y": 0,
+        "w": 19
+      }
     },
     "tired_4": {
       "w": 26,
       "h": 44,
       "anchorX": 13.5,
       "foot": 44,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 32,
+      "head": {
+        "x": 13.5,
+        "y": 0,
+        "w": 19
+      }
     },
     "tired_5": {
       "w": 35,
       "h": 44,
       "anchorX": 14.07,
       "foot": 44,
-      "scale": 0.8889
+      "scale": 0.8889,
+      "mask": true,
+      "knee": 34,
+      "head": {
+        "x": 14.0,
+        "y": 5,
+        "w": 20
+      }
     },
     "walk_a1": {
       "w": 20,
       "h": 42,
       "anchorX": 8.24,
       "foot": 42,
-      "scale": 1.3333
+      "scale": 1.3333,
+      "mask": true,
+      "knee": 34,
+      "head": {
+        "x": 8.0,
+        "y": 1,
+        "w": 16
+      }
     },
     "walk_a2": {
       "w": 21,
       "h": 42,
       "anchorX": 10.35,
       "foot": 42,
-      "scale": 1.3333
+      "scale": 1.3333,
+      "mask": true,
+      "knee": 34,
+      "head": {
+        "x": 10.5,
+        "y": 0,
+        "w": 16
+      }
     },
     "walk_a3": {
       "w": 21,
       "h": 42,
       "anchorX": 10.88,
       "foot": 42,
-      "scale": 1.3333
+      "scale": 1.3333,
+      "mask": true,
+      "knee": 33,
+      "head": {
+        "x": 10.5,
+        "y": 0,
+        "w": 17
+      }
     },
     "walk_a4": {
       "w": 17,
       "h": 43,
       "anchorX": 8.88,
       "foot": 43,
-      "scale": 1.3333
+      "scale": 1.3333,
+      "mask": true,
+      "knee": 33,
+      "head": {
+        "x": 8.5,
+        "y": 1,
+        "w": 17
+      }
     }
   },
   "body": [
@@ -509,5 +855,9 @@
       41,
       41
     ]
-  }
+  },
+  "portraitMasks": [
+    "portrait_a",
+    "portrait_b"
+  ]
 }

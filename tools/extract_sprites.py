@@ -61,8 +61,15 @@ liczba wierszy z nieprzezroczystymi komórkami w kolumnach `scaleRefCols` ([x0, 
 brodzik prysznica, nie stają się dziurami).
 Arkusz z `"itemPreview": nazwa` — podgląd ×3·skala jego przedmiotów, klatek stanów i pozy postaci (z `idle_front`)
 oraz przenikanie każdej serii (przedmiot + stany w kotwicy przedmiotu) w tools/out/<nazwa>.png.
+
+Szafa (sekcja `wardrobe`): dla każdej klatki ciała (i portretów z `wardrobe.portraits`) maska ubrania
+public/masks/<klatka>.png (R = koszulka bez nadruku, G = nadruk, B = dżinsy; rozmiar klatki) wyznaczona
+automatycznie z klas kolorów HSV (`wardrobe.classes`) — patrz `wardrobe_masks`; w metadanych klatki `mask`,
+`head` {x, y, w} (czubek głowy, px natywne; x jak `anchorX`), `knee` (wiersz kolan) i `noHat`; lista portretów
+z maską w `portraitMasks`. Podgląd: tools/out/wardrobe_masks.png (`save_wardrobe`).
 """
 import colorsys
+import fnmatch
 import json
 import re
 import sys
@@ -86,6 +93,8 @@ ITEMS_DIR = ROOT / 'public' / 'items'
 ITEMS_META = ROOT / 'src' / 'home' / 'items.generated.json'
 ITEMS_MANIFEST = ROOT / 'tools' / 'out' / 'items_manifest.json'
 ITEMS_PREVIEW = ROOT / 'tools' / 'out' / 'items_preview.png'
+MASKS_DIR = ROOT / 'public' / 'masks'
+WARDROBE_PREVIEW = ROOT / 'tools' / 'out' / 'wardrobe_masks.png'
 ITEM_FIELDS = ('name', 'category', 'layer', 'interaction', 'price')
 RETOUCH_KEYS = ('bag', 'wipe', 'cut', 'copy', 'fix', 'shadow')
 LIST_KEYS = ('erase', 'paint') + RETOUCH_KEYS
@@ -977,6 +986,368 @@ def save_items_preview(tiles, gabi, gabi_scale, f=3, max_width=1800):
     out.save(ITEMS_PREVIEW)
 
 
+def shift(m, dy, dx):
+    """Maska przesunięta tak, że out[y, x] = m[y + dy, x + dx] (spoza obrazka: False)."""
+    h, w = m.shape
+    out = np.zeros_like(m)
+    out[max(0, -dy):min(h, h - dy), max(0, -dx):min(w, w - dx)] = \
+        m[max(0, dy):min(h, h + dy), max(0, dx):min(w, w + dx)]
+    return out
+
+
+def box_sum(m, r):
+    """Liczba prawdziwych pikseli maski w kwadracie (2r+1)×(2r+1) wokół każdego piksela."""
+    m = m.astype(int)
+    return sum(shift(m, dy, dx) for dy in range(-r, r + 1) for dx in range(-r, r + 1))
+
+
+def dilate(m, r):
+    return box_sum(m, r) > 0
+
+
+def ring4(m):
+    """Piksele spoza maski, które są jej 4-sąsiadami."""
+    return (sum(shift(m, dy, dx) for dy, dx in NEIGH4) > 0) & ~m
+
+
+def parts_of(m, neigh=NEIGH8, min_size=1):
+    """Spójne składowe maski jako osobne maski (co najmniej `min_size` pikseli)."""
+    out = []
+    for comp in components(m, neigh):
+        if len(comp) >= min_size:
+            p = np.zeros_like(m)
+            ys, xs = zip(*comp)
+            p[list(ys), list(xs)] = True
+            out.append(p)
+    return out
+
+
+def grow(seed, parts, r):
+    """Dołącza do `seed` kolejne części leżące w odległości <= r (Czebyszewa) od już dołączonych."""
+    seed, parts = seed.copy(), list(parts)
+    changed = True
+    while changed and parts:
+        near, changed, rest = dilate(seed, r), False, []
+        for p in parts:
+            if (p & near).any():
+                seed |= p
+                changed = True
+            else:
+                rest.append(p)
+        parts = rest
+    return seed
+
+
+def enclosed(cand, region, op, skip=None, frac=0.6):
+    """Składowe `cand` (4-spójne) otoczone przez `region`: żaden 4-sąsiad nie jest przezroczysty, a >= frac
+    4-sąsiadów (bez pikseli `skip`, np. konturu) należy do `region` — nadruk w koszulce, mankiety w dżinsach."""
+    out = np.zeros_like(op)
+    if region.any():
+        for p in parts_of(cand, NEIGH4):
+            ring = ring4(p)
+            counted = ring & ~skip if skip is not None else ring
+            if counted.any() and (counted & region).sum() >= frac * counted.sum() and not (ring & ~op).any():
+                out |= p
+    return out
+
+
+def wardrobe_classes(arr):
+    """Klasy kolorów pikseli wg reguł HSV z `wardrobe.classes` (odcień w stopniach, może przechodzić przez 0°)."""
+    rules = CFG['wardrobe']['classes']
+    op = arr[:, :, 3] > 0
+    out = {k: np.zeros(op.shape, bool) for k in rules}
+
+    def inside(v, rng):
+        lo, hi = rng
+        return lo <= v <= hi if lo <= hi else v >= lo or v <= hi
+
+    for c in np.unique(arr[op][:, :3], axis=0):
+        h, s, v = colorsys.rgb_to_hsv(*(c / 255.0))
+        sel = op & (arr[:, :, :3] == c).all(axis=2)
+        for k, r in rules.items():
+            if inside(h * 360, r['hue']) and inside(s, r['sat']) and inside(v, r['val']):
+                out[k] |= sel
+    return out
+
+
+def head_point(cls, op):
+    """Czubek głowy: włosy = największa (z dużych — najwyżej położona) 8-spójna składowa lawendowych pikseli
+    głównego kształtu (efekty obok postaci i smuga w drag_4 odpadają). `y` — najwyższy wiersz włosów, podniesiony
+    o kontur nad nimi (<= 2 px); `x` — środek włosów w 3 górnych wierszach; `w` — szerokość włosów w górnej połowie
+    ich wysokości + kontur. Bez włosów (turban): czubek sylwetki, szerokość w wierszu 20% wysokości niżej."""
+    body = max(parts_of(op), key=lambda p: p.sum())
+    comps = parts_of(cls['hair'] & body)
+    if comps:
+        big = max(p.sum() for p in comps)
+        hair = min((p for p in comps if p.sum() >= 0.3 * big), key=lambda p: np.nonzero(p)[0].min())
+        ys, xs = np.nonzero(hair)
+        y0, y1 = ys.min(), ys.max()
+        top = y0
+        for x in np.unique(xs):
+            t = ys[xs == x].min()
+            for _ in range(2):
+                if t > 0 and op[t - 1, x]:
+                    t -= 1
+            top = min(top, t)
+        cx = float(np.nonzero(hair[y0:y0 + 3])[1].mean())
+        cols = np.nonzero(hair[y0:y0 + max(3, (y1 - y0 + 1) // 2)].any(axis=0))[0]
+        return {'x': round(cx, 1), 'y': int(top), 'w': int(cols.max() - cols.min() + 3)}
+    ys, xs = np.nonzero(body)
+    top = ys.min()
+    cx = float(np.nonzero(body[top:top + 3])[1].mean())
+    row = np.nonzero(body[min(ys.max(), top + int(0.2 * (ys.max() - top + 1)))])[0]
+    return {'x': round(cx, 1), 'y': int(top), 'w': int(row.max() - row.min() + 1)}
+
+
+def head_top(cls, op, shirt, ignore=(), silhouette=False):
+    """Czubek głowy, gdy znana jest koszulka: włosy = wszystkie lawendowe (i białe refleksy) piksele głównego
+    kształtu nad górną krawędzią koszulki, w składowych >= 4 px — włosy rozcięte dziurami po tle liczą się
+    w całości, a smuga w drag_4 i ręce leżą niżej. `y` — najwyższy wiersz włosów podniesiony o kontur (<= 2 px),
+    `x` — środek rozpiętości włosów w 3 górnych wierszach (jak `anchorX`: indeks kolumny), `w` — największa
+    rozpiętość w górnej połowie włosów + 2 px konturu. `ignore` — prostokąty [x0, y0, x1, y1] (px natywne,
+    włącznie) pomijane: efekt dotykający głowy (znak złości). Bez włosów (turban) albo z `silhouette` (włosy
+    przebarwione, np. złość) — sylwetka nad koszulką: najwyższy wiersz, środek 3 górnych wierszy, największa
+    szerokość w górnej połowie."""
+    body = max(parts_of(op), key=lambda p: p.sum())
+    body[np.nonzero(shirt)[0].min():] = False
+    for x0, y0, x1, y1 in ignore:
+        body[y0:y1 + 1, x0:x1 + 1] = False
+    hair = (cls['hair'] | cls['light2']) & body
+    parts = parts_of(hair, min_size=4)
+    if sum(p.sum() for p in parts) >= 30 and not silhouette:
+        hair = np.any(parts, axis=0)
+        pad = 2
+    else:
+        hair, pad = body, 0
+    ys, xs = np.nonzero(hair)
+    y0, y1 = ys.min(), ys.max()
+    top = y0
+    for x in np.unique(xs):
+        t = ys[xs == x].min()
+        for _ in range(2):
+            if t > 0 and op[t - 1, x]:
+                t -= 1
+        top = min(top, t)
+    cap = np.nonzero(hair[y0:y0 + 3].any(axis=0))[0]
+    spans = [np.nonzero(r)[0] for r in hair[y0:y0 + max(3, (y1 - y0 + 1) // 2)] if r.any()]
+    return {'x': round((cap.min() + cap.max()) / 2, 1), 'y': int(top),
+            'w': int(max(s.max() - s.min() + 1 for s in spans)) + pad}
+
+
+def wardrobe_masks(im, top_only=False, head_ignore=(), head_silhouette=False):
+    """Maski ubrania klatki: (koszulka, nadruk, dżinsy, buty) — patrz opis modułu (sekcja `wardrobe`).
+
+    1. Klasy kolorów (HSV). Ubranie = piksele klas shirt/shade/mid/jeans, które nie leżą na brzegu sylwetki
+       (brzeg = sąsiad przezroczysty: tam jest kontur). Kontur (najciemniejsze) nie należy do żadnej maski.
+    2. Głosowanie w oknie 5×5: czerń koszulki (shirt) kontra niebieskie odcienie dżinsów (jeans, mid) —
+       dżinsy mają domieszki czerni koszulki, koszulka cienie; remisy (same cienie) dostają etykietę sąsiadów.
+    3. Buty: podeszwa = jasny piksel z konturem/przezroczystością na zewnątrz (w dół; w bok tylko w dolnej
+       ćwiartce postaci), jasnym sąsiadem wzdłuż podeszwy i nie-konturem do środka; piksele „dżinsowe” do k px
+       w głąb buta (k ≈ 5,5% wysokości postaci) są butem.
+    4. Koszulka: największa część z etykietą koszulki (>= 12 px) + części >= 3 px w zasięgu głowy (|x − głowa| <=
+       1,2 szer. głowy), nie niżej niż górna krawędź dżinsów i otoczone w >= 50% konturem/ubraniem (odpada usta,
+       okulary, końcówki włosów — otoczone skórą/włosami). Ramiona i dłonie przed koszulką rozdzielają części.
+    5. Dżinsy: części z etykietą dżinsów (bez butów) poniżej góry koszulki: ziarno = największa + duże (>= 10 px)
+       przy dole koszulki, potem łańcuchowo części w odległości <= 2 px (przez kontur kolan, szwy).
+    6. Nadruk: składowe czerwieni/szarości/ciemnych czerwieni otoczone koszulką (>= 60% sąsiadów, bez
+       przezroczystości); mankiety: szarości otoczone dżinsami (bez konturu) dołączają do dżinsów."""
+    arr = np.asarray(im).astype(int)
+    op = arr[:, :, 3] > 0
+    h = op.shape[0]
+    cls = wardrobe_classes(arr)
+    head = head_point(cls, op)
+    inner = op & shift(op, 1, 0) & shift(op, -1, 0) & shift(op, 0, 1) & shift(op, 0, -1)  # bez brzegu sylwetki
+    cloth = inner & (cls['shirt'] | cls['shade'] | cls['mid'] | cls['jeans'])
+    sv = box_sum(cloth & cls['shirt'], 2)
+    jv = box_sum(cloth & (cls['jeans'] | cls['mid']), 2)
+    shirt_l, jeans_l = cloth & (sv > jv), cloth & (jv > sv)
+    rest = cloth & ~shirt_l & ~jeans_l
+    for _ in range(4):
+        ns = sum(shift(shirt_l, dy, dx).astype(int) for dy, dx in NEIGH4)
+        nj = sum(shift(jeans_l, dy, dx).astype(int) for dy, dx in NEIGH4)
+        add_s, add_j = rest & (ns > nj), rest & (nj > ns)
+        shirt_l, jeans_l, rest = shirt_l | add_s, jeans_l | add_j, rest & ~add_s & ~add_j
+
+    ys = np.nonzero(max(parts_of(op), key=lambda p: p.sum()))[0]  # główny kształt, bez efektów obok
+    body_h = ys.max() - ys.min() + 1
+    k = max(2, int(round(0.055 * body_h)))
+    light = cls['light'] | cls['light2']
+    dark = cls['outline'] & op
+    lower = np.zeros_like(op)
+    lower[ys.min() + int(0.65 * body_h):] = True
+    zone = np.zeros_like(op)
+    # (na zewnątrz buta, wzdłuż podeszwy, tylko dolne 35% postaci); bokiem but jest dłuższy: strefa 2k.
+    for (sy, sx), (ay, ax), side in (((1, 0), (0, 1), False), ((0, -1), (1, 0), True), ((0, 1), (1, 0), True)):
+        out1, out1_dark, out2 = shift(op, sy, sx), shift(dark, sy, sx), shift(op, 2 * sy, 2 * sx)
+        sole = (light & (~out1 | (out1_dark & ~out2)) & (shift(light, ay, ax) | shift(light, -ay, -ax))
+                & shift(op & ~dark, -sy, -sx))
+        if side:
+            sole &= lower
+        for d in range((2 * k if side else k) + 1):
+            for t in (-1, 0, 1):
+                zone |= shift(sole, d * sy + t * ay, d * sx + t * ax)
+    # But od spodu (tired_5): jasny pasek podeszwy w środku buta — składowa >= 3 jasnych px w dolnych 35% postaci,
+    # otoczona samymi nieprzezroczystymi pikselami, przy pikselach „dżinsowych”; strefa k px wokół.
+    for p in parts_of(light & lower, NEIGH4, min_size=3):
+        ring = ring4(p)
+        if not (ring & ~op).any() and (ring & jeans_l).any():
+            zone |= dilate(p, k)
+    shoes = jeans_l & zone
+
+    sparts = sorted(parts_of(shirt_l, min_size=3), key=lambda p: -p.sum())
+    jparts = parts_of(jeans_l & ~shoes, min_size=3)
+    shirt = np.zeros_like(op)
+    if sparts and sparts[0].sum() >= 12:
+        shirt = sparts[0].copy()
+        mx = np.nonzero(shirt)[1]
+        legs = max(jparts, key=lambda p: p.sum(), default=None)
+        jtop = np.nonzero(legs)[0].min() if legs is not None and legs.sum() >= 10 and not top_only else h
+        for p in sparts[1:]:
+            py, px = np.nonzero(p)
+            near_x = (abs(px.mean() - head['x']) <= 1.2 * head['w'] if head
+                      else mx.min() - 3 <= px.mean() <= mx.max() + 3)
+            ring = ring4(p)
+            framed = (ring & (cls['outline'] | cloth)).sum() >= 0.5 * ring.sum()
+            if py.mean() <= jtop and near_x and framed:
+                shirt |= p
+    jeans = np.zeros_like(op)
+    if shirt.any() and not top_only:
+        srows = np.nonzero(shirt)[0]
+        cand = [p for p in jparts if np.nonzero(p)[0].mean() > srows.min()]
+        if cand:
+            near, big, low_row = dilate(shirt, 2), max(p.sum() for p in cand), np.percentile(srows, 75)
+            is_seed = [p.sum() == big or (p.sum() >= 10 and (p & near).any() and np.nonzero(p)[0].mean() >= low_row)
+                       for p in cand]
+            seed = np.zeros_like(op)
+            for p, s in zip(cand, is_seed):
+                if s:
+                    seed |= p
+            jeans = grow(seed, [p for p, s in zip(cand, is_seed) if not s], 2)
+    printed = enclosed(inner & ~cloth & (cls['red'] | cls['print'] | cls['printDark']), shirt, op)
+    jeans |= enclosed(inner & ~cloth & (cls['grey'] | cls['grey2'] | cls['cuff']) & ~shoes & ~printed,
+                      jeans, op, skip=cls['outline'])
+    if shirt.any():
+        head = head_top(cls, op, shirt, head_ignore, head_silhouette)
+    return shirt, printed, jeans, shoes, head
+
+
+def matches(name, patterns):
+    return any(fnmatch.fnmatchcase(name, p) for p in patterns)
+
+
+def save_wardrobe(body, frames, portraits_im):
+    """Maski ubrań (public/masks/<klatka>.png: R = koszulka bez nadruku, G = nadruk, B = dżinsy; 255/0, rozmiar
+    klatki) i metadane dla ubieralni dopisane do `frames`: `mask` (czy jest maska), `head` {x, y, w} (px natywne,
+    patrz head_point), `knee` (wiersz kolan: pas + 45% wysokości nogawek; tylko gdy są dżinsy), `noHat`.
+    Sekcja `wardrobe` w frames.json: `exclude` (wzorce nazw bez maski i bez głowy — inny strój z rysunku),
+    `topOnly` (bez dżinsów: popiersia, nogi pod biurkiem), `noHat`, `headIgnore` i `headSilhouette` (patrz head_top), `portraits` (portrety z maską dolnego pasa
+    koszulki). Klatka bez wykrytej koszulki dostaje `mask: false`. Zwraca listę portretów z maską.
+    Podgląd: tools/out/wardrobe_masks.png."""
+    cfg = CFG['wardrobe']
+    MASKS_DIR.mkdir(parents=True, exist_ok=True)
+    written, tiles = set(), []
+
+    def write(name, shirt, printed, jeans):
+        rgb = np.dstack([shirt, printed, jeans]).astype(np.uint8) * 255
+        Image.fromarray(rgb, 'RGB').save(MASKS_DIR / f'{name}.png')
+        written.add(name)
+
+    for name in sorted(body):
+        im, meta = body[name]['im'], frames[name]
+        if matches(name, cfg['exclude']):
+            meta['mask'] = False
+            tiles.append((name, im, None, None, 'wykluczona'))
+            continue
+        shirt, printed, jeans, shoes, head = wardrobe_masks(im, matches(name, cfg['topOnly']), cfg['headIgnore'].get(name, []),
+                                                           matches(name, cfg['headSilhouette']))
+        meta['mask'] = bool(shirt.any())
+        if meta['mask']:
+            write(name, shirt, printed, jeans)
+        if jeans.any():
+            rows = np.nonzero(jeans.sum(axis=1) >= 2)[0]
+            meta['knee'] = int(round(rows.min() + 0.45 * (rows.max() - rows.min())))
+        if head:
+            meta['head'] = head
+        if matches(name, cfg['noHat']):
+            meta['noHat'] = True
+        tiles.append((name, im, (shirt, printed, jeans, shoes), meta, '' if meta['mask'] else 'brak koszulki'))
+    masked_portraits = []
+    for name in cfg['portraits']:
+        im = portraits_im[name]
+        shirt, printed, jeans, shoes, _ = wardrobe_masks(im, True)
+        if shirt.any():
+            write(name, shirt, printed, jeans)
+            masked_portraits.append(name)
+        tiles.append((name, im, (shirt, printed, jeans, shoes), None, 'portret'))
+    for old in MASKS_DIR.glob('*.png'):
+        if old.stem not in written:
+            old.unlink()
+    save_wardrobe_preview(tiles)
+    print(f'Maski ubrań: {len(written)} ({", ".join(sorted(written))})')
+    return masked_portraits
+
+
+def save_wardrobe_preview(tiles, f=4, max_width=1900):
+    """Podgląd masek ×f: dla każdej klatki trójka klatka | maska kolorowa na szarej klatce (czerwony — koszulka,
+    zielony — nadruk, niebieski — dżinsy, żółty — wykryte buty, cyjan — wiersz kolan) | czubek głowy (kreska
+    szerokości głowy, kropka w środku). Klatki wykluczone — sama klatka z podpisem."""
+    cells = []
+    for name, im, masks, meta, note in tiles:
+        bg = Image.new('RGBA', im.size, (120, 190, 120, 255))
+        bg.alpha_composite(im)
+        frame = np.asarray(bg)
+        parts = [Image.fromarray(frame).resize((im.width * f, im.height * f), Image.NEAREST)]
+        if masks is not None:
+            shirt, printed, jeans, shoes = masks
+            ov = frame.copy()
+            grey = (ov[:, :, :3].mean(axis=2) * 0.5 + 60).astype(np.uint8)
+            ov[:, :, 0] = ov[:, :, 1] = ov[:, :, 2] = grey
+            for m, col in ((shoes, (255, 200, 0)), (shirt, (255, 60, 60)), (printed, (60, 230, 60)),
+                           (jeans, (60, 120, 255))):
+                ov[m] = (*col, 255)
+            big = Image.fromarray(ov).resize((im.width * f, im.height * f), Image.NEAREST)
+            if meta and 'knee' in meta:
+                ImageDraw.Draw(big).line([(0, meta['knee'] * f + f // 2), (big.width, meta['knee'] * f + f // 2)],
+                                         fill=(0, 230, 255, 255))
+            parts.append(big)
+            hd = parts[0].copy()
+            if meta and 'head' in meta:
+                hp, d = meta['head'], ImageDraw.Draw(hd)
+                x0 = (hp['x'] + 0.5 - hp['w'] / 2) * f
+                d.line([(x0, hp['y'] * f), (x0 + hp['w'] * f, hp['y'] * f)], fill=(255, 0, 255, 255), width=2)
+                cx, cy = (hp['x'] + 0.5) * f, hp['y'] * f
+                d.ellipse([cx - 3, cy - 3, cx + 3, cy + 3], fill=(255, 0, 0, 255))
+            parts.append(hd)
+        label = name + (f' ({note})' if note else '') + (' noHat' if meta and meta.get('noHat') else '')
+        gap = 4
+        w = max(sum(p.width for p in parts) + gap * (len(parts) - 1), len(label) * 6)
+        cell = Image.new('RGBA', (w, max(p.height for p in parts) + 14), (255, 255, 255, 255))
+        ImageDraw.Draw(cell).text((0, 0), label, fill=(0, 0, 0, 255))
+        x = 0
+        for p in parts:
+            cell.alpha_composite(p, (x, 14))
+            x += p.width + gap
+        cells.append(cell)
+    rows, row, width, gap = [], [], 0, 16
+    for c in cells:
+        if row and width + c.width > max_width:
+            rows.append(row)
+            row, width = [], 0
+        row.append(c)
+        width += c.width + gap
+    rows.append(row)
+    out = Image.new('RGBA', (max_width, sum(max(c.height for c in r) + gap for r in rows)), (255, 255, 255, 255))
+    y = 0
+    for r in rows:
+        x = 0
+        for c in r:
+            out.alpha_composite(c, (x, y))
+            x += c.width + gap
+        y += max(c.height for c in r) + gap
+    WARDROBE_PREVIEW.parent.mkdir(parents=True, exist_ok=True)
+    out.save(WARDROBE_PREVIEW)
+
+
 def group_of(name):
     """Grupa klatek: nazwa bez końcowych cyfr (walk_a1 → walk_a)."""
     return re.sub(r'\d+$', '', name)
@@ -1112,8 +1483,11 @@ def main():
             else:
                 preview_new.append((im, 1.0, im.height))
 
+    masked_portraits = save_wardrobe(body, frames, {n: im for n, (g, _, im) in images.items() if g == 'portraits'})
+
     META_PATH.parent.mkdir(parents=True, exist_ok=True)
-    meta = {'displayHeight': display_h, 'frames': frames, 'body': sorted(body), 'portraits': portraits}
+    meta = {'displayHeight': display_h, 'frames': frames, 'body': sorted(body), 'portraits': portraits,
+            'portraitMasks': masked_portraits}
     META_PATH.write_text(json.dumps(meta, indent=2) + '\n', encoding='utf-8')
     save_preview(preview)
     save_preview_new(preview_new)
