@@ -171,4 +171,21 @@ describe('szafa w zapisie', () => {
     expect(again.state).toEqual(r.state);
     expect(again.repaired).toBe(false);
   });
+
+  it('wieszak na ubrania: nowy dom ma go w sypialni, stary zapis bez niego — po cichu w magazynie', () => {
+    const fresh = createState(T0);
+    expect(fresh.rooms.bedroom.items.some((i) => i.itemId === 'clothes_rack')).toBe(true);
+    const old: GameState = {
+      ...fresh,
+      rooms: { ...fresh.rooms, bedroom: { ...fresh.rooms.bedroom, items: fresh.rooms.bedroom.items.filter((i) => i.itemId !== 'clothes_rack') } },
+    };
+    const { r } = load(old);
+    expect(r.state.inventory.clothes_rack).toBe(1);
+    expect(r.repaired).toBe(false);
+    // już w magazynie albo w innym pokoju — bez dokładania
+    const stored = load({ ...old, inventory: { clothes_rack: 2 } }).r.state;
+    expect(stored.inventory.clothes_rack).toBe(2);
+    const moved = load(fresh).r.state;
+    expect(moved.inventory.clothes_rack).toBeUndefined();
+  });
 });

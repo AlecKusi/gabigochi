@@ -207,7 +207,7 @@
     "knitting_basket":    { "sheet": "roomAssets", "rect": [372, 674, 434, 732], "scale": 0.5, "name": "Koszyk z robótką", "category": "hobby", "layer": "floor", "interaction": "crochet", "price": 80 },
     "first_aid_kit":      { "sheet": "roomAssets", "rect": [546, 652, 588, 692], "scale": 0.6, "name": "Apteczka", "category": "decor", "layer": "floor", "interaction": "none", "price": 40 },
     "medical_chart":      { "sheet": "roomAssets", "rect": [498, 576, 548, 638], "scale": 0.6, "name": "Karta pacjenta", "category": "decor", "layer": "wall", "interaction": "none", "price": 35 },
-    "clothes_rack":       { "sheet": "roomAssets", "rect": [166, 784, 272, 906], "scale": 0.85, "name": "Wieszak na ubrania", "category": "furniture", "layer": "floor", "interaction": "none", "price": 180 },
+    "clothes_rack":       { "sheet": "roomAssets", "rect": [166, 784, 272, 906], "scale": 0.85, "name": "Wieszak na ubrania", "category": "furniture", "layer": "floor", "interaction": "wardrobe", "price": 180 },
     "mirror_floor":       { "sheet": "roomAssets", "rect": [316, 780, 380, 898], "scale": 0.9, "name": "Lustro stojące", "category": "furniture", "layer": "floor", "interaction": "none", "price": 140 },
     "mirror_wall":        { "sheet": "roomAssets", "rect": [388, 782, 462, 870], "scale": 0.7, "name": "Lustro ścienne", "category": "decor", "layer": "wall", "interaction": "none", "price": 90 },
     "window_pink":        { "sheet": "roomAssets", "rect": [474, 780, 569, 878], "scale": 0.85, "name": "Okno z różowymi zasłonkami", "category": "furniture", "layer": "wall", "interaction": "window", "price": 170 },

@@ -395,7 +395,7 @@
     "name": "Wieszak na ubrania",
     "category": "furniture",
     "layer": "floor",
-    "interaction": "none",
+    "interaction": "wardrobe",
     "price": 180
   },
   "mirror_floor": {

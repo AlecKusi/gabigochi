@@ -25,7 +25,7 @@ describe('dom startowy', () => {
   it('darmowe meble startowe w każdym pokoju', () => {
     const ids = (r: keyof typeof home.rooms) => home.rooms[r].items.map((i) => i.itemId);
     expect(ids('salon')).toEqual(['rug_round', 'window_flower', 'wall_shelves', 'monstera']);
-    expect(ids('bedroom')).toEqual([GABI_BED, 'window_curtains', 'poster_moon']);
+    expect(ids('bedroom')).toEqual([GABI_BED, 'window_curtains', 'poster_moon', 'clothes_rack']);
     expect(ids('studio')).toEqual(['window_blinds', 'writing_desk', 'office_chair', 'cactus_flower']);
     expect(ids('bathroom')).toEqual(['rug_striped', 'sink', 'window_flower', 'snake_plant', 'toilet']);
     expect(ids('bedroom').filter((i) => i.startsWith('nightstand'))).toEqual([]);

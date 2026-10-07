@@ -35,5 +35,11 @@ Bricks n Balls, Sudoku (3 poziomy, notatki, zapis w toku), Szyfrokrzyżówka (po
 - W podglądzie trzymaj tylko jedną kartę z grą — dwie nadpisują sobie zapis.
 - W trybie deweloperskim `window.__room` pokazuje stan pokoju (mózg, droga, zajęcie, interakcja) — pomocne przy testach.
 
-## Szafa i ubrania (w toku, 2026-10-07)
-Plan: docs/superpowers/plans/2026-10-07-szafa-ubrania.md. Zrobione: Task 1 (maski ubrań, punkt głowy, kolana — public/masks, frames.generated.json) i Task 2 (katalog 22 ubrań, strój i zakupy w src/wardrobe, pola w zapisie, ikony ozdób głowy). Zostało: Task 3 (przemalowanie stroju w czasie gry + wpięcie we wszystkie miejsca rysowania postaci), Task 4 (ekran Szafy, wieszak w pokoju), Task 5 (weryfikacja).
+## Szafa i ubrania (gotowe, 2026-10-07)
+Plan: docs/superpowers/plans/2026-10-07-szafa-ubrania.md — wszystkie kroki zrobione i sprawdzone w przeglądarce.
+- Maski ubrań (public/masks, R koszulka / G nadruk / B dżinsy) + czubek głowy i kolana w frames.generated.json — wyznacza je ekstraktor, więc nowe animacje dostaną strój bez rysowania.
+- `src/wardrobe/dresser.ts` (czysta logika): przemalowanie z zachowaniem cieniowania (tony względem mediany jasności), wzory, spódnica/sukienka (pas między nogami, poszerzenie dołu, rąbek w wierszu kolan, poniżej gołe nogi; pozy siedzące `SEATED_FRAMES` — całe nogawki w materiale), okruchy spoza maski (`strays`), ozdoba głowy (`HEAD_FIT`, płótno rośnie w górę, metadane przesunięte).
+- `src/wardrobe/figures.ts`: `app.figures.get(name, {hat?, outfit?})` / `app.figures.url(name)` — jedyne źródło klatek Gabi (pokój, sen, zajęcia, interakcje, popiersia, przeciąganie, minigry, portrety, karty zajęć, ekran urodzin, profil). Cache per klatka + ozdoba + strój.
+- Ekran Szafy (`src/ui/screens/wardrobe.ts`): podgląd (spoczynek ↔ machanie, „Pokaż spacer”), zakładki Sukienki/Góra/Dół/Głowa, kupno = od razu założenie, Załóż/Zdejmij, „Zdejmij wszystko”.
+- Wieszak `clothes_rack` (interakcja `wardrobe`): stuknięcie → Gabi podchodzi → Szafa. Nowa gra: w sypialni (x 104, y 132); stare zapisy: po cichu do magazynu.
+- Drobne niedoskonałości: ozdoba na klatkach przechylonych (drag) nie obraca się; przy słuchawkach (music_1/2) ozdoba siedzi nad pałąkiem; przy biurku (study_*) nogi pod biurkiem zostają w dżinsach; miny w nagłówku (face_*) nie mają maski — koszulka na nich zostaje czarna.

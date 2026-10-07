@@ -439,6 +439,10 @@ export function roomScreen(app: App): Screen {
 
   /** Koniec interakcji: podlanie rośliny i bonus humoru (raz na godzinę na przedmiot). */
   function finishInteraction(run: InteractionRun, t: number): void {
+    if (run.kind === 'wardrobe') {
+      void app.go('wardrobe');
+      return;
+    }
     let rewarded = false;
     store.update((s) => {
       let st = s;

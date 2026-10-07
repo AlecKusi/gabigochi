@@ -191,8 +191,20 @@ img.px.avatar.crisp { image-rendering: pixelated; image-rendering: crisp-edges; 
 @keyframes portrait-in { from { transform: translateY(-40px) scale(.9); opacity: 0; } }
 
 /* Szafa */
-.wardrobe-body { flex: 1; display: grid; justify-items: center; align-content: center; gap: 16px; padding: 0 14px 20px; }
-.wardrobe-preview { height: 192px; width: auto; }
+/* Szafa: podgląd Gabi, przyciski, zakładki i kafelki ubrań */
+.wardrobe-top { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 12px; padding: 0 14px 12px; }
+.wardrobe-stage { width: 144px; padding: 0; overflow: hidden; background: linear-gradient(#e9dcff 0 78%, #cdb8f0 78%); }
+.wardrobe-stage canvas { display: block; width: 100%; }
+.wardrobe-actions { display: grid; gap: 8px; }
+.wardrobe-actions .px-btn { font-size: 15px; padding: 10px 6px; }
+.wardrobe-actions .px-btn[disabled] { opacity: .5; }
+.wardrobe-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.cloth-card { padding: 8px 6px; }
+.cloth-card strong { font-size: 13px; }
+.cloth-card .px-btn { font-size: 14px; padding: 7px 2px; }
+.cloth-card.worn { background: #ffe3ef; box-shadow: 0 0 0 2px var(--ink), 0 0 0 4px var(--accent); }
+.cloth-thumb { width: 72px; height: 80px; }
+.cloth-thumb img { height: 100%; width: auto; image-rendering: pixelated; image-rendering: crisp-edges; }
 
 /* Instalacja */
 .install { overflow-y: auto; align-items: center; text-align: center; gap: 14px; padding: calc(var(--safe-top) + 24px) 20px calc(var(--safe-bottom) + 24px); color: var(--text-light); }

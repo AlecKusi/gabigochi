@@ -70,6 +70,9 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
       return [{ ms: 2200, item: null, gabi: { kind: 'frames', frames: ['fun_talk'], fps: 1 }, line: 'calendar' }];
     case 'window':
       return [{ ms: 2200, item: null, gabi: IDLE, line: 'window' }];
+    case 'wardrobe':
+      // chwila przy wieszaku, potem ekran Szafy (w pokoju)
+      return [{ ms: 500, item: null, gabi: IDLE }];
     case 'toilet':
       return [
         { ms: 700, item: 'open', gabi: IDLE },

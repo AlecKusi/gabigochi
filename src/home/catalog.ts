@@ -7,7 +7,7 @@ export type ItemLayer = 'wall' | 'floor' | 'rug';
 
 export const INTERACTIONS = [
   'water', 'read', 'play', 'study', 'crochet', 'music', 'cute', 'lamp', 'calendar', 'window',
-  'toilet', 'shower', 'bath', 'sink', 'hairdryer', 'none',
+  'toilet', 'shower', 'bath', 'sink', 'hairdryer', 'wardrobe', 'none',
 ] as const;
 export type Interaction = (typeof INTERACTIONS)[number];
 
@@ -30,6 +30,9 @@ export interface ItemDef {
   /** Przedmiot specjalny: nie do kupienia ani schowania (łóżko Gabi). */
   special?: boolean;
 }
+
+/** Wieszak na ubrania — mebel, który otwiera Szafę. */
+export const WARDROBE_ITEM = 'clothes_rack';
 
 /** Łóżko Gabi — rysowane pustą klatką `gabi_bed_empty`, a w nocy sceną snu. */
 export const GABI_BED = 'gabi_bed';

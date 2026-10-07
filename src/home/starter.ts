@@ -22,6 +22,8 @@ export const STARTER_LAYOUT: Readonly<Record<RoomId, readonly { itemId: string; 
     { itemId: GABI_BED, x: 64, y: 136 },
     { itemId: 'window_curtains', x: 24, y: 52 },
     { itemId: 'poster_moon', x: 104, y: 56 },
+    // wieszak = szafa: za nogami łóżka, po prawej
+    { itemId: 'clothes_rack', x: 104, y: 132 },
   ],
   studio: [
     { itemId: 'window_blinds', x: 32, y: 56 },

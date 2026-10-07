@@ -1,4 +1,4 @@
-import { GABI_BED, findItem } from '../home/catalog';
+import { GABI_BED, WARDROBE_ITEM, findItem } from '../home/catalog';
 import { ROOMS, clampToLayer } from '../home/layout';
 import { DEFAULT_LOOKS, LATER_DEFAULT_LOOKS, defaultLookIds, findLook } from '../home/looks';
 import { STARTER_LAYOUT, createHome, type HomeState } from '../home/starter';
@@ -181,6 +181,10 @@ function readHome(x: Record<string, unknown>, now: number): { home: HomeState; r
       else bad();
     }
   } else bad();
+  // Wieszak na ubrania otwiera Szafę: zapisy sprzed szafy dostają go po cichu do magazynu.
+  if (!inventory[WARDROBE_ITEM] && !ROOMS.some((r) => rooms[r].items.some((it) => it.itemId === WARDROBE_ITEM))) {
+    inventory[WARDROBE_ITEM] = 1;
+  }
 
   const currentRoom = ROOMS.includes(x.currentRoom as RoomId) ? (x.currentRoom as RoomId) : (bad(), 'salon');
 
