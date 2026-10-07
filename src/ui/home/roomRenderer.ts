@@ -1,13 +1,13 @@
 import { ICONS } from '../../art/icons';
 import { artCanvas } from '../../art/pixels';
 import type { PlacedItem, RoomId, RoomState } from '../../core/types';
-import { findItem } from '../../home/catalog';
+import { findItem, itemFrames } from '../../home/catalog';
 import { GABI, drawOrder, itemBox } from '../../home/layout';
 import { DEFAULT_LOOKS, findLook } from '../../home/looks';
 import { NIGHT_TINT, ROOM_H, ROOM_W, drawRoomBase } from '../../pet/room';
 import { deviceRect, drawSprite } from '../pixelStage';
 import { itemSource } from './itemSprites';
-import { isLitLamp, itemAnchor, itemFrameAnchor, itemTints, needsWater } from './scene';
+import { WINDOW_NIGHT_TINT, isLitLamp, itemAnchor, itemFrameAnchor, itemTints, needsWater } from './scene';
 
 /** Gabi (albo scena zajęcia / snu) jako jeden element kolejności rysowania. */
 export interface GabiLayer {
@@ -76,8 +76,10 @@ export function createRoomRenderer(): RoomRenderer {
   function drawItem(ctx: CanvasRenderingContext2D, k: number, it: PlacedItem, f: RoomFrame): void {
     const def = findItem(it.itemId);
     if (!def) return;
-    const tints = itemTints(def, it, f.night, f.now);
-    const state = f.states.get(it.uid);
+    // Okno z nocnym wariantem (gwiazdy, księżyc) — w nocy jego klatka zamiast przyciemnionej dziennej.
+    const nightFrame = f.night ? itemFrames(it.itemId).night : undefined;
+    const tints = itemTints(def, it, f.night, f.now).filter((t) => !nightFrame || t !== WINDOW_NIGHT_TINT);
+    const state = f.states.get(it.uid) ?? nightFrame;
     const stateSrc = state ? itemSource(state, tints) : null;
     if (state && stateSrc) {
       const a = itemFrameAnchor(it, def, state);

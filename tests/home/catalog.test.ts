@@ -57,9 +57,9 @@ describe('katalog przedmiotów', () => {
     expect(itemSize(itemById('pc_desk'))).toEqual({ w: 49, h: 50 });
   });
 
-  it('kategorie sklepu: Meble, Ozdoby, Rośliny, Gaming, Hobby, Łazienka, Tapety, Podłogi', () => {
+  it('kategorie sklepu: Meble, Okna, Ozdoby, Rośliny, Gaming, Hobby, Łazienka, Tapety, Podłogi', () => {
     expect(SHOP_CATEGORIES.map((c) => c.name)).toEqual(
-      ['Meble', 'Ozdoby', 'Rośliny', 'Gaming', 'Hobby', 'Łazienka', 'Tapety', 'Podłogi'],
+      ['Meble', 'Okna', 'Ozdoby', 'Rośliny', 'Gaming', 'Hobby', 'Łazienka', 'Tapety', 'Podłogi'],
     );
     expect(SHOP_CATEGORIES.find((c) => c.name === 'Łazienka')!.id).toBe('bathroom');
     for (const cat of ITEM_CATEGORIES) expect(CATALOG.some((d) => d.category === cat), cat).toBe(true);
@@ -111,5 +111,10 @@ describe('katalog przedmiotów', () => {
     // zwrócony obiekt to kopia
     itemFrames('toilet').open = 'x';
     expect(itemFrames('toilet').open).toBe('toilet_open');
+  });
+
+  it('nazwy przedmiotów sklepu są unikalne', () => {
+    const names = CATALOG.map((d) => d.name);
+    expect(names.filter((n, i) => names.indexOf(n) !== i)).toEqual([]);
   });
 });

@@ -23,7 +23,9 @@ import { profileScreen } from './ui/screens/profile';
 import { roomScreen } from './ui/screens/room';
 import { shopScreen } from './ui/screens/shop';
 import { wardrobeScreen } from './ui/screens/wardrobe';
+import { headSpriteNames } from './wardrobe/catalog';
 import { createFigures } from './wardrobe/figures';
+import { itemUrl } from './ui/home/itemSprites';
 
 const SCREENS: Record<ScreenName, ScreenFactory> = {
   birthday: birthdayScreen,
@@ -103,8 +105,12 @@ async function boot(): Promise<void> {
       ...Object.keys(framesMeta.portraits),
     ]);
     const maskNames = [...Object.keys(FRAMES).filter((n) => FRAMES[n]?.mask), ...PORTRAIT_MASKS];
-    const [sprites, masks] = await Promise.all([loadSprites([...names]), loadSprites(maskNames, maskUrl)]);
-    const figures = createFigures(sprites, masks, () => store.get().outfit);
+    const [sprites, masks, hats] = await Promise.all([
+      loadSprites([...names]),
+      loadSprites(maskNames, maskUrl),
+      loadSprites(headSpriteNames(), itemUrl),
+    ]);
+    const figures = createFigures(sprites, masks, () => store.get().outfit, hats);
     app = createApp(root, store, sprites, figures, SCREENS);
     try {
       // Gry rysują tekst na canvasie – font musi być gotowy przed pierwszym użyciem.

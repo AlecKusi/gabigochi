@@ -2,10 +2,11 @@ import type { App, Screen } from '../../app';
 import type { ClothSlot, Outfit } from '../../core/types';
 import { SHADOW_COLOR, shadowRect } from '../../pet/petRenderer';
 import { ANIMATIONS, frameAt, resolveAnimation } from '../../sprites/animations';
-import { CLOTH_SLOTS, CLOTH_SLOT_NAMES, clothesBySlot, type ClothDef } from '../../wardrobe/catalog';
+import { CLOTH_SLOTS, CLOTH_SLOT_NAMES, clothesBySlot, findCloth, type ClothDef } from '../../wardrobe/catalog';
 import { buyCloth, isDefaultOutfit, isOwned, takeOff, takeOffAll, wear } from '../../wardrobe/outfit';
 import { h, icon } from '../dom';
 import { createPixelStage, deviceRect, drawSprite } from '../pixelStage';
+import { itemUrl } from '../home/itemSprites';
 import { screenHeader } from '../screenHeader';
 
 /** Scena podglądu (px logiczne): Gabi na środku, stopy nad dolną krawędzią. */
@@ -44,6 +45,8 @@ export function wardrobeScreen(app: App): Screen {
   let walkDir: 1 | -1 = 1;
   let last = performance.now();
   let pop = 0;
+  /** Przymierzane ubranie (podgląd bez kupowania) — znika po zakupie, założeniu albo zmianie zakładki. */
+  let trying: { id: string; outfit: Outfit } | null = null;
 
   function drawPreview(t: number): void {
     if (destroyed) return;
@@ -64,7 +67,7 @@ export function wardrobeScreen(app: App): Screen {
     } else {
       name = t % WAVE_EVERY < WAVE_MS ? frameAt(resolveAnimation(ANIMATIONS, 'wave'), t) : frameAt(resolveAnimation(ANIMATIONS, 'idle'), t);
     }
-    const fig = app.figures.get(name);
+    const fig = app.figures.get(name, trying ? { outfit: trying.outfit } : undefined);
     // „Hop” po założeniu ubrania: krótkie spłaszczenie i podskok.
     const p = pop > t ? (pop - t) / 360 : 0;
     const jump = Math.round(Math.sin(p * Math.PI) * 4);
@@ -98,7 +101,7 @@ export function wardrobeScreen(app: App): Screen {
     'div',
     { class: 'tabs', role: 'tablist' },
     ...CLOTH_SLOTS.map((id) =>
-      h('button', { class: 'tab', role: 'tab', 'aria-selected': 'false', 'data-slot': id, onclick: () => { slot = id; render(); } }, CLOTH_SLOT_NAMES[id]),
+      h('button', { class: 'tab', role: 'tab', 'aria-selected': 'false', 'data-slot': id, onclick: () => { slot = id; trying = null; render(); } }, CLOTH_SLOT_NAMES[id]),
     ),
   );
   const body = h('div', { class: 'shop-body wardrobe-list' });
@@ -124,10 +127,17 @@ export function wardrobeScreen(app: App): Screen {
     const owned = isOwned(s, def.id);
     const worn = s.outfit[def.slot] === def.id;
     const thumb = h('img', {
-      class: 'px',
-      src: app.figures.url('idle_front', { outfit: tryOn(s.outfit, def) }),
+      class: def.thumb ? 'px cloth-art' : 'px',
+      src: def.thumb ? itemUrl(def.thumb) : app.figures.url('idle_front', { outfit: tryOn(s.outfit, def) }),
       alt: '',
       draggable: 'false',
+    });
+    // Stuknięcie miniatury: przymiarka na podglądzie (drugie stuknięcie — koniec przymiarki).
+    const thumbBox = h('button', { class: 'shop-thumb cloth-thumb', 'aria-label': `Przymierz: ${def.name}` }, thumb);
+    thumbBox.addEventListener('click', () => {
+      trying = trying?.id === def.id ? null : { id: def.id, outfit: tryOn(app.store.get().outfit, def) };
+      pop = performance.now() + 360;
+      render(true);
     });
     let btn: HTMLElement;
     if (!owned) {
@@ -168,14 +178,16 @@ export function wardrobeScreen(app: App): Screen {
     }
     return h(
       'div',
-      { class: worn ? 'shop-card px-box cloth-card worn' : 'shop-card px-box cloth-card' },
-      h('div', { class: 'shop-thumb cloth-thumb' }, thumb),
+      { class: `shop-card px-box cloth-card${worn ? ' worn' : ''}${trying?.id === def.id ? ' trying' : ''}` },
+      thumbBox,
       h('strong', {}, def.name),
       btn,
     );
   }
 
   function render(keepScroll = false): void {
+    // po zakupie / założeniu przymiarka tego samego ubrania nie ma sensu
+    if (trying && app.store.get().outfit[findCloth(trying.id)!.slot] === trying.id) trying = null;
     tabs.querySelectorAll<HTMLElement>('.tab').forEach((b) => {
       const active = b.dataset.slot === slot;
       b.classList.toggle('active', active);

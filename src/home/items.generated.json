@@ -76,7 +76,7 @@
     "w": 33,
     "h": 37,
     "name": "Okno z kwiatkiem",
-    "category": "furniture",
+    "category": "window",
     "layer": "wall",
     "interaction": "window",
     "price": 150
@@ -85,7 +85,7 @@
     "w": 36,
     "h": 38,
     "name": "Okno z zasłonami",
-    "category": "furniture",
+    "category": "window",
     "layer": "wall",
     "interaction": "window",
     "price": 180
@@ -423,7 +423,7 @@
     "h": 44,
     "scale": 0.85,
     "name": "Okno z różowymi zasłonkami",
-    "category": "furniture",
+    "category": "window",
     "layer": "wall",
     "interaction": "window",
     "price": 170
@@ -433,7 +433,7 @@
     "h": 43,
     "scale": 0.85,
     "name": "Okno z liliowymi zasłonkami",
-    "category": "furniture",
+    "category": "window",
     "layer": "wall",
     "interaction": "window",
     "price": 170
@@ -443,7 +443,7 @@
     "h": 43,
     "scale": 0.85,
     "name": "Okno z roletą",
-    "category": "furniture",
+    "category": "window",
     "layer": "wall",
     "interaction": "window",
     "price": 160
@@ -883,5 +883,309 @@
     "frameOf": "towel_rail",
     "state": "gabi",
     "overlay": false
+  },
+  "hat_bear": {
+    "w": 19,
+    "h": 14
+  },
+  "hat_beret_pastel": {
+    "w": 21,
+    "h": 13
+  },
+  "hat_cat_band": {
+    "w": 18,
+    "h": 14
+  },
+  "hat_earmuffs": {
+    "w": 19,
+    "h": 14
+  },
+  "hat_bow_pink": {
+    "w": 9,
+    "h": 6
+  },
+  "hat_bow_purple": {
+    "w": 9,
+    "h": 6
+  },
+  "hat_frog": {
+    "w": 20,
+    "h": 14
+  },
+  "hat_witch": {
+    "w": 25,
+    "h": 18
+  },
+  "hat_horns": {
+    "w": 19,
+    "h": 18
+  },
+  "hat_punk_cat": {
+    "w": 20,
+    "h": 15
+  },
+  "hat_veil": {
+    "w": 18,
+    "h": 18
+  },
+  "hat_spiky": {
+    "w": 17,
+    "h": 16
+  },
+  "hat_tophat": {
+    "w": 21,
+    "h": 18
+  },
+  "cloth_goth_lolita": {
+    "w": 38,
+    "h": 50
+  },
+  "cloth_vampire_coat": {
+    "w": 30,
+    "h": 54
+  },
+  "cloth_corset_dress": {
+    "w": 32,
+    "h": 48
+  },
+  "cloth_pastel_goth": {
+    "w": 34,
+    "h": 44
+  },
+  "cloth_grunge": {
+    "w": 36,
+    "h": 35
+  },
+  "cloth_sweet_lolita": {
+    "w": 29,
+    "h": 32
+  },
+  "cloth_sailor": {
+    "w": 23,
+    "h": 33
+  },
+  "cloth_overall": {
+    "w": 23,
+    "h": 32
+  },
+  "cloth_cottage": {
+    "w": 23,
+    "h": 33
+  },
+  "cloth_bunny_hoodie": {
+    "w": 25,
+    "h": 33
+  },
+  "cloth_mint": {
+    "w": 23,
+    "h": 32
+  },
+  "cloth_dark_kawaii": {
+    "w": 25,
+    "h": 33
+  },
+  "cloth_airy": {
+    "w": 25,
+    "h": 33
+  },
+  "window_day": {
+    "w": 38,
+    "h": 41,
+    "name": "Okno słoneczne",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 120
+  },
+  "window_day_night": {
+    "w": 38,
+    "h": 41,
+    "anchorX": 19.0,
+    "foot": 41,
+    "frameOf": "window_day",
+    "state": "night",
+    "overlay": true
+  },
+  "window_rain": {
+    "w": 38,
+    "h": 42,
+    "name": "Okno w deszczu",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 120
+  },
+  "window_sheer": {
+    "w": 42,
+    "h": 41,
+    "name": "Okno z firankami",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 140
+  },
+  "window_open": {
+    "w": 46,
+    "h": 42,
+    "name": "Otwarte okno",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 150
+  },
+  "window_wood_blinds": {
+    "w": 38,
+    "h": 42,
+    "name": "Okno z żaluzją",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 140
+  },
+  "window_gothic": {
+    "w": 33,
+    "h": 51,
+    "name": "Gotyckie okno",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 220
+  },
+  "window_gothic_stained": {
+    "w": 31,
+    "h": 42,
+    "name": "Gotycki witraż",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 240
+  },
+  "window_dark_night": {
+    "w": 37,
+    "h": 41,
+    "name": "Ciemne okno z księżycem",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 150
+  },
+  "window_shutter": {
+    "w": 38,
+    "h": 41,
+    "name": "Okno z szarą roletą",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 140
+  },
+  "window_rose_2": {
+    "w": 38,
+    "h": 38,
+    "name": "Witraż różany",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 260
+  },
+  "window_rose_3": {
+    "w": 38,
+    "h": 38,
+    "name": "Witraż kwiatowy",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 260
+  },
+  "window_spooky": {
+    "w": 42,
+    "h": 41,
+    "name": "Okno z pajęczyną",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 180
+  },
+  "window_vintage": {
+    "w": 74,
+    "h": 53,
+    "name": "Duże okno vintage",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 280
+  },
+  "window_dark_curtains": {
+    "w": 45,
+    "h": 48,
+    "name": "Okno z ciemnymi zasłonami",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 200
+  },
+  "window_fairy": {
+    "w": 45,
+    "h": 50,
+    "name": "Okno z lampkami i pluszakami",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 260
+  },
+  "window_round_cat": {
+    "w": 67,
+    "h": 51,
+    "name": "Okrągłe okno z kotkiem",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 280
+  },
+  "window_plants": {
+    "w": 71,
+    "h": 52,
+    "name": "Okno z roślinami i plakatami",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 280
+  },
+  "window_sakura": {
+    "w": 46,
+    "h": 49,
+    "name": "Okno z sakurą",
+    "category": "window",
+    "layer": "wall",
+    "interaction": "window",
+    "price": 220
+  },
+  "balcony_door": {
+    "w": 29,
+    "h": 45,
+    "scale": 1.3,
+    "name": "Drzwi balkonowe",
+    "category": "window",
+    "layer": "floor",
+    "interaction": "window",
+    "price": 300
+  },
+  "window_bay": {
+    "w": 79,
+    "h": 45,
+    "name": "Okno panoramiczne z siedziskiem",
+    "category": "window",
+    "layer": "floor",
+    "interaction": "window",
+    "price": 350
+  },
+  "sliding_door": {
+    "w": 102,
+    "h": 45,
+    "scale": 1.1,
+    "name": "Przesuwne drzwi do ogrodu",
+    "category": "window",
+    "layer": "floor",
+    "interaction": "window",
+    "price": 400
   }
 }

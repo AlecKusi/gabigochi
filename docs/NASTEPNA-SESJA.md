@@ -48,3 +48,10 @@ Plan: docs/superpowers/plans/2026-10-07-szafa-ubrania.md — wszystkie kroki zro
 - Prześwitujące włosy w klatkach głównego arkusza (spoczynek, chód, machanie, jedzenie, rozmowa): jasne włosy były blisko koloru tła i ekstraktor brał je za dziury — wpisy mają teraz `holeTol: 15` (jak arkusze `keep: all`).
 - Zbliżenia z uciętymi rekwizytami (nauka 2–5, pacjent w łóżku `nurse_3`) — tak są narysowane w arkuszu. Pokazujemy je w okienku-ramce nad Gabi (`ActivityDef.zoom`, `splitZoom`, `zoomRect` w `src/ui/activityPlayer.ts`); Gabi zostaje w ostatniej pełnej scenie (przy biurku `study_1`, przy pacjencie w pozie `nurse_2`).
 
+## Nowe ubrania, ozdoby i okna z arkuszy (2026-10-07)
+- Arkusze `assets/source/sheet-headwear.jpg`, `sheet-windows.jpg`, `sheet-goth.jpg`, `sheet-kawaii.jpg`; paleta rozszerzona do 160 kolorów (`--extend-palette 26 headwear windows goth kawaii`), stare PNG bez zmian.
+- 12 ozdób głowy z arkusza (`hat_*` w public/items) — `ClothDef.headSprites` (overlap/dx dopasowane na oko; welon z wyciętym środkiem). Ładowane przy starcie (`headSpriteNames`), przekazywane do ubieralni (`DressOpts.art`).
+- 13 strojów z wieszaków (gotyckie + kawaii) + 3 rzeczy do zestawów gotyckich: na Gabi to przemalowanie z dodatkami (`upper`, `collar`, `waist`, `bib`, `apron`, `hem`, `hemDrop`, `legs` — rajstopy/kabaretki/skarpetki, wzory `rips`, `skull`); kaptur z uszkami bluzy-sukienki = ikona `bunny_hood`. Miniatura w Szafie = obrazek z wieszaka (`thumb`). W Szafie stuknięcie miniatury = przymiarka na podglądzie.
+- 20 okien w nowej kategorii sklepu „Okna” (stare okna też tam). Okno słoneczne ma nocny wariant (`window_day_night`, stan `night` — rysowany, gdy Gabi śpi). Drzwi balkonowe, okno panoramiczne i drzwi przesuwne stoją na podłodze (warstwa `floor`).
+- Portrety z arkuszy gotyckiego i kawaii nie są użyte (można by je pokazać w nagłówku przy danym stylu).
+

@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { defaultOutfit } from '../../src/wardrobe/outfit';
 import {
+  HEAD_FIT,
   OUTLINE,
+  headwearOf,
+  legPatternAt,
   SKIN,
   addHat,
   artPixels,
@@ -171,5 +174,45 @@ describe('ubieralnia — części czyste', () => {
     expect(dressPixels(src, mask, META, out({ head: 'head_crown' }), { hat: false, seated: false })).toBeNull();
     const r = dressPixels(src, mask, META, out({ head: 'head_crown' }), plain)!;
     expect(r.px.h).toBeGreaterThan(9);
+  });
+
+  it('rajstopy pod sukienką zamiast gołych nóg, falbana w kolorze `hem`', () => {
+    const { src, mask } = sprite(ROWS);
+    const lolita = findCloth('goth_lolita')!;
+    const r = dressPixels(src, mask, META, out({ dress: 'goth_lolita' }), plain)!;
+    expect(rgbAt(r.px, 2, 7)).toEqual(hex(lolita.legs!.colors[1]));
+    expect(rgbAt(r.px, 2, 5)).toEqual(hex(lolita.hem!)); // dolny wiersz spódnicy
+    expect(rgbAt(r.px, 3, 6)).toEqual([...OUTLINE]); // rąbek bez zmian
+  });
+
+  it('kabaretki: ukośna kratka na skórze', () => {
+    expect(legPatternAt('fishnet', 0, 0)).toBe(true);
+    expect(legPatternAt('fishnet', 1, 0)).toBe(false);
+    expect(legPatternAt('stripes', 3, 2)).toBe(true);
+    expect(legPatternAt('stripes', 3, 3)).toBe(false);
+  });
+
+  it('ogrodniczka: biała góra, śliniaczek na środku w kolorze sukienki', () => {
+    const { src, mask } = sprite(ROWS);
+    const d = findCloth('kawaii_overall')!;
+    const r = dressPixels(src, mask, META, out({ dress: 'kawaii_overall' }), plain)!;
+    expect(rgbAt(r.px, 2, 2)).toEqual(hex(d.upper![1])); // bok góry
+    expect(rgbAt(r.px, 4, 3)).toEqual(hex(d.bib!)); // środek dolnej części góry
+  });
+
+  it('ozdoba z arkusza: części z dostawcy obrazków; bez obrazka — bez ozdoby', () => {
+    const { src, mask } = sprite(ROWS);
+    const art = (name: string) => (name === 'hat_bear' ? artPixels(['kkk', 'kyk']) : null);
+    const r = dressPixels(src, mask, META, out({ head: 'head_bear' }), { ...plain, art })!;
+    expect(r.px.h).toBeGreaterThan(9);
+    const none = dressPixels(src, mask, META, out({ head: 'head_bear' }), plain)!;
+    expect(none.px.h).toBe(9);
+  });
+
+  it('kaptur bluzy-sukienki, gdy na głowie nic nie ma; ozdoba głowy ma pierwszeństwo', () => {
+    expect(headwearOf(out({ dress: 'kawaii_bunny' }))?.id).toBe('kawaii_bunny');
+    expect(headwearOf(out({ dress: 'kawaii_bunny', head: 'head_crown' }))?.id).toBe('head_crown');
+    expect(headwearOf(out({ dress: 'dress_dots' }))).toBeNull();
+    expect(HEAD_FIT.bunny_hood).toBeDefined();
   });
 });

@@ -1,6 +1,6 @@
 import meta from './items.generated.json';
 
-export const ITEM_CATEGORIES = ['furniture', 'decor', 'plant', 'gaming', 'hobby', 'bathroom'] as const;
+export const ITEM_CATEGORIES = ['furniture', 'window', 'decor', 'plant', 'gaming', 'hobby', 'bathroom'] as const;
 export type ItemCategory = (typeof ITEM_CATEGORIES)[number];
 
 export type ItemLayer = 'wall' | 'floor' | 'rug';
@@ -112,6 +112,7 @@ export type ShopCategory = ItemCategory | 'wallpaper' | 'floor';
 
 export const SHOP_CATEGORIES: readonly { id: ShopCategory; name: string }[] = [
   { id: 'furniture', name: 'Meble' },
+  { id: 'window', name: 'Okna' },
   { id: 'decor', name: 'Ozdoby' },
   { id: 'plant', name: 'Rośliny' },
   { id: 'gaming', name: 'Gaming' },

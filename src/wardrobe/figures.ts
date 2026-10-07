@@ -55,7 +55,7 @@ function portraitMeta(img: HTMLImageElement): FrameMeta {
  * Źródło klatek postaci w stroju: wszystkie miejsca rysujące Gabi pobierają klatki stąd, więc nowe ubranie widać
  * w każdej animacji bez nowych sprite'ów. Wynik cache'owany per (klatka, ozdoba, strój).
  */
-export function createFigures(sprites: SpriteMap, masks: SpriteMap, outfit: () => Outfit): Figures {
+export function createFigures(sprites: SpriteMap, masks: SpriteMap, outfit: () => Outfit, hats: SpriteMap = new Map()): Figures {
   const cache = new Map<string, { fig: Figure; url?: string } | null>();
   const pixels = new Map<string, Pixels>();
   const px = (key: string, img: HTMLImageElement) => {
@@ -84,7 +84,11 @@ export function createFigures(sprites: SpriteMap, masks: SpriteMap, outfit: () =
     let entry: { fig: Figure; url?: string } | null = { fig: { img, meta } };
     try {
       const mask = hasClothesMask(name) ? masks.get(name) : undefined;
-      const r = dressPixels(px(name, img), mask ? px(`mask:${name}`, mask) : null, meta, lookOf(o), { hat, seated: SEATED_FRAMES.has(name) });
+      const art = (sprite: string) => {
+        const h = hats.get(sprite);
+        return h ? px(`hat:${sprite}`, h) : null;
+      };
+      const r = dressPixels(px(name, img), mask ? px(`mask:${name}`, mask) : null, meta, lookOf(o), { hat, seated: SEATED_FRAMES.has(name), art });
       if (r) entry = { fig: { img: canvasOf(r.px), meta: r.meta } };
     } catch (err) {
       // Bez canvasa (albo uszkodzona maska) zostaje oryginał — gra działa dalej.

@@ -466,6 +466,23 @@ export const ICONS = {
     '.kIIIkkkkIIIk.',
     '..kkk....kkk..',
   ],
+  /** Kaptur z uszkami królika (bluza-sukienka) — rysowany jak ozdoba głowy. */
+  bunny_hood: [
+    '...kk......kk...',
+    '..klpk....kplk..',
+    '..klik....kilk..',
+    '..klik....kilk..',
+    '..klik....kilk..',
+    '..klpk....kplk..',
+    '...klk....klk...',
+    '..kkllkkkkllkk..',
+    '.kllllllllllllk.',
+    'klllllllllllllpk',
+    'kllllllllllllppk',
+    'klppppppppppppPk',
+    'kPPPPPPPPPPPPPPk',
+    '.kkkkkkkkkkkkkk.',
+  ],
   digit2: ['PPP', '..P', 'PPP', 'P..', 'PPP'],
   digit6: ['PPP', 'P..', 'PPP', 'P.P', 'PPP'],
 } as const satisfies Record<string, PixelArt>;
