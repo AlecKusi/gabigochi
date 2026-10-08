@@ -60,13 +60,27 @@ export function makeCanvas(body: HTMLElement, w: number, hgt: number): GameCanva
   };
 }
 
-/** Pętla gry: woła `fn(dt)` co klatkę, dopóki zwraca true i gra nie została przerwana. */
+/** Pauza wszystkich pętli gier (otwarte okienko zasad) — czas gry stoi. */
+let paused = false;
+export function setGamesPaused(v: boolean): void {
+  paused = v;
+}
+export function gamesPaused(): boolean {
+  return paused;
+}
+
+/** Pętla gry: woła `fn(dt)` co klatkę, dopóki zwraca true i gra nie została przerwana (w pauzie czas stoi). */
 export function runLoop(signal: AbortSignal, fn: (dtMs: number) => boolean): Promise<void> {
   return new Promise((resolve) => {
     let last = performance.now();
     const frame = (t: number) => {
       if (signal.aborted) {
         resolve();
+        return;
+      }
+      if (paused) {
+        last = t;
+        requestAnimationFrame(frame);
         return;
       }
       const dt = Math.max(0, Math.min(50, t - last));

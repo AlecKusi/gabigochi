@@ -36,3 +36,16 @@
 .mem-card.matched .mem-front { background: #e3ffd9; }
 .mem-card.matched .mem-inner { animation: matched 420ms; }
 @keyframes matched { 50% { transform: rotateY(180deg) scale(1.12); } }
+
+/* Zasady gry (przycisk „i” w nagłówku) */
+.rules-btn { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700; min-width: 40px; }
+.rules-overlay { z-index: 60; }
+.dialog.rules { max-width: 360px; max-height: 82vh; overflow-y: auto; text-align: left; }
+.dialog.rules h2 { text-align: center; font-size: 20px; margin-bottom: 6px; }
+.dialog.rules h3 { font-size: 15px; margin: 12px 0 4px; color: var(--accent); }
+.dialog.rules ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.dialog.rules li { font-size: 14px; line-height: 1.35; }
+.dialog.rules .rules-goal { font-size: 15px; font-weight: 700; text-align: center; }
+.dialog.rules .rules-common { font-size: 13px; color: var(--text-soft); margin-top: 12px; }
+.dialog.rules .px-btn { display: block; margin: 14px auto 0; }
+
