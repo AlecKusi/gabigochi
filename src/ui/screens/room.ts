@@ -22,7 +22,7 @@ import { ANGRY_TAPS, SUGAR_RUSH, avatarFor, countRecent, statusAnimation, type S
 import { ANIMATIONS, frameAt, resolveAnimation } from '../../sprites/animations';
 import { DISPLAY_HEIGHT, FRAMES, type FrameMeta } from '../../sprites/loader';
 import itemsMeta from '../../home/items.generated.json';
-import { CAT_SPRITES, CAT_Y, calmCat, createCat, stepCat, type CatState } from '../../home/cat';
+import { CAT_SPRITE_NAMES, CAT_Y, calmCat, catFrame, catReact, createCat, stepCat, type CatState } from '../../home/cat';
 import { openActivities } from '../activitiesSheet';
 import { SCENE_AT, createActivityPlayer, drawActivity, fitSpot, hitsScene, type Placed } from '../activityPlayer';
 import { coinCounter } from '../coinCounter';
@@ -166,7 +166,7 @@ export function roomScreen(app: App): Screen {
   // Kotek chodzący po oglądanym pokoju (w nocy śpi z Gabi w łóżku — wtedy go nie ma).
   let cat: CatState = createCat(performance.now(), Math.random);
   let catRoom: RoomId = viewRoom;
-  preloadItems(Object.values(CAT_SPRITES));
+  preloadItems(CAT_SPRITE_NAMES);
   preloadItems(
     new Set(
       [...ROOMS.flatMap((r) => s0.rooms[r].items.map((i) => i.itemId)), ...Object.keys(s0.inventory)]
@@ -581,6 +581,8 @@ export function roomScreen(app: App): Screen {
     // Jedzenie przerywa zajęcie (bez bonusu) — inaczej animacja jedzenia byłaby niewidoczna.
     stopActivity(performance.now());
     brain = triggerBrain(brain, 'eat', performance.now());
+    // kotek obok prosi o kawałek
+    cat = catReact(cat, 'beg', performance.now(), brain.x, Math.random);
     say(pick(id === 'kitkat' ? content.lines.kitkat : content.lines.eat), 2400);
     if (id !== 'kitkat') return;
     const now = Date.now();
@@ -633,6 +635,7 @@ export function roomScreen(app: App): Screen {
     if (countRecent(taps, now, ANGRY_TAPS.windowMs) >= ANGRY_TAPS.count) {
       taps.length = 0;
       brain = triggerBrain(brain, 'angry', now);
+      cat = catReact(cat, 'scared', now, brain.x, Math.random);
       say(pick(content.lines.angry), 2000);
       return;
     }
@@ -824,8 +827,10 @@ export function roomScreen(app: App): Screen {
 
   /** Prostokąt kota (px logiczne) do stuknięć. */
   function catBox(): { x: number; y: number; w: number; h: number } {
-    const m = catMeta(CAT_SPRITES[cat.mode]);
-    return { x: cat.x - (m.w * m.scale) / 2, y: CAT_Y - m.h * m.scale, w: m.w * m.scale, h: m.h * m.scale };
+    const f = catFrame(cat, performance.now());
+    const m = catMeta(f.sprite);
+    const x = cat.x + f.dx;
+    return { x: x - (m.w * m.scale) / 2, y: CAT_Y - f.lift - m.h * m.scale, w: m.w * m.scale, h: m.h * m.scale };
   }
 
   function catAt(x: number, y: number): boolean {
@@ -843,17 +848,21 @@ export function roomScreen(app: App): Screen {
     walkTo(cat.x + (brain.x < cat.x ? -12 : 12), { kind: 'cat' });
   }
 
-  /** Warstwa kota: sprite trybu (spacer — lekkie podskakiwanie), zwrócony w stronę ruchu. */
+  /** Warstwa kota: klatka trybu (chód, bieg, skok…), zwrócona w stronę ruchu, z cieniem pod łapkami. */
   function catLayer(t: number, alpha: number): GabiLayer {
-    const sprite = CAT_SPRITES[cat.mode];
-    const m = catMeta(sprite);
-    const bob = cat.mode === 'walk' ? Math.floor(t / 160) % 2 : 0;
+    const f = catFrame(cat, t);
+    const m = catMeta(f.sprite);
+    const x = cat.x + f.dx;
     return {
       orderY: CAT_Y,
       alpha,
       draw: (ctx, k) => {
-        const src = itemSource(sprite);
-        if (src) drawSprite(ctx, k, src, m, { x: cat.x, feetY: CAT_Y, flip: cat.facing === 'left', bob, squash: 0, jump: 0 });
+        const w = m.w * m.scale * 0.7;
+        const r = deviceRect(k, { x: x - w / 2, y: CAT_Y - 1, w, h: 2 });
+        ctx.fillStyle = SHADOW_COLOR;
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+        const src = itemSource(f.sprite);
+        if (src) drawSprite(ctx, k, src, m, { x, feetY: CAT_Y, flip: f.flip, bob: 0, squash: 0, jump: f.lift });
       },
     };
   }
@@ -1012,7 +1021,10 @@ export function roomScreen(app: App): Screen {
       catRoom = viewRoom;
       cat = createCat(t, Math.random);
     }
-    if (!s.sleeping && interaction.current?.kind !== 'cat' && pending?.kind !== 'cat') cat = stepCat(cat, dt, t, Math.random);
+    if (!s.sleeping && interaction.current?.kind !== 'cat' && pending?.kind !== 'cat') {
+      // blisko stojącej Gabi kot czasem się łasi
+      cat = stepCat(cat, dt, t, Math.random, free && brain.action === 'idle' && !act && !iv ? brain.x : null);
+    }
     const extras = catVisible() ? [catLayer(t, alpha)] : [];
     // obraz w telewizorze rysowany razem z nim — Gabi siedząca przed ekranem go zasłania
     const itemOverlays = new Map<string, (ctx: CanvasRenderingContext2D, k: number) => void>();

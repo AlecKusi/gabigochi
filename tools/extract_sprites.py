@@ -1273,7 +1273,12 @@ def without_seat(im, region):
     d = np.maximum(mx - mn, 1e-6)
     hue = np.where(mx == r, ((g - b) / d) % 6, np.where(mx == g, (b - r) / d + 2, (r - g) / d + 4)) * 60
     opaque = arr[:, :, 3] > 0
-    brown = opaque & region & ((hue <= 45) | (hue >= 340)) & (sat > 0.25) & (v < 0.62) & (v > 0.06)
+    # brąz/bordo/śliwka stołka (paleta zamienia ciemny brąz także na śliwkowe odcienie ~310–340°)
+    # (śliwkowe tylko nad strefą butów — dolne 12% klatki — bo buty po kwantyzacji też bywają śliwkowe)
+    shoe_zone = np.zeros(opaque.shape, bool)
+    shoe_zone[int(opaque.shape[0] * 0.88):] = True
+    stool_hue = (hue <= 45) | (hue >= 340) | ((hue >= 310) & ~shoe_zone)
+    brown = opaque & region & stool_hue & (sat > 0.25) & (v < 0.62) & (v > 0.06)
     dark = opaque & (v < 0.16)
     drop = brown.copy()
     # Szare prześwity między nóżkami i cień pod stołkiem: szarości osiągalne od tła/usuniętego stołka
@@ -1297,6 +1302,10 @@ def without_seat(im, region):
             near_drop |= shift(drop, dy, dx)
             near_light |= shift(opaque & ~drop & ~dark, dy, dx)
         drop |= region & dark & near_drop & ~near_light
+    # Grube kontury nóżek stołka: ciemne piksele dalej niż 3 px od jasnej części postaci (dżinsy, skóra, podeszwy).
+    # (nie w strefie butów — dolne 12% klatki: czarne buty są daleko od jasnych pikseli).
+    core = opaque & ~drop & ~dark
+    drop |= region & dark & ~shoe_zone & ~dilate(core, 3)
     arr[drop] = 0
     (x0, y0, x1, y1), shape = largest_shape(Image.fromarray(arr, 'RGBA'))
     arr[~shape] = 0
