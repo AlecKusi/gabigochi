@@ -1,15 +1,41 @@
-# Gdzie skończyliśmy (2026-10-07)
+# Gdzie skończyliśmy (2026-10-08)
 
 ## Stan
-Gałąź `etap-1` — **działająca wersja** (testy, typy i build przechodzą). Mieszkanie jest kompletne:
-- 4 pokoje (salon, sypialnia, pracownia, łazienka), przechodzenie strzałkami i przesunięciem palca;
-- tryb „Urządzaj” (przesuwanie z siatką, odbijanie, magazyn, tapety i podłogi), sklep z zakładką „Meble” (8 kategorii);
-- interakcje z meblami: podlewanie roślin, czytanie mang, granie, słodziaki, lampki, kalendarz, okno; łazienka (toaleta, prysznic, wanna, umywalka z wycieraniem rąk przy wieszaku, suszarka) z animacjami; bonus humoru raz na godzinę na przedmiot;
-- rośliny wysychają (24 h kropla, 72 h zwiędnięte), Gabi przypomina „Kwiatki chcą pić!”;
-- zajęcia w wyznaczonych miejscach: nauka przy biurku do nauki, szydełko na siedzisku (stuknięcie siedziska też je zaczyna), praktyka w pracowni, muzyka w salonie, telefon wszędzie; panel „Zajęcia” z podpisami i przejściem do właściwego pokoju;
-- wcześniejsze: zajęcia, stany i emocje, przeciąganie palcem, sen w łóżku z kotem, minigry, sklep z jedzeniem.
+Gałąź `etap-1` — **działająca wersja** (475 testów, typy i build przechodzą; nic nie jest opublikowane).
+- 4 pokoje, urządzanie, sklep (jedzenie, meble, okna, ozdoby, rośliny, gaming, hobby, łazienka, tapety, podłogi);
+- Szafa: 50 ubrań i ozdób, stroje przemalowywane na wszystkich animacjach (sukienki w kształcie A), przymiarka;
+- interakcje z meblami: siedzenie/relaks/drzemka na kanapach i fotelach, stół (kawa/ciasto/KitKat), okno i TV od tyłu,
+  podlewanie konewką, kocie legowiska; łazienka; kot chodzący po pokoju (20 klatek, reakcje na Gabi);
+- zajęcia: nauka, praktyka, telefon, szydełko, muzyka, karaoke, taniec; codzienne miny; animowany ekran urodzinowy;
+- 6 minigier z przyciskiem „i” (zasady, pauza); hasła osobiste w krzyżówce; losowe teksty Gabi;
+- sen i drzemka: pełna energia w 10 minut.
 
-Gałąź `wip/interakcje` jest już scalona (można ją usunąć).
+## Do decyzji użytkownika
+- treść życzeń w `src/content.ts` (wciąż szkic);
+- zgoda na publiczny link (GitHub Pages; workflow gotowy w `.github/workflows/deploy.yml`, gałąź `main`).
+
+## Pomysły na dalej (lista dla użytkownika, 2026-10-08)
+Szybkie:
+- „Dziennik Gabi”: licznik dni, odblokowane rzeczy, rekordy i zdjęcia z ważnych chwil (pierwszy strój, 7 dni z rzędu…);
+- powiadomienia z ekranu początkowego (iOS PWA): „Gabi jest głodna”, „kwiatki chcą pić” — do decyzji, bo iOS wymaga zgody;
+- pora dnia za oknem (rano/dzień/wieczór/noc) zamiast tylko dnia i nocy; deszcz/śnieg losowo;
+- dźwięki 8-bit (miauknięcie, „pyk” świeczki, monety) z wyłącznikiem w profilu;
+- więcej losowych tekstów Gabi i reakcji na pory dnia, dni tygodnia, urodziny (np. 6.10 specjalny dzień).
+Średnie:
+- zadania dnia (np. „podlej 2 rośliny”, „zagraj w sudoku”) z bonusem monet — powód, by wracać codziennie;
+- osiągnięcia z odznakami (pierwsza sukienka, 10 KitKatów, komplet mebli w pokoju);
+- kot jako postać: karmienie kota, imię kota, kot śpiący na kanapie/w legowisku z pokoju;
+- zdjęcie pokoju: przycisk „aparat” zapisuje ładny obrazek pokoju z Gabi do galerii telefonu;
+- nowe minigry: „Ułóż tort” (zręcznościowa), „Kółko i krzyżyk z kotem”, „Zgadnij mangę” (quiz).
+Wymagające nowych arkuszy (prompty jak w docs/prompty-animacji.md):
+- gotowanie w kuchni (nowy pokój: kuchnia z lodówką i kuchenką);
+- wyjście na spacer / balkon (tło zewnętrzne, pory roku);
+- prawdziwe sukienki z rysunku (bufiaste rękawy, kokardy) zamiast przemalowania — np. 2–3 ulubione stroje jako osobne klatki;
+- arkusz kota śpiącego na meblach, karmienia kota.
+Do poprawy (znane drobiazgi):
+- ślady nóżek stołka pod udami w klatkach siedzenia z telefonem; mała łata czarnej koszulki w jednej klatce;
+- obrót w Szafie i karaoke mają drobniejsze piksele niż reszta (arkusze z większą postacią);
+- skok lustra przy myciu rąk; stuknięcie pufy, gdy Gabi na niej stoi, trafia w Gabi.
 
 ## Sprawdzone w przeglądarce (2026-10-07)
 Nauka przy biurku, toaleta, prysznic (z turbanem), wanna (turban + suszarka), umywalka z wycieraniem rąk przy wieszaku, podlewanie, szydełko na pufie z panelu, panel „Zajęcia” z podpisami miejsc.
@@ -21,13 +47,6 @@ Nauka przy biurku, toaleta, prysznic (z turbanem), wanna (turban + suszarka), um
 ## Minigry etapu 2 — zrobione (2026-10-07)
 Bricks n Balls, Sudoku (3 poziomy, notatki, zapis w toku), Szyfrokrzyżówka (polskie litery, podpowiedzi, zapis w toku) — na liście minigier, sprawdzone w przeglądarce.
 - Słowa osobiste do krzyżówek: `src/games/cryptoWords.ts` (`PERSONAL_WORDS`) — do podmiany przez użytkownika; słowa > 11 liter (np. PIELĘGNIARKA) się nie mieszczą.
-
-## Następne większe kroki (z pierwotnego planu)
-- Szafa: sukienki i czapki (stroje na postaci).
-
-## Do decyzji użytkownika
-- treść życzeń w `src/content.ts`;
-- zgoda na publiczny link (GitHub Pages; workflow gotowy w `.github/workflows/deploy.yml`, gałąź `main`).
 
 ## Uwagi techniczne
 - Python do narzędzi: `/c/gvenv/Scripts/python` (venv w repo nie działa przez długie ścieżki).
