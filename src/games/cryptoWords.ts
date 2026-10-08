@@ -8,6 +8,13 @@
  */
 export const PERSONAL_WORDS: string[] = [
   'GABI',
+  'HACHI',
+  'SOMERKA',
+  'LORDOFON',
+  'PIELĘGNIARA',
+  'FIOLET',
+  'CAPIBARA',
+  'FLOPPA',
   'KITKAT',
   'KOTEK',
   'MANGA',
