@@ -86,3 +86,11 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
 - boczny kontur i rąbek; malowane tylko piksele przezroczyste/ciemne/dżinsy — dłonie przed spódnicą zostają;
 - pod rąbkiem nogi (skóra/rajstopy/skarpetki), także ciemne nogawki spoza maski na nowych arkuszach;
 - na siedząco: uda w materiale (z falbaną), łydki gołe.
+
+## Spójność animacji i prześwitujące ubrania (2026-10-08)
+- Nowy arkusz siedzenia (`sheet-sitting.jpg`) — Gabi z właściwą fryzurą; stołek: brąz i śliwkowe odcienie (nie w strefie butów), grube kontury nóżek dalej niż 3 px od postaci.
+- Kotek z arkusza `sheet-cat2.jpg` (20 klatek) — `src/home/cat.ts`: tryby sit/walk/run/sleep/stretch/yawn/wash/play/roll/hunt/beg/rub/scared, `catFrame` (sekwencje, skok w zabawie), reakcje `catReact` (prosi przy jedzeniu, jeży się przy złości), łasi się przy stojącej Gabi.
+- Spójność z domyślnymi klatkami: gładkie arkusze próbkowane gęsto i zmniejszane 2×2→1 z zachowaniem cech (`reduce: 2`, `reduce2`) — piksel jak w domyślnych klatkach (skala ~0,9–0,94; leżenie/stół/siedzenie z dobraną kratką); kolor włosów wyrównany do domyślnej Gabi (`hairTone: [0.6, 1.1]`).
+- Prześwitywanie: w ubieralni maska uzupełniana po kolorach (`colourFlood`: koszulka do 3 px od maski i nad pasem, dżinsy pod pasem bez strefy butów; nie w klatkach z kotem); w ekstraktorze zapas, gdy nie rozpoznano dżinsów (koszulka w dolnej połowie = spodnie, koszulka = ciemne ubranie 30–50% wysokości).
+- Zostaje: w klatkach z kotem łydki bez przebarwienia (czarne jak kozaki), drobne łaty przy ramieniu w `expr_think`.
+

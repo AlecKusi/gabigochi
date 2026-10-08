@@ -139,6 +139,8 @@ def entry(spec, group):
         'flipX': spec.get('flipX', False),
         'noSeat': spec.get('noSeat', []),
         'sampleMode': sh.get('sampleMode', 'pixel'),
+        'reduce': sh.get('reduce', 1),
+        'hairTone': sh.get('hairTone'),
         'seatMode': spec.get('seatMode', sh.get('seatMode', 'colour')),
         'onlyLargest': spec.get('onlyLargest', sh.get('onlyLargest', False)),
         **{k: spec.get(k, []) for k in LIST_KEYS},
@@ -225,6 +227,50 @@ def sample(img, box, period, mode='pixel', bg=None):
     xs = rx0 + ox + (np.arange(w) + 0.5) * period
     ys = ry0 + oy + (np.arange(h) + 0.5) * period
     return out, xs, ys
+
+
+def reduce2(cells, xs, ys, bg):
+    """`reduce: 2` — zmniejszenie komórek 2×2 → 1 z zachowaniem cech (gładkie arkusze, żeby piksel miał wielkość jak
+    w domyślnych klatkach): >= 3 komórki tła → tło; >= 2 ciemne (kontur) → mediana ciemnych; jedna ciemna na jasnym
+    (oko, okulary, usta na skórze) → ta ciemna; na brzegu (2 komórki tła) — kontur, jeśli jest, inaczej mediana
+    reszty; w środku — mediana."""
+    h, w = cells.shape[0] // 2, cells.shape[1] // 2
+    out = np.zeros((h, w, 3))
+    wl = np.array([0.299, 0.587, 0.114])
+    for j in range(h):
+        for i in range(w):
+            blk = cells[2 * j:2 * j + 2, 2 * i:2 * i + 2].reshape(-1, 3)
+            is_bg = np.abs(blk - bg).sum(axis=1) < 45
+            if is_bg.sum() >= 3:
+                out[j, i] = bg
+                continue
+            obj = blk[~is_bg]
+            lum = obj @ wl
+            dark = lum < 60
+            if dark.sum() >= 2 or (dark.sum() == 1 and is_bg.sum() == 2):
+                out[j, i] = np.median(obj[dark], axis=0)
+            elif dark.sum() == 1 and (lum[~dark].mean() if (~dark).any() else 0) > 110:
+                out[j, i] = obj[dark][0]
+            else:
+                out[j, i] = np.median(obj[~dark] if (~dark).any() else obj, axis=0)
+    xs2 = (xs[0:2 * w:2] + xs[1:2 * w:2]) / 2
+    ys2 = (ys[0:2 * h:2] + ys[1:2 * h:2]) / 2
+    return out, xs2, ys2
+
+
+def hair_tone(cells, sat_mul, val_mul):
+    """`hairTone`: [mnożnik nasycenia, mnożnik jasności] dla włosów (lawendowe odcienie 255–315°, nasycenie 0,08–0,45,
+    jasność > 0,45) — włosy z nowych arkuszy wychodzą w srebrno-lawendowych kolorach domyślnej Gabi. Mocne fiolety
+    (prezent, kokardy) i ciemne końcówki zostają."""
+    out = cells.copy()
+    h, w, _ = cells.shape
+    for j in range(h):
+        for i in range(w):
+            r, g, b = cells[j, i] / 255
+            hh, ss, vv = colorsys.rgb_to_hsv(r, g, b)
+            if 255 <= hh * 360 <= 315 and 0.08 <= ss <= 0.45 and vv > 0.45:
+                out[j, i] = np.array(colorsys.hsv_to_rgb(hh, ss * sat_mul, min(1.0, vv * val_mul))) * 255
+    return out
 
 
 def outside_box(xs, ys, box, margin):
@@ -1376,7 +1422,28 @@ def save_wardrobe(body, frames, portraits_im):
             shirt, printed, jeans, shoes = up(shirt), up(printed), up(jeans), up(shoes)
             if head:
                 head = {'x': head['x'] * 2 + 0.5, 'y': head['y'] * 2, 'w': head['w'] * 2}
-        meta['mask'] = bool(shirt.any())
+        if not jeans.any() and not matches(name, cfg['topOnly']):
+            # Zapas: dżinsów nie rozpoznano (tułów zasłonięty, np. prezentem) — ciemne ubranie poniżej koszulki
+            # (nie wyżej niż 45% wysokości) i nad butami (dolne 8,5%) to spodnie.
+            arr = np.asarray(im).astype(int)
+            cls = wardrobe_classes(arr)
+            op = arr[:, :, 3] > 0
+            # „koszulka” w dolnej połowie postaci to w rzeczywistości spodnie
+            lower = np.zeros_like(op)
+            lower[int(im.height * 0.5):] = True
+            shirt = shirt & ~lower
+            cloth = op & (cls['shirt'] | cls['shade'] | cls['mid'] | cls['jeans']) & ~shirt & ~printed & ~shoes
+            rows = np.nonzero(shirt.any(axis=1))[0]
+            top = max(int(rows.max()) + 1 if len(rows) else 0, int(im.height * 0.45))
+            band = np.zeros_like(op)
+            band[top:int(im.height * 0.915)] = True
+            jeans = cloth & band
+            if not shirt.any():
+                # koszulka: ciemne ubranie pod głową (od 30% wysokości) i nad spodniami
+                upper = np.zeros_like(op)
+                upper[int(im.height * 0.3):top] = True
+                shirt = cloth & upper
+        meta['mask'] = bool(shirt.any() or jeans.any())
         if meta['mask']:
             write(name, shirt, printed, jeans)
         if jeans.any():
@@ -1486,6 +1553,11 @@ def collect():
                 box, margin, min_blob, hole_tol = tight_box(img, e['rect'], bg), period / 2, 12, e['holeTol']
             # Arkusz ma jedną siatkę pikseli dla całej postaci — próbkujemy ją wprost, bez przeskalowania.
             cells, xs, ys = sample(img, box, period, e['sampleMode'], bg)
+            if e['reduce'] == 2:
+                cells, xs, ys = reduce2(cells, xs, ys, bg)
+                period *= 2
+            if e['hairTone']:
+                cells = hair_tone(cells, *e['hairTone'])
             erased = erase_mask(xs, ys, e['erase'])
             cells[erased] = bg
             mask = (background_mask(cells, bg, min_blob, hole_tol, e['halo'])

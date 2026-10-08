@@ -35,6 +35,8 @@ export interface DressOpts {
   art?: (sprite: string) => Pixels | null;
   /** Klatka od tyłu (bez znaczka na piersi). */
   back?: boolean;
+  /** Dopełnianie maski po kolorach (domyślnie tak; nie w klatkach z czarnym kotem w ramionach). */
+  flood?: boolean;
 }
 
 /** Kolory i wzór do malowania jednego kawałka ubrania. */
@@ -187,7 +189,7 @@ function hatParts(def: ClothDef, opts: DressOpts): { art: Pixels; fit: { overlap
 export function dressPixels(src: Pixels, mask: Pixels | null, meta: FrameMeta, look: Look, opts: DressOpts): { px: Pixels; meta: FrameMeta } | null {
   if (!changesFrame(meta, look, opts)) return null;
   let res = { px: { w: src.w, h: src.h, data: new Uint8ClampedArray(src.data) } as Pixels, meta };
-  if (mask && meta.mask) recolorBody(src, mask, res.px, meta, look, opts.seated, opts.back === true);
+  if (mask && meta.mask) recolorBody(src, mask, res.px, meta, look, opts.seated, opts.back === true, opts.flood !== false);
   const headwear = headwearOf(look);
   if (opts.hat && headwear && meta.head && !meta.noHat) {
     // Klatki z drobniejszymi pikselami (gładkie arkusze, skala ~0,45) — ozdoba powiększona, żeby w grze była tej samej wielkości.
@@ -279,7 +281,7 @@ function inCentre(x: number, r: { min: number; max: number }, frac: number): boo
   return Math.abs(x - c) <= half;
 }
 
-function recolorBody(src: Pixels, mask: Pixels, out: Pixels, meta: FrameMeta, look: Look, seated: boolean, back: boolean): void {
+function recolorBody(src: Pixels, mask: Pixels, out: Pixels, meta: FrameMeta, look: Look, seated: boolean, back: boolean, flood: boolean): void {
   const { w, h } = src;
   const shirt: number[] = [];
   const print: number[] = [];
@@ -296,6 +298,20 @@ function recolorBody(src: Pixels, mask: Pixels, out: Pixels, meta: FrameMeta, lo
   print.push(...strays(src, taken, new Set([...shirt, ...print])));
   for (const i of print) taken.add(i);
   jeans.push(...strays(src, taken, new Set(jeans)));
+  for (const i of jeans) taken.add(i);
+  // Fragmenty ubrania poza maską (koszulka za ramieniem, dolne nogawki na nowych arkuszach): piksele w kolorach
+  // koszulki/dżinsów stykające się z wykrytym ubraniem dołączają do niego — strój nie prześwituje oryginałem.
+  if (flood) {
+    const jeansTop = jeans.length > 0 ? Math.min(...jeans.map((i) => Math.floor(i / w))) : h;
+    const nearShirt = near(shirt, w, h, 3);
+    const moreShirt = colourFlood(src, taken, shirt, (i) => Math.floor(i / w) < jeansTop && nearShirt.has(i));
+    shirt.push(...moreShirt);
+    for (const i of moreShirt) taken.add(i);
+    // bez strefy butów (czarne buty mają kolor dolnych nogawek)
+    const foot = meta.foot ?? h;
+    const shoeTop = foot - Math.max(2, Math.round(foot * 0.085));
+    jeans.push(...colourFlood(src, taken, jeans, (i) => Math.floor(i / w) >= jeansTop && Math.floor(i / w) < shoeTop));
+  }
   const upper = look.dress ?? look.top;
   const lower = look.dress ?? look.bottom;
 
@@ -341,6 +357,52 @@ function recolorBody(src: Pixels, mask: Pixels, out: Pixels, meta: FrameMeta, lo
       skirt(src, out, jeans, lower, ref, meta, look.dress !== null);
     }
   }
+}
+
+/**
+ * Rozlewanie regionu po kolorach: piksele (nie kontur, nie zajęte), których kolor należy do kolorów regionu
+ * (występujących w nim co najmniej 3 razy), osiągalne 4-sąsiedztwem od regionu i spełniające `allowed`.
+ */
+export function colourFlood(src: Pixels, taken: ReadonlySet<number>, region: readonly number[], allowed: (i: number) => boolean): number[] {
+  const { w, h, data } = src;
+  if (region.length === 0) return [];
+  const key = (i: number) => (data[i * 4] << 16) | (data[i * 4 + 1] << 8) | data[i * 4 + 2];
+  const counts = new Map<number, number>();
+  for (const i of region) counts.set(key(i), (counts.get(key(i)) ?? 0) + 1);
+  const colours = new Set([...counts].filter(([, n]) => n >= 3).map(([k]) => k));
+  const seen = new Set(region);
+  const queue = [...region];
+  const found: number[] = [];
+  while (queue.length > 0) {
+    const i = queue.pop()!;
+    const x = i % w;
+    for (const j of [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, i - w, i + w]) {
+      if (j < 0 || j >= w * h || seen.has(j)) continue;
+      seen.add(j);
+      if (taken.has(j) || data[j * 4 + 3] === 0 || !colours.has(key(j)) || !allowed(j)) continue;
+      if (lum(data[j * 4], data[j * 4 + 1], data[j * 4 + 2]) < 8) continue; // czarny kontur
+      found.push(j);
+      queue.push(j);
+    }
+  }
+  return found;
+}
+
+/** Piksele w odległości (Czebyszewa) co najwyżej `r` od regionu. */
+function near(region: readonly number[], w: number, h: number, r: number): Set<number> {
+  const out = new Set<number>();
+  for (const i of region) {
+    const x = i % w;
+    const y = Math.floor(i / w);
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx >= 0 && nx < w && ny >= 0 && ny < h) out.add(ny * w + nx);
+      }
+    }
+  }
+  return out;
 }
 
 /** Znaczek (serduszko, czaszka) na środku nadruku (albo piersi, gdy klatka nie ma nadruku). */

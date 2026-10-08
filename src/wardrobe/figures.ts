@@ -88,7 +88,7 @@ export function createFigures(sprites: SpriteMap, masks: SpriteMap, outfit: () =
         const h = hats.get(sprite);
         return h ? px(`hat:${sprite}`, h) : null;
       };
-      const r = dressPixels(px(name, img), mask ? px(`mask:${name}`, mask) : null, meta, lookOf(o), { hat, seated: isSeated(name), art, back: isBackView(name) });
+      const r = dressPixels(px(name, img), mask ? px(`mask:${name}`, mask) : null, meta, lookOf(o), { hat, seated: isSeated(name), art, back: isBackView(name), flood: !/^cat_/.test(name) });
       if (r) entry = { fig: { img: canvasOf(r.px), meta: r.meta } };
     } catch (err) {
       // Bez canvasa (albo uszkodzona maska) zostaje oryginał — gra działa dalej.
