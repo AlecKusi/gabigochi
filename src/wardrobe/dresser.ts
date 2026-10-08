@@ -286,9 +286,12 @@ function recolorBody(src: Pixels, mask: Pixels, out: Pixels, meta: FrameMeta, lo
   const shirt: number[] = [];
   const print: number[] = [];
   const jeans: number[] = [];
+  /** Zwierzak (biały w masce) — nigdy nie malowany. */
+  const pet = new Set<number>();
   for (let i = 0; i < w * h; i++) {
     if (src.data[i * 4 + 3] === 0) continue;
-    if (mask.data[i * 4] > 127) shirt.push(i);
+    if (mask.data[i * 4] > 127 && mask.data[i * 4 + 1] > 127 && mask.data[i * 4 + 2] > 127) pet.add(i);
+    else if (mask.data[i * 4] > 127) shirt.push(i);
     else if (mask.data[i * 4 + 1] > 127) print.push(i);
     else if (mask.data[i * 4 + 2] > 127) jeans.push(i);
   }
@@ -354,7 +357,7 @@ function recolorBody(src: Pixels, mask: Pixels, out: Pixels, meta: FrameMeta, lo
     } else if (seated) {
       seatedSkirt(src, out, jeans, lower, ref);
     } else {
-      skirt(src, out, jeans, lower, ref, meta, look.dress !== null);
+      skirt(src, out, jeans, lower, ref, meta, look.dress !== null, pet);
     }
   }
 }
@@ -464,14 +467,14 @@ export const SKIRT_LENGTH = 0.5;
  * piksele „ubraniowe” (przezroczyste, ciemne, dżinsy) — dłonie przed spódnicą zostają. Pod rąbkiem nogi: dżinsy
  * i ciemne nogawki (na nowych arkuszach poza maską) zamienione na skórę albo rajstopy/skarpetki.
  */
-function skirt(src: Pixels, out: Pixels, jeans: number[], def: ClothDef, ref: number, meta: FrameMeta, dress: boolean): void {
+function skirt(src: Pixels, out: Pixels, jeans: number[], def: ClothDef, ref: number, meta: FrameMeta, dress: boolean, pet: ReadonlySet<number> = new Set()): void {
   const { w, h } = src;
   const rows = rowsOf(jeans, w);
   const jeansSet = new Set(jeans);
   const lumOf = (i: number) => lum(src.data[i * 4], src.data[i * 4 + 1], src.data[i * 4 + 2]);
   const alpha = (i: number) => src.data[i * 4 + 3];
   // ubranie/nogawka/tło — wolno zamalować; jasne (dłonie, skóra, białe podeszwy) zostają
-  const paintable = (i: number) => alpha(i) === 0 || jeansSet.has(i) || lumOf(i) < 95;
+  const paintable = (i: number) => !pet.has(i) && (alpha(i) === 0 || jeansSet.has(i) || lumOf(i) < 95);
   const waist = Math.min(...rows.keys());
   const lastJeans = Math.max(...rows.keys());
   const foot = Math.min(h - 1, (meta.foot ?? h) - 1);
@@ -530,7 +533,7 @@ function skirt(src: Pixels, out: Pixels, jeans: number[], def: ClothDef, ref: nu
     for (let x = Math.max(0, base.min - 1); x <= Math.min(w - 1, base.max + 1); x++) {
       const i = y * w + x;
       const l = lumOf(i);
-      if (alpha(i) === 0) continue;
+      if (alpha(i) === 0 || pet.has(i)) continue;
       if (jeansSet.has(i) || (l >= 24 && l < 95)) setPx(out, i, legColor(def.legs, toneOf(l, ref), x, y));
     }
   }

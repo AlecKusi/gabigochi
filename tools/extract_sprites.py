@@ -141,6 +141,8 @@ def entry(spec, group):
         'sampleMode': sh.get('sampleMode', 'pixel'),
         'reduce': sh.get('reduce', 1),
         'hairTone': sh.get('hairTone'),
+        'outline': sh.get('outline', []),
+        'pet': spec.get('pet', []),
         'seatMode': spec.get('seatMode', sh.get('seatMode', 'colour')),
         'onlyLargest': spec.get('onlyLargest', sh.get('onlyLargest', False)),
         **{k: spec.get(k, []) for k in LIST_KEYS},
@@ -271,6 +273,35 @@ def hair_tone(cells, sat_mul, val_mul):
             if 255 <= hh * 360 <= 315 and 0.08 <= ss <= 0.45 and vv > 0.45:
                 out[j, i] = np.array(colorsys.hsv_to_rgb(hh, ss * sat_mul, min(1.0, vv * val_mul))) * 255
     return out
+
+
+def outer_outline(im, colours):
+    """`outline`: kolejne pierścienie wokół sylwetki (tylko od zewnątrz — nie w dziurach, np. we włosach), każdy w swoim
+    kolorze: ciemny pogrubia kontur (gładkie arkusze wyglądają jak domyślne klatki), jasny oddziela czarnego kota od
+    czarnych ubrań. Obrazek rośnie o 1 px z każdej strony na pierścień."""
+    for colour in colours:
+        rgb = [int(colour[i:i + 2], 16) for i in (1, 3, 5)]
+        arr = np.pad(np.array(im), ((1, 1), (1, 1), (0, 0)))
+        op = arr[:, :, 3] > 0
+        h, w = op.shape
+        outside = np.zeros_like(op)
+        q = deque((y, x) for y in range(h) for x in (0, w - 1) if not op[y, x])
+        q.extend((y, x) for x in range(w) for y in (0, h - 1) if not op[y, x])
+        for y, x in q:
+            outside[y, x] = True
+        while q:
+            y, x = q.popleft()
+            for dy, dx in NEIGH4:
+                ny, nx = y + dy, x + dx
+                if 0 <= ny < h and 0 <= nx < w and not op[ny, nx] and not outside[ny, nx]:
+                    outside[ny, nx] = True
+                    q.append((ny, nx))
+        ring = np.zeros_like(op)
+        for dy, dx in NEIGH4:
+            ring |= shift(op, dy, dx)
+        arr[ring & ~op & outside] = rgb + [255]
+        im = Image.fromarray(arr, 'RGBA')
+    return im
 
 
 def outside_box(xs, ys, box, margin):
@@ -1385,7 +1416,7 @@ def strip_region(im, region):
     return Image.fromarray(arr, 'RGBA')
 
 
-def save_wardrobe(body, frames, portraits_im):
+def save_wardrobe(body, frames, portraits_im, pets=None):
     """Maski ubrań (public/masks/<klatka>.png: R = koszulka bez nadruku, G = nadruk, B = dżinsy; 255/0, rozmiar
     klatki) i metadane dla ubieralni dopisane do `frames`: `mask` (czy jest maska), `head` {x, y, w} (px natywne,
     patrz head_point), `knee` (wiersz kolan: pas + 45% wysokości nogawek; tylko gdy są dżinsy), `noHat`.
@@ -1397,8 +1428,10 @@ def save_wardrobe(body, frames, portraits_im):
     MASKS_DIR.mkdir(parents=True, exist_ok=True)
     written, tiles = set(), []
 
-    def write(name, shirt, printed, jeans):
+    def write(name, shirt, printed, jeans, pet=None):
         rgb = np.dstack([shirt, printed, jeans]).astype(np.uint8) * 255
+        if pet is not None:
+            rgb[pet] = 255  # biały = zwierzak: ubieralnia go nie maluje (np. spódnica nie zakrywa kota)
         Image.fromarray(rgb, 'RGB').save(MASKS_DIR / f'{name}.png')
         written.add(name)
 
@@ -1443,9 +1476,29 @@ def save_wardrobe(body, frames, portraits_im):
                 upper = np.zeros_like(op)
                 upper[int(im.height * 0.3):top] = True
                 shirt = cloth & upper
+        if f == 2:
+            # drobne klatki: buty (dolne 8,5%) nigdy nie są spodniami
+            arr0 = np.asarray(im)
+            rows_op = np.nonzero((arr0[:, :, 3] > 0).any(axis=1))[0]
+            shoe_row = int(rows_op.max() + 1 - max(2, round(im.height * 0.085)))
+            jeans[shoe_row:] = False
+        if pets and name in pets:
+            keep = ~pets[name]
+            shirt, printed, jeans, shoes = shirt & keep, printed & keep, jeans & keep, shoes & keep
+            # spodnie zasłonięte kotem/rozpoznane tylko częściowo: ciemne ubranie poniżej pasa (bez kota i butów)
+            arr0 = np.asarray(im).astype(int)
+            cls0 = wardrobe_classes(arr0)
+            dark_cloth = (arr0[:, :, 3] > 0) & (cls0['shirt'] | cls0['shade'] | cls0['mid'] | cls0['jeans']) & keep
+            jrows = np.nonzero(jeans.any(axis=1))[0]
+            if len(jrows):
+                band = np.zeros_like(jeans)
+                band[int(jrows.min()):shoe_row if f == 2 else im.height] = True
+                jeans |= dark_cloth & band & ~shirt & ~printed
+                # czarne buty nisko (kucanie) bywają wzięte za koszulkę — koszulka tylko nad strefą butów
+                shirt[int(jrows.min()) + 3:] = False
         meta['mask'] = bool(shirt.any() or jeans.any())
         if meta['mask']:
-            write(name, shirt, printed, jeans)
+            write(name, shirt, printed, jeans, pets.get(name) if pets else None)
         if jeans.any():
             rows = np.nonzero(jeans.sum(axis=1) >= 2)[0]
             meta['knee'] = int(round(rows.min() + 0.45 * (rows.max() - rows.min())))
@@ -1627,6 +1680,32 @@ def main():
                 images[name] = (group, e, im)
             else:
                 images[name] = (group, e, without_seat(im, region))
+    # Zwierzak w klatce (`pet`: wielokąty w px arkusza): jego ciemne piksele nie są ubraniem (maska szafy go
+    # pomija), a brzeg stykający się z czarnymi ubraniami dostaje jaśniejszy obrys — kot nie zlewa się z Gabi.
+    pets = {}
+    for name, (group, e, im) in list(images.items()):
+        if not e['pet']:
+            continue
+        xs, ys = coords[name]
+        arr = np.array(im)
+        h, w = arr.shape[:2]
+        area = erase_mask(xs[:w], ys[:h], e['pet'])
+        lum = arr[:, :, :3].astype(int) @ np.array([299, 587, 114]) / 1000
+        op = arr[:, :, 3] > 0
+        cat = area & op & ((lum < 95) | (np.abs(arr[:, :, 0].astype(int) - arr[:, :, 2]) > 40))
+        dark_other = op & ~cat & (lum < 95)
+        touch = np.zeros_like(cat)
+        for dy, dx in NEIGH4:
+            touch |= shift(dark_other, dy, dx)
+        arr[cat & touch] = [122, 110, 150, 255]
+        images[name] = (group, e, Image.fromarray(arr, 'RGBA'))
+        pets[name] = cat
+    for name, (group, e, im) in list(images.items()):
+        if e['outline']:
+            images[name] = (group, e, outer_outline(im, e['outline']))
+            if name in pets:
+                pad = len(e['outline'])
+                pets[name] = np.pad(pets[name], pad)
 
     # Największy kształt każdej klatki ciała: wysokość ciała, stopy, kotwica.
     body = {}
@@ -1703,7 +1782,7 @@ def main():
             else:
                 preview_new.append((im, 1.0, im.height))
 
-    masked_portraits = save_wardrobe(body, frames, {n: im for n, (g, _, im) in images.items() if g == 'portraits'})
+    masked_portraits = save_wardrobe(body, frames, {n: im for n, (g, _, im) in images.items() if g == 'portraits'}, pets)
 
     META_PATH.parent.mkdir(parents=True, exist_ok=True)
     meta = {'displayHeight': display_h, 'frames': frames, 'body': sorted(body), 'portraits': portraits,
