@@ -275,6 +275,61 @@ def hair_tone(cells, sat_mul, val_mul):
     return out
 
 
+def clean_smooth(im, small=12, head=0.28):
+    """Sprzątanie klatki z gładkiego arkusza: (1) dziury wewnątrz sylwetki — w głowie (górne `head` wysokości) zawsze,
+    niżej tylko małe (< `small` px; prawdziwe prześwity między rękami/nogami zostają) — zamalowane medianą
+    sąsiadów, warstwa po warstwie od brzegu dziury; (2) pojedyncze kropki: piksel, który jest dużo jaśniejszy albo
+    ciemniejszy od wszystkich 4 sąsiadów, a sąsiedzi są włosami (lawendowe) albo jednolitym ubraniem (ciemne) —
+    dostaje kolor sąsiadów (oczy i okulary leżą na skórze/w linii, więc zostają)."""
+    arr = np.array(im)
+    op = arr[:, :, 3] > 0
+    h, w = op.shape
+    rows = np.nonzero(op.any(axis=1))[0]
+    top = int(rows.min()) if len(rows) else 0
+    head_end = top + int((rows.max() - top + 1) * head) if len(rows) else 0
+    fill = np.zeros_like(op)
+    for comp in components(~op, NEIGH4):
+        if any(y in (0, h - 1) or x in (0, w - 1) for y, x in comp):
+            continue
+        in_head = np.mean([y for y, _ in comp]) < head_end
+        if in_head or len(comp) < small:
+            for p in comp:
+                fill[p] = True
+    while fill.any():
+        grown = []
+        for y, x in zip(*np.nonzero(fill)):
+            nb = [arr[y + dy, x + dx, :3] for dy, dx in NEIGH8
+                  if 0 <= y + dy < h and 0 <= x + dx < w and op[y + dy, x + dx]]
+            if nb:
+                grown.append((y, x, np.median(np.array(nb), axis=0)))
+        if not grown:
+            break
+        for y, x, c in grown:
+            arr[y, x, :3] = c
+            arr[y, x, 3] = 255
+            op[y, x] = True
+            fill[y, x] = False
+    rgb = arr[:, :, :3].astype(float)
+    lum = rgb @ np.array([0.299, 0.587, 0.114])
+    for y in range(1, h - 1):
+        for x in range(1, w - 1):
+            if not op[y, x]:
+                continue
+            nb = [(y - 1, x), (y + 1, x), (y, x - 1), (y, x + 1)]
+            if not all(op[a, b] for a, b in nb):
+                continue
+            d = [lum[y, x] - lum[a, b] for a, b in nb]
+            if not (all(v > 60 for v in d) or all(v < -60 for v in d)):
+                continue
+            cols = np.array([rgb[a, b] for a, b in nb])
+            hsv = [colorsys.rgb_to_hsv(*(c / 255)) for c in cols]
+            hairy = all(255 <= hh * 360 <= 320 and ss < 0.5 and vv > 0.45 for hh, ss, vv in hsv)
+            clothy = all(vv < 0.3 for _, _, vv in hsv)
+            if hairy or clothy:
+                arr[y, x, :3] = np.median(cols, axis=0)
+    return Image.fromarray(arr, 'RGBA')
+
+
 def outer_outline(im, colours):
     """`outline`: kolejne pierścienie wokół sylwetki (tylko od zewnątrz — nie w dziurach, np. we włosach), każdy w swoim
     kolorze: ciemny pogrubia kontur (gładkie arkusze wyglądają jak domyślne klatki), jasny oddziela czarnego kota od
@@ -301,7 +356,16 @@ def outer_outline(im, colours):
             ring |= shift(op, dy, dx)
         arr[ring & ~op & outside] = rgb + [255]
         im = Image.fromarray(arr, 'RGBA')
-    return im
+    # szczeliny domknięte obrysem (między nogami, przy łokciu) — maleńkie dziurki → kolor pierwszego obrysu
+    arr = np.array(im)
+    op = arr[:, :, 3] > 0
+    h, w = op.shape
+    first = [int(colours[0][i:i + 2], 16) for i in (1, 3, 5)]
+    for comp in components(~op, NEIGH4):
+        if len(comp) < 6 and not any(y in (0, h - 1) or x in (0, w - 1) for y, x in comp):
+            for p in comp:
+                arr[p] = first + [255]
+    return Image.fromarray(arr, 'RGBA')
 
 
 def outside_box(xs, ys, box, margin):
@@ -1680,6 +1744,9 @@ def main():
                 images[name] = (group, e, im)
             else:
                 images[name] = (group, e, without_seat(im, region))
+    for name, (group, e, im) in list(images.items()):
+        if e['sampleMode'] == 'smooth' and group == 'body':
+            images[name] = (group, e, clean_smooth(im))
     # Zwierzak w klatce (`pet`: wielokąty w px arkusza): jego ciemne piksele nie są ubraniem (maska szafy go
     # pomija), a brzeg stykający się z czarnymi ubraniami dostaje jaśniejszy obrys — kot nie zlewa się z Gabi.
     pets = {}

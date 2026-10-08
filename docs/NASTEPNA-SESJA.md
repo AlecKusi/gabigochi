@@ -95,4 +95,5 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
 - Zostaje: w klatkach z kotem łydki bez przebarwienia (czarne jak kozaki), drobne łaty przy ramieniu w `expr_think`.
 - (2026-10-08, później) Rozmazanie: powrót do drobniejszego piksela na gładkich arkuszach (kratka 2, bez `reduce`), ale z pogrubionym zewnętrznym konturem (`outline: ["#030205"]`, `outer_outline` — tylko od zewnątrz sylwetki) — czytelne i spójne z domyślnymi. Porównanie wariantów: docs/warianty-jakosci.png.
 - Kot zlewał się z ubraniem: klatki głaskania/przytulania mają `pet` (wielokąty kota w px arkusza) — kot wyłączony z masek (w masce biały = zwierzak, ubieralnia go nie maluje, spódnica go omija), brzeg kota przy czarnych ubraniach dostaje jaśniejszy obrys; chodzący kot (`cat2`) ma jasną obwódkę (`outline: ["#9a8fb8"]`). W klatkach z kotem buty i koszulka ograniczone (but nie dostaje koloru ubrania).
+- Dziury i kropki w gładkich arkuszach: `clean_smooth` (dziury w głowie — górne 28% — zawsze zamalowane medianą sąsiadów, niżej tylko < 12 px; pojedyncze kropki we włosach/na ubraniu → kolor sąsiadów) i po obrysie dziurki < 6 px domknięte kolorem konturu.
 
