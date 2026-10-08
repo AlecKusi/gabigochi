@@ -14,8 +14,15 @@ describe('pickLine', () => {
   it('znudzona', () => {
     expect(content.lines.bored).toContain(pickLine({ hunger: 90, mood: 10, energy: 90 }, first));
   });
-  it('zadowolona', () => {
-    expect(content.lines.happy).toContain(pickLine({ hunger: 90, mood: 90, energy: 90 }, first));
+  it('zadowolona: zwykła kwestia albo losowy tekst', () => {
+    expect(content.lines.happy).toContain(pickLine({ hunger: 90, mood: 90, energy: 90 }, () => 0.9));
+    expect(content.lines.random).toContain(pickLine({ hunger: 90, mood: 90, energy: 90 }, first));
+  });
+  it('losowe teksty Gabi', () => {
+    expect(content.lines.random).toContain('Jestem kierowniczka.');
+    expect(content.lines.random).toHaveLength(5);
+    // przy potrzebach — bez losowych tekstów
+    expect(content.lines.random).not.toContain(pickLine({ hunger: 10, mood: 90, energy: 90 }, first));
   });
 });
 

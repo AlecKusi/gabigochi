@@ -17,6 +17,14 @@ export const content = {
     hungry: ['Zjadłabym coś…', 'Burczy mi w brzuchu!', 'Może KitKat?'],
     sleepy: ['Ziew… jestem śpiąca.', 'Zgasisz światło?'],
     bored: ['Pobawisz się ze mną?', 'Nudzę się…'],
+    /** Losowe teksty Gabi — wtrącane od czasu do czasu, gdy niczego jej nie brakuje. */
+    random: [
+      'Somerka i Hachi to jedna rodzina.',
+      'Jestem kierowniczka.',
+      'ALEEEEKSA… a no tak, nie ma go tutaj.',
+      'Czukier czy cukier?',
+      'Żyjemy w symulacji?',
+    ],
     eat: ['Mniam!', 'Pyszne!', 'Dziękuję!'],
     kitkat: ['KITKAT! Kocham!', 'Mój ulubiony!!!', 'Najlepszy prezent!'],
     pet: ['Hihi!', 'To łaskocze!', 'Miło!'],
