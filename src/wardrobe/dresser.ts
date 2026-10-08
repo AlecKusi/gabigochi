@@ -333,13 +333,12 @@ function recolorBody(src: Pixels, mask: Pixels, out: Pixels, meta: FrameMeta, lo
   if (lower && jeans.length > 0) {
     const ref = medianLum(src, jeans);
     const skirtLike = look.dress !== null || lower.cut === 'skirt';
-    const knee = meta.knee;
-    if (!skirtLike || seated || knee === undefined) {
+    if (!skirtLike) {
       for (const i of jeans) setPx(out, i, clothColor(lower, toneOf(lumAt(i), ref), i % w, Math.floor(i / w)));
+    } else if (seated) {
+      seatedSkirt(src, out, jeans, lower, ref);
     } else {
-      const lastJeans = Math.max(...jeans.map((i) => Math.floor(i / w)));
-      const hemRow = Math.min(knee + (lower.hemDrop ?? 0), Math.max(knee, lastJeans - 1));
-      skirt(src, out, jeans, lower, ref, hemRow);
+      skirt(src, out, jeans, lower, ref, meta, look.dress !== null);
     }
   }
 }
@@ -393,58 +392,113 @@ export function strays(src: Pixels, taken: ReadonlySet<number>, region: Readonly
   return found;
 }
 
+/** Długość spódnicy (ułamek długości nóg od pasa): sukienka za kolano, spódnica do połowy uda. */
+export const DRESS_LENGTH = 0.56;
+export const SKIRT_LENGTH = 0.5;
+
 /**
- * Spódnica: od pasa do wiersza nad rąbkiem pas między skrajnymi pikselami nogawek w kolorze ubrania (szpara między
- * nogami — fałd w ciemnym tonie), dwa dolne wiersze poszerzone o piksel na stronę (falbana w kolorze `hem`),
- * fartuszek na środku, w wierszu `hemRow` rąbek (kontur), niżej nogawki zamienione na nogi (skóra albo rajstopy).
+ * Spódnica/sukienka w kształcie litery A: od pasa (góra dżinsów) do rąbka (ułamek długości nóg + `hemDrop`),
+ * coraz szersza w dół (`flare` — ok. 1/4 szerokości bioder na stronę), z bocznym konturem i rąbkiem. Malowane są tylko
+ * piksele „ubraniowe” (przezroczyste, ciemne, dżinsy) — dłonie przed spódnicą zostają. Pod rąbkiem nogi: dżinsy
+ * i ciemne nogawki (na nowych arkuszach poza maską) zamienione na skórę albo rajstopy/skarpetki.
  */
-function skirt(src: Pixels, out: Pixels, jeans: number[], def: ClothDef, ref: number, hemRow: number): void {
+function skirt(src: Pixels, out: Pixels, jeans: number[], def: ClothDef, ref: number, meta: FrameMeta, dress: boolean): void {
   const { w, h } = src;
   const rows = rowsOf(jeans, w);
   const jeansSet = new Set(jeans);
-  const waist = Math.min(...rows.keys());
-  const lastRow = Math.max(waist, hemRow - 1);
-  const flare = (y: number) => (y >= lastRow - 1 ? 1 : 0);
-  // Piksel, który wolno nadpisać poszerzeniem: przezroczysty albo konturowy (nie dłoń, nie skóra).
-  const free = (i: number) => src.data[i * 4 + 3] === 0 || lum(src.data[i * 4], src.data[i * 4 + 1], src.data[i * 4 + 2]) < 24;
   const lumOf = (i: number) => lum(src.data[i * 4], src.data[i * 4 + 1], src.data[i * 4 + 2]);
-  let hem: { min: number; max: number } | null = null;
-  for (let y = waist; y <= lastRow; y++) {
-    const r: { min: number; max: number } | null = rows.get(y) ?? hem;
-    if (!r) continue;
-    const f = flare(y);
-    const min = r.min - f;
-    const max = r.max + f;
-    const frill = def.hem !== undefined && y >= lastRow - 1;
-    for (let x = Math.max(0, min); x <= Math.min(w - 1, max); x++) {
+  const alpha = (i: number) => src.data[i * 4 + 3];
+  // ubranie/nogawka/tło — wolno zamalować; jasne (dłonie, skóra, białe podeszwy) zostają
+  const paintable = (i: number) => alpha(i) === 0 || jeansSet.has(i) || lumOf(i) < 95;
+  const waist = Math.min(...rows.keys());
+  const lastJeans = Math.max(...rows.keys());
+  const foot = Math.min(h - 1, (meta.foot ?? h) - 1);
+  const shoe = Math.max(2, Math.round((foot - waist) * 0.12));
+  const legEnd = Math.max(lastJeans, foot - shoe);
+  const legLen = Math.max(2, legEnd - waist);
+  const hem = Math.min(legEnd - 1, waist + Math.round(legLen * (dress ? DRESS_LENGTH : SKIRT_LENGTH)) + (def.hemDrop ?? 0));
+  // biodra: najszerszy wiersz w górnej części nogawek (pierwszy wiersz maski bywa wąski — pasek, dłonie)
+  let hip = rows.get(waist)!;
+  for (let y = waist; y <= waist + Math.max(2, Math.round((lastJeans - waist) * 0.3)); y++) {
+    const r = rows.get(y);
+    if (r && r.max - r.min > hip.max - hip.min) hip = r;
+  }
+  const flareMax = Math.max(3, Math.round((hip.max - hip.min + 1) * 0.45));
+  const setIf = (x: number, y: number, c: RGB) => {
+    if (x < 0 || x >= w || y < 0 || y >= h) return;
+    const i = y * w + x;
+    if (paintable(i)) setPx(out, i, c);
+  };
+
+  let base = { min: hip.min, max: hip.max };
+  let last = { L: hip.min, R: hip.max };
+  for (let y = waist; y <= hem; y++) {
+    const r = rows.get(y);
+    if (r) base = { min: r.min, max: r.max };
+    // rozkloszowanie rośnie w dół szybciej przy rąbku (kształt dzwonu)
+    const t = (y - waist) / Math.max(1, hem - waist);
+    const f = Math.round(flareMax * t * (0.6 + 0.4 * t));
+    const L = Math.max(0, Math.min(base.min, hip.min - f));
+    const R = Math.min(w - 1, Math.max(base.max, hip.max + f));
+    const frill = def.hem !== undefined && y >= hem - 1;
+    for (let x = L; x <= R; x++) {
       const i = y * w + x;
-      let tone: 0 | 1 | 2;
-      if (jeansSet.has(i)) tone = toneOf(lumOf(i), ref);
-      else if (x >= r.min && x <= r.max) tone = 2; // fałd między nogami
-      else if (free(i)) tone = 1;
-      else continue;
+      if (!paintable(i)) continue;
+      // gładki materiał (bez śladu nogawek): światło z lewej, cień z prawej, zakładki rozchodzące się w dół
+      let tone: 0 | 1 | 2 = 1;
+      if (x <= L + 1) tone = 0;
+      else if (x >= R - 1) tone = 2;
+      else if (y > waist + (hem - waist) / 3 && pleatAt(x, L, R)) tone = 2;
       let c = clothColor(def, tone, x, y);
       if (frill) c = trim(def.hem!, tone);
-      else if (def.apron && y > waist && inCentre(x, r, 0.5)) c = trim(def.apron, tone === 2 ? 1 : tone);
+      else if (def.apron && y > waist + 1 && x > L + 1 && x < R - 1 && inCentre(x, { min: L, max: R }, 0.45)) c = trim(def.apron, tone === 2 ? 1 : tone);
       setPx(out, i, c);
     }
-    if (f) {
-      for (const x of [min - 1, max + 1]) if (x >= 0 && x < w && free(y * w + x)) setPx(out, y * w + x, OUTLINE);
-    }
-    hem = { min: r.min, max: r.max };
+    setIf(L - 1, y, OUTLINE);
+    setIf(R + 1, y, OUTLINE);
+    last = { L, R };
   }
   // rąbek
-  if (hem && hemRow < h) {
-    for (let x = Math.max(0, hem.min - 2); x <= Math.min(w - 1, hem.max + 2); x++) {
-      const i = hemRow * w + x;
-      if (jeansSet.has(i) || free(i)) setPx(out, i, OUTLINE);
+  for (let x = last.L - 1; x <= last.R + 1; x++) setIf(x, hem + 1, OUTLINE);
+  // nogi pod rąbkiem: dżinsy i ciemne nogawki (nie kontur) w obrębie nóg
+  base = rows.get(Math.min(lastJeans, hem)) ?? base;
+  for (let y = hem + 2; y <= legEnd; y++) {
+    const r = rows.get(y);
+    if (r) base = { min: r.min, max: r.max };
+    for (let x = Math.max(0, base.min - 1); x <= Math.min(w - 1, base.max + 1); x++) {
+      const i = y * w + x;
+      const l = lumOf(i);
+      if (alpha(i) === 0) continue;
+      if (jeansSet.has(i) || (l >= 24 && l < 95)) setPx(out, i, legColor(def.legs, toneOf(l, ref), x, y));
     }
   }
-  // nogi poniżej rąbka
+}
+
+/** Zakładka spódnicy: co ~1/4 szerokości (bez skrajnych kolumn). */
+function pleatAt(x: number, L: number, R: number): boolean {
+  const span = R - L;
+  if (span < 8) return false;
+  for (let k = 1; k <= 3; k++) if (x === L + Math.round((span * k) / 4)) return true;
+  return false;
+}
+
+/**
+ * Sukienka/spódnica w pozie siedzącej: górna część nogawek (uda) w kolorze ubrania z rąbkiem, dolna (łydki) — nogi.
+ */
+function seatedSkirt(src: Pixels, out: Pixels, jeans: number[], def: ClothDef, ref: number): void {
+  const { w } = src;
+  const ys = jeans.map((i) => Math.floor(i / w));
+  const top = Math.min(...ys);
+  const bottom = Math.max(...ys);
+  const split = top + Math.round((bottom - top) * 0.55);
+  const lumOf = (i: number) => lum(src.data[i * 4], src.data[i * 4 + 1], src.data[i * 4 + 2]);
   for (const i of jeans) {
     const y = Math.floor(i / w);
-    if (y <= hemRow) continue;
-    setPx(out, i, legColor(def.legs, toneOf(lumOf(i), ref), i % w, y));
+    const x = i % w;
+    const tone = toneOf(lumOf(i), ref);
+    if (y < split) setPx(out, i, def.hem !== undefined && y >= split - 1 ? trim(def.hem, tone) : clothColor(def, tone, x, y));
+    else if (y === split) setPx(out, i, OUTLINE);
+    else setPx(out, i, legColor(def.legs, tone, x, y));
   }
 }
 

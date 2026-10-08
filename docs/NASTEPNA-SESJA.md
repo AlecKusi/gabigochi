@@ -76,16 +76,13 @@ Plan: docs/superpowers/plans/2026-10-07-szafa-ubrania.md — wszystkie kroki zro
 - Obraz w telewizorze rysowany razem z telewizorem (`RoomFrame.itemOverlays`), a nie na warstwie efektów — Gabi przed ekranem go zasłania.
 - Twarze na gładkich arkuszach były rozmyte (cienkie linie okularów i oczu ginęły w kratce 4×4): gładkie arkusze próbkowane teraz kratką 2 (skala ~0,45 — piksele o połowę mniejsze niż w starych klatkach, ale twarze czytelne); ozdoby głowy na takich klatkach powiększane ×2 (`hatFactor`), maski stroju liczone na obrazie pomniejszonym ×2 i rozciągane. Kotek z arkusza: skala przedmiotów 0,275.
 
-## DO ZROBIENIA NA POCZĄTKU NASTĘPNEJ SESJI (prośba użytkownika, 2026-10-07)
-Sprawdzić, dlaczego sukienki na Gabi nie wyglądają jak wysłane sprite'y (arkusze `sheet-goth.jpg`, `sheet-kawaii.jpg`,
-obrazki z wieszaków `public/items/cloth_*.png`), tylko bardziej jak spodnie. Wstępne podejrzenia (do weryfikacji):
-- spódnica rysowana tylko od pasa do wiersza `knee` (ok. 45% nogawek) — sukienki z arkuszy sięgają kolan/łydek i są
-  rozkloszowane; u nas „spódnica” jest krótka i ma kształt dwóch nogawek (poszerzenie tylko o 1 px w 2 dolnych wierszach);
-- szpara między nogami zamalowana tylko między skrajnymi pikselami nogawek w danym wierszu — sylwetka zostaje „spodniowa”;
-- na klatkach z nowych arkuszy dolne nogawki mają kolor koszulki (nie są w masce dżinsów), więc zostają ciemne —
-  wyglądają jak spodnie/rajstopy pod krótką spódnicą;
-- w pozach siedzących (`isSeated`) całe nogawki są malowane kolorem sukienki — wygląda jak spodnie w kolorze sukienki.
-Pomysły: dłuższa spódnica (np. do połowy łydki, `hemDrop` domyślnie > 0 dla sukienek), wyraźne rozkloszowanie
-(trapez od pasa do rąbka, szerszy o kilka px na stronę), dół spódnicy rysowany jako kształt (nie tylko przemalowanie
-nogawek), falbany/warstwy z kolorów `hem`; porównać na klatkach: idle_front, walk_a*, fun_wave, expr_*, sit_*.
-
+## Sukienki jak sukienki (zrobione, 2026-10-08)
+Wcześniej sukienki wyglądały jak koszulka + spodnie: spódnica tylko od pasa do „kolana” (~45% nóg), w kształcie dwóch
+nogawek (ciemny fałd w szparze), skarpetki/rajstopy na całej łydce, a na siedząco całe nogi w kolorze sukienki.
+Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
+- kształt litery A/dzwonu: od pasa do rąbka (sukienka `DRESS_LENGTH` 0,56 długości nóg ≈ kolano, spódnica
+  `SKIRT_LENGTH` 0,5, płaszcz + `hemDrop`), rozkloszowanie ~45% szerokości bioder na stronę (biodra = najszerszy
+  wiersz w górnej części nogawek), gładki materiał ze światłem z lewej, cieniem z prawej i 3 zakładkami w dół;
+- boczny kontur i rąbek; malowane tylko piksele przezroczyste/ciemne/dżinsy — dłonie przed spódnicą zostają;
+- pod rąbkiem nogi (skóra/rajstopy/skarpetki), także ciemne nogawki spoza maski na nowych arkuszach;
+- na siedząco: uda w materiale (z falbaną), łydki gołe.

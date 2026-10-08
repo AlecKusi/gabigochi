@@ -25,7 +25,7 @@ import { findCloth } from '../../src/wardrobe/catalog';
 import type { FrameMeta } from '../../src/sprites/loader';
 
 /** Obrazek z wierszy znaków: S koszulka (#1f1e28), s ciemna koszulka, J dżinsy (#252b42), L jasne dżinsy, o kontur, . pusto. */
-const COLORS: Record<string, string> = { S: '#1f1e28', s: '#0f0c15', J: '#252b42', L: '#3b4550', o: '#030205', P: '#c3b8cb' };
+const COLORS: Record<string, string> = { S: '#1f1e28', s: '#0f0c15', J: '#252b42', L: '#3b4550', o: '#030205', P: '#c3b8cb', k: '#facab1', b: '#2a2433' };
 
 function sprite(rows: string[]): { src: Pixels; mask: Pixels } {
   const w = rows[0].length;
@@ -119,34 +119,6 @@ describe('ubieralnia — części czyste', () => {
     expect(rgbAt(r.px, 4, 5)).toEqual(hex(COLORS.o)); // szpara między nogawkami
   });
 
-  it('spódnica: pas między nogami zamalowany, rąbek w wierszu kolan, poniżej gołe nogi', () => {
-    const { src, mask } = sprite(ROWS);
-    const r = dressPixels(src, mask, META, out({ bottom: 'skirt_purple' }), plain)!;
-    const c = findCloth('skirt_purple')!.colors;
-    expect(rgbAt(r.px, 4, 4)).toEqual(hex(c[2])); // fałd zamiast szpary
-    expect(rgbAt(r.px, 1, 5)).toEqual(hex(c[1])); // poszerzenie dołu (kontur → materiał)
-    expect(rgbAt(r.px, 0, 5)).toEqual([...OUTLINE]); // nowy kontur poszerzenia
-    expect(rgbAt(r.px, 3, 6)).toEqual([...OUTLINE]); // rąbek
-    expect(rgbAt(r.px, 2, 7)).toEqual([...SKIN[1]]);
-  });
-
-  it('spódnica w pozie siedzącej — całe nogawki w materiale', () => {
-    const { src, mask } = sprite(ROWS);
-    const r = dressPixels(src, mask, META, out({ bottom: 'skirt_purple' }), { hat: true, seated: true })!;
-    expect(rgbAt(r.px, 2, 7)).toEqual(hex(findCloth('skirt_purple')!.colors[1]));
-  });
-
-  it('sukienka maluje górę i dół, wzór kropek na materiale', () => {
-    const { src, mask } = sprite(ROWS);
-    const r = dressPixels(src, mask, META, out({ dress: 'dress_dots' }), plain)!;
-    const d = findCloth('dress_dots')!;
-    expect([hex(d.colors[1]), hex(d.patternColor!)]).toContainEqual(rgbAt(r.px, 2, 3));
-    expect(rgbAt(r.px, 2, 7)).toEqual([...SKIN[1]]);
-    // kropka: patternAt('dots', 5, 1) — nadruk w (4,1) ma kolor sukienki albo kropki
-    expect(patternAt('dots', 5, 1)).toBe(true);
-    expect(rgbAt(r.px, 5, 1)).toEqual(hex(d.patternColor!));
-  });
-
   it('ozdoba głowy: płótno rośnie w górę, stopy i oś przesunięte', () => {
     const { src } = sprite(ROWS);
     const art = artPixels(['.k.', 'kyk', 'kkk']);
@@ -180,13 +152,90 @@ describe('ubieralnia — części czyste', () => {
     expect(r.px.h).toBeGreaterThan(9);
   });
 
+  /**
+   * Wyższa figurka do kroju spódnicy: koszulka (wiersze 1–7), dłoń przy biodrze (k), nogawki (8–27) ze szparą między
+   * nogami, buty (28–29). Pas = 8, nogi do 27 → sukienka do wiersza 19 (rąbek 20), spódnica do 18 (rąbek 19).
+   */
+  const TALL = [
+    '...ooooooooo...',
+    '..oSSSSSSSSSo..',
+    '..oSSSSPSSSSo..',
+    '..oSSSSSSSSSo..',
+    '..oSSSSSSSSSo..',
+    '..oSSSSSSSSSo..',
+    '..oSSSSSSSSSo..',
+    '..ooooooooooo..',
+    'ok.oJJJJoJJJJo.',
+    'ok.oJJJJoJJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...oJJJo.oJJJo.',
+    '...obbbo.obbbo.',
+    '...ooooo.ooooo.',
+  ];
+  const TALL_META: FrameMeta = { w: 15, h: 30, anchorX: 7, scale: 1, foot: 30, mask: true, knee: 17, head: { x: 7, y: 0, w: 9 } };
+  const clothOf = (id: string) => findCloth(id)!.colors.map((c) => hex(c));
+
+  it('sukienka: litera A do kolan — szpara między nogami zamalowana, dół szerszy niż nogi, rąbek, niżej gołe nogi', () => {
+    const { src, mask } = sprite(TALL);
+    const r = dressPixels(src, mask, TALL_META, out({ dress: 'dress_evening' }), plain)!;
+    const cloth = clothOf('dress_evening');
+    // szpara między nogawkami (x 8) w połowie spódnicy — materiał, nie kontur ani przezroczystość
+    expect(cloth).toContainEqual(rgbAt(r.px, 8, 13));
+    // rozkloszowanie: przy rąbku (wiersz 19) materiał wychodzi poza nogawki (x 3 → x 2)
+    expect(cloth).toContainEqual(rgbAt(r.px, 2, 19));
+    // rąbek pod spódnicą
+    expect(rgbAt(r.px, 6, 20)).toEqual([...OUTLINE]);
+    // poniżej rąbka — skóra
+    expect(rgbAt(r.px, 5, 24)).toEqual([...SKIN[1]]);
+    // dłoń przy biodrze zostaje
+    expect(rgbAt(r.px, 1, 8)).toEqual(hex(COLORS.k));
+  });
+
+  it('spódnica (dół) krótsza niż sukienka', () => {
+    const { src, mask } = sprite(TALL);
+    const skirt = dressPixels(src, mask, TALL_META, out({ bottom: 'skirt_purple' }), plain)!;
+    const dress = dressPixels(src, mask, TALL_META, out({ dress: 'dress_evening' }), plain)!;
+    expect(rgbAt(skirt.px, 6, 19)).toEqual([...OUTLINE]); // rąbek spódnicy
+    expect(clothOf('dress_evening')).toContainEqual(rgbAt(dress.px, 6, 19)); // sukienka jeszcze trwa
+  });
+
   it('rajstopy pod sukienką zamiast gołych nóg, falbana w kolorze `hem`', () => {
-    const { src, mask } = sprite(ROWS);
+    const { src, mask } = sprite(TALL);
     const lolita = findCloth('goth_lolita')!;
-    const r = dressPixels(src, mask, META, out({ dress: 'goth_lolita' }), plain)!;
-    expect(rgbAt(r.px, 2, 7)).toEqual(hex(lolita.legs!.colors[1]));
-    expect(rgbAt(r.px, 2, 5)).toEqual(hex(lolita.hem!)); // dolny wiersz spódnicy
-    expect(rgbAt(r.px, 3, 6)).toEqual([...OUTLINE]); // rąbek bez zmian
+    const r = dressPixels(src, mask, TALL_META, out({ dress: 'goth_lolita' }), plain)!;
+    expect(rgbAt(r.px, 5, 24)).toEqual(hex(lolita.legs!.colors[1]));
+    expect(rgbAt(r.px, 6, 19)).toEqual(hex(lolita.hem!));
+  });
+
+  it('w pozie siedzącej sukienka okrywa uda, łydki są gołe', () => {
+    const { src, mask } = sprite(TALL);
+    const r = dressPixels(src, mask, TALL_META, out({ dress: 'dress_evening' }), { hat: true, seated: true })!;
+    expect(clothOf('dress_evening')).toContainEqual(rgbAt(r.px, 5, 9)); // udo
+    expect(rgbAt(r.px, 5, 26)).toEqual([...SKIN[1]]); // łydka
+  });
+
+  it('wzór kropek na materiale sukienki', () => {
+    const { src, mask } = sprite(ROWS);
+    const d = findCloth('dress_dots')!;
+    const r = dressPixels(src, mask, META, out({ dress: 'dress_dots' }), plain)!;
+    expect(patternAt('dots', 5, 1)).toBe(true);
+    expect(rgbAt(r.px, 5, 1)).toEqual(hex(d.patternColor!));
   });
 
   it('kabaretki: ukośna kratka na skórze', () => {
