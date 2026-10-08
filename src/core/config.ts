@@ -3,7 +3,8 @@ export const CONFIG = {
     max: 100,
     awakeDecayPerHour: { hunger: 6, mood: 4, energy: 5 },
     sleepDecayPerHour: { hunger: 3, mood: 2 },
-    sleepEnergyGainPerHour: 15,
+    /** Sen i drzemka: od zera do pełnej energii w 10 minut. */
+    sleepEnergyGainPerHour: 600,
     moodHappyAbove: 60,
     moodSadBelow: 30,
     hungryBelow: 25,

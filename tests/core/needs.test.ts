@@ -21,10 +21,11 @@ describe('applyElapsed', () => {
 
   it('sen: energia rośnie, głód i humor spadają wolniej', () => {
     const start = { ...createState(T0), sleeping: true, needs: { hunger: 80, mood: 90, energy: 50 } };
-    const s = applyElapsed(start, T0 + 2 * HOUR);
+    // pełna energia w 10 minut: 3 minuty snu = +30
+    const s = applyElapsed(start, T0 + 0.05 * HOUR);
     expect(s.needs.energy).toBeCloseTo(80);
-    expect(s.needs.hunger).toBeCloseTo(74);
-    expect(s.needs.mood).toBeCloseTo(86);
+    expect(s.needs.hunger).toBeCloseTo(79.85);
+    expect(s.needs.mood).toBeCloseTo(89.9);
     expect(s.sleeping).toBe(true);
   });
 
@@ -32,9 +33,10 @@ describe('applyElapsed', () => {
     const start = { ...createState(T0), sleeping: true, needs: { hunger: 80, mood: 90, energy: 40 } };
     const s = applyElapsed(start, T0 + 10 * HOUR);
     expect(s.sleeping).toBe(false);
-    expect(s.needs.energy).toBeCloseTo(70);
-    expect(s.needs.hunger).toBeCloseTo(32);
-    expect(s.needs.mood).toBeCloseTo(58);
+    // 6 minut snu do pełna, potem 9,9 h na jawie
+    expect(s.needs.energy).toBeCloseTo(50.5);
+    expect(s.needs.hunger).toBeCloseTo(20.3);
+    expect(s.needs.mood).toBeCloseTo(50.2);
   });
 
   it('brak upływu czasu zwraca ten sam obiekt', () => {

@@ -59,6 +59,14 @@ export interface PlanCtx {
   night?: boolean;
   /** Losowy wariant 0–1 (co Gabi je przy stole, telefon czy herbata na kanapie). */
   variant?: number;
+  /** Bieżąca energia (drzemka trwa, aż się zapełni). */
+  energy?: number;
+}
+
+/** Ile trwa drzemka od energii `energy` do pełna — w tempie snu (pełna energia w 10 minut); co najmniej 9 s. */
+export function napMs(energy: number): number {
+  const missing = Math.max(0, CONFIG.needs.max - energy);
+  return Math.max(9000, Math.ceil((missing / CONFIG.needs.sleepEnergyGainPerHour) * 3_600_000));
 }
 
 const pickOf = <T>(ctx: PlanCtx, items: readonly T[]): T => items[Math.min(items.length - 1, Math.floor((ctx.variant ?? 0) * items.length))];
@@ -131,7 +139,8 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
       ];
     case 'nap':
       // drzemka na kanapie na leżąco
-      return [{ ms: 9000, item: null, gabi: at(['nap_1', 'nap_2'], 0.8, 'lie'), line: 'nap' }];
+      // drzemka trwa, aż energia się zapełni (pokój dolicza energię w tempie snu); stuknięcie Gabi ją przerywa
+      return [{ ms: napMs(ctx.energy ?? 0), item: null, gabi: at(['nap_1', 'nap_2'], 0.8, 'lie'), line: 'nap' }];
     case 'coffee': {
       // przy stole (stół zasłania nogi): kawa, ciasto albo KitKat
       const what = pickOf(ctx, ['coffee', 'cake', 'kitkat'] as const);
@@ -217,7 +226,7 @@ export function interactionReward(kind: Interaction): { mood: number; energy: nu
     case 'cat':
       return { mood: 3, energy: 0 };
     case 'nap':
-      return { mood: 1, energy: 6 };
+      return { mood: 1, energy: 0 }; // energia rośnie w trakcie drzemki
     default:
       return null;
   }

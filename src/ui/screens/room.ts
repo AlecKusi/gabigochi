@@ -3,7 +3,7 @@ import type { IconName } from '../../art/icons';
 import { ICONS } from '../../art/icons';
 import { artCanvas } from '../../art/pixels';
 import { content } from '../../content';
-import type { FoodId } from '../../core/config';
+import { CONFIG, type FoodId } from '../../core/config';
 import { feed, finishActivity, petCharacter, setSleeping } from '../../core/economy';
 import { moodLevel } from '../../core/needs';
 import { dayNumber } from '../../core/time';
@@ -165,6 +165,9 @@ export function roomScreen(app: App): Screen {
 
   // Kotek chodzący po oglądanym pokoju (w nocy śpi z Gabi w łóżku — wtedy go nie ma).
   let cat: CatState = createCat(performance.now(), Math.random);
+  /** Energia z drzemki czekająca na zapis. */
+  let napGain = 0;
+  let napSavedAt = 0;
   let catRoom: RoomId = viewRoom;
   preloadItems(CAT_SPRITE_NAMES);
   preloadItems(
@@ -506,7 +509,9 @@ export function roomScreen(app: App): Screen {
     const items = store.get().rooms[viewRoom].items;
     const it = items.find((i) => i.uid === p.uid);
     const kind = it ? (p.use ?? findItem(it.itemId)?.interaction) : undefined;
-    const steps = it && kind ? interactionSteps(kind, { hasRail: hasTowelRail(items), night: isNightHour(new Date()), variant: Math.random() }) : null;
+    const steps = it && kind
+      ? interactionSteps(kind, { hasRail: hasTowelRail(items), night: isNightHour(new Date()), variant: Math.random(), energy: store.get().needs.energy })
+      : null;
     if (!it || !kind || !steps) return;
     brain = { ...brain, action: 'idle', targetX: brain.x, facing: it.x < brain.x ? 'left' : 'right' };
     if (kind === 'lamp') store.update((s) => {
@@ -954,6 +959,16 @@ export function roomScreen(app: App): Screen {
     const free = !inBed && !held;
     if (free) stepActivity(t, status);
     if (free) stepInteraction(t);
+    // drzemka na kanapie: energia rośnie w tempie snu (zapis co pół sekundy, nie co klatkę)
+    if (free && interaction.current?.kind === 'nap') {
+      napGain += (dt / 3_600_000) * CONFIG.needs.sleepEnergyGainPerHour;
+      if (napGain >= 1 || t - napSavedAt > 500) {
+        const gain = napGain;
+        napGain = 0;
+        napSavedAt = t;
+        store.update((st) => ({ ...st, needs: { ...st.needs, energy: Math.min(CONFIG.needs.max, st.needs.energy + gain) } }));
+      }
+    }
     // Droga do przedmiotu/mebla: po dojściu (mózg skończył spacer w celu) interakcja albo zajęcie.
     if (free && pending) {
       if (pending.room !== viewRoom) pending = null;

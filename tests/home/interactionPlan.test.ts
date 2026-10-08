@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createState } from '../../src/core/state';
 import type { GameState } from '../../src/core/types';
 import { INTERACTIONS, itemFrames } from '../../src/home/catalog';
-import { interactionReward, interactionSteps, rewardInteraction, stepAt, toggleLamp, totalMs } from '../../src/home/interactionPlan';
+import { interactionReward, interactionSteps, napMs, rewardInteraction, stepAt, toggleLamp, totalMs } from '../../src/home/interactionPlan';
 import framesMeta from '../../src/sprites/frames.generated.json';
 
 const NOW = new Date(2026, 9, 6, 12).getTime();
@@ -56,10 +56,13 @@ describe('kroki interakcji', () => {
 });
 
 describe('meble: drzemka, stół, okno, TV, siedziska, kotek', () => {
-  it('drzemka na kanapie na leżąco, dodaje energii', () => {
-    const [step] = interactionSteps('nap', { hasRail: false })!;
+  it('drzemka na kanapie na leżąco trwa, aż energia się zapełni (pełna w 10 minut)', () => {
+    const [step] = interactionSteps('nap', { hasRail: false, energy: 0 })!;
     expect(step.gabi).toMatchObject({ kind: 'frames', frames: ['nap_1', 'nap_2'], at: 'lie' });
-    expect(interactionReward('nap')).toEqual({ mood: 1, energy: 6 });
+    expect(step.ms).toBe(600_000);
+    expect(napMs(50)).toBe(300_000);
+    expect(napMs(99.9)).toBe(9000);
+    expect(interactionReward('nap')).toEqual({ mood: 1, energy: 0 });
   });
 
   it('przy stole: kawa, ciasto albo KitKat (wariant), Gabi za stołem', () => {
