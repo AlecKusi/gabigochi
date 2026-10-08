@@ -71,9 +71,9 @@ const NAP_ENERGY = 60;
 /** Identyfikator kotka w interakcjach (nie jest przedmiotem z pokoju). */
 const CAT_UID = 'cat';
 /** Metadane sprite'a kota (public/items) do `drawSprite`: kotwica w środku, łapki na dole. */
-function catMeta(sprite: string): FrameMeta {
-  const m = (itemsMeta as Record<string, { w: number; h: number; scale?: number }>)[sprite];
-  return { w: m.w, h: m.h, anchorX: m.w / 2, scale: m.scale ?? 1, foot: m.h };
+function catMeta(sprite: string): FrameMeta | null {
+  const m = (itemsMeta as Record<string, { w: number; h: number; scale?: number } | undefined>)[sprite];
+  return m ? { w: m.w, h: m.h, anchorX: m.w / 2, scale: m.scale ?? 1, foot: m.h } : null;
 }
 /** Wysokość siedziska kanapy nad podłogą (px logiczne) — na niej leży Gabi. */
 const SOFA_SEAT_H = 12;
@@ -830,6 +830,7 @@ export function roomScreen(app: App): Screen {
     const f = catFrame(cat, performance.now());
     const m = catMeta(f.sprite);
     const x = cat.x + f.dx;
+    if (!m) return { x, y: CAT_Y, w: 0, h: 0 };
     return { x: x - (m.w * m.scale) / 2, y: CAT_Y - f.lift - m.h * m.scale, w: m.w * m.scale, h: m.h * m.scale };
   }
 
@@ -857,6 +858,7 @@ export function roomScreen(app: App): Screen {
       orderY: CAT_Y,
       alpha,
       draw: (ctx, k) => {
+        if (!m) return; // brak obrazka kota — bez rysowania (gra działa dalej)
         const w = m.w * m.scale * 0.7;
         const r = deviceRect(k, { x: x - w / 2, y: CAT_Y - 1, w, h: 2 });
         ctx.fillStyle = SHADOW_COLOR;
