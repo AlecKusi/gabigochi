@@ -3,6 +3,7 @@ import { BACKUP_KEY, NewerSaveError, SAVE_KEY, loadState, saveState, type KV } f
 import { createState } from '../../src/core/state';
 import type { GameState } from '../../src/core/types';
 import { GABI_BED } from '../../src/home/catalog';
+import { ROOMS } from '../../src/home/layout';
 import { DEFAULT_LOOKS, LATER_DEFAULT_LOOKS, LOOKS } from '../../src/home/looks';
 import { createHome } from '../../src/home/starter';
 
@@ -182,11 +183,34 @@ describe('zapis v2 i migracja v1 → v2', () => {
     };
     const { r } = load(raw);
     expect(r.repaired).toBe(true);
-    expect(r.state.rooms.salon.items).toEqual([good]);
+    // dekoracje salonu (girlanda, obrazek „26”) wracają same, bo nie ma ich nigdzie
+    expect(r.state.rooms.salon.items.filter((i) => !['bunting', 'picture_26'].includes(i.itemId))).toEqual([good]);
     expect(r.state.rooms.salon.wallpaper).toBe(DEFAULT_LOOKS.salon.wallpaper);
     expect(r.state.rooms.bedroom).toEqual(s0.rooms.bedroom);
     expect(r.state.rooms.studio.floor).toBe(DEFAULT_LOOKS.studio.floor);
     expect(r.state.rooms.studio.items).toEqual(s0.rooms.studio.items);
+  });
+
+  it('girlanda i obrazek „26” (dawniej tło salonu): stare zapisy dostają je raz; schowane albo przeniesione nie wracają', () => {
+    const s0 = createState(T0);
+    const salon = s0.rooms.salon.items.filter((i) => i.itemId !== 'bunting' && i.itemId !== 'picture_26');
+    const old = { ...s0, rooms: { ...s0.rooms, salon: { ...s0.rooms.salon, items: salon } } };
+    const { r } = load(old, T0 + 5);
+    expect(r).toMatchObject({ fresh: false, recovered: false, repaired: false });
+    const decor = r.state.rooms.salon.items.filter((i) => i.itemId === 'bunting' || i.itemId === 'picture_26');
+    expect(decor.map((i) => [i.itemId, i.x, i.y])).toEqual([['bunting', 64, 8], ['picture_26', 104, 40]]);
+    const uids = ROOMS.flatMap((room) => r.state.rooms[room].items.map((i) => i.uid));
+    expect(new Set(uids).size).toBe(uids.length);
+    // girlanda w magazynie, obrazek w sypialni — nic nie dochodzi
+    const moved = {
+      ...old,
+      inventory: { bunting: 1 },
+      rooms: { ...old.rooms, bedroom: { ...old.rooms.bedroom, items: [...old.rooms.bedroom.items, { uid: 'u90', itemId: 'picture_26', x: 104, y: 40, flip: false }] } },
+      nextUid: 91,
+    };
+    const m = load(moved, T0 + 5).r.state;
+    expect(m.rooms.salon.items.some((i) => i.itemId === 'bunting' || i.itemId === 'picture_26')).toBe(false);
+    expect(m.inventory.bunting).toBe(1);
   });
 
   it('zapis v2 sprzed łazienki: łazienka i jej wyglądy dochodzą po cichu, z nowymi uid', () => {

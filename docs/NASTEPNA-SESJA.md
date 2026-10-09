@@ -177,3 +177,10 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   rybki nad przeszkodami (+5); test sprawdza, że każdą przeszkodę da się przeskoczyć.
 - Wspólne: `catDraw.ts` (klatki kota w grach), ikonki `catface`, `cup`, `note`, `fish`.
 - Sprawdzone w przeglądarce na tymczasowej stronie testowej (bez zapisu gry): wszystkie pięć, w tym pełne rundy Simona.
+
+## Dekoracje salonu jako przedmioty (2026-10-09)
+- Girlanda (`bunting`, 128×5, na samej górze, y 8) i obrazek „26” (`picture_26`, 20×16, x 104 y 40) nie są już tłem
+  salonu (`pet/room.ts`), tylko przedmiotami ściennymi (Ozdoby, 30 i 40 monet) — da się je przesuwać, odbijać i chować.
+  Rysowane w `tools/draw_kitchen_balcony.py` bez automatycznego konturu (`NO_OUTLINE`).
+- `SALON_DECOR` w `starter.ts`; `readHome` dokłada je po cichu do salonu, jeśli nie ma ich ani w pokojach, ani
+  w magazynie (schowane nie wracają same).

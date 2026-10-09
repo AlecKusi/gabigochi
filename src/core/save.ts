@@ -1,7 +1,7 @@
 import { GABI_BED, WARDROBE_ITEM, findItem } from '../home/catalog';
 import { ROOMS, clampToLayer } from '../home/layout';
 import { DEFAULT_LOOKS, LATER_DEFAULT_LOOKS, defaultLookIds, findLook } from '../home/looks';
-import { STARTER_LAYOUT, createHome, type HomeState } from '../home/starter';
+import { SALON_DECOR, STARTER_LAYOUT, createHome, type HomeState } from '../home/starter';
 import { CLOTH_SLOTS, findCloth } from '../wardrobe/catalog';
 import { defaultOutfit } from '../wardrobe/outfit';
 import { CONFIG } from './config';
@@ -153,6 +153,16 @@ function readHome(x: Record<string, unknown>, now: number): { home: HomeState; r
     rooms.bedroom.items.unshift(bed);
     needUid.push(bed);
   }
+  // Girlanda i obrazek „26” były kiedyś częścią tła salonu: zapis, który nie ma ich ani w pokojach, ani
+  // w magazynie, dostaje je po cichu na dawne miejsca (schowane do magazynu już nie wracają same).
+  const stored = (id: string) => isRecord(x.inventory) && isNum(x.inventory[id]) && (x.inventory[id] as number) > 0;
+  for (const d of SALON_DECOR) {
+    if (stored(d.itemId) || ROOMS.some((r) => rooms[r].items.some((it) => it.itemId === d.itemId))) continue;
+    const it: PlacedItem = { uid: '', itemId: d.itemId, x: d.x, y: d.y, flip: false };
+    rooms.salon.items.push(it);
+    added.add(it);
+  }
+
   let maxUid = 0;
   for (const u of seen) {
     const m = /^u(\d+)$/.exec(u);

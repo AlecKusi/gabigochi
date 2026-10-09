@@ -1613,6 +1613,24 @@
     "state": "night",
     "overlay": true
   },
+  "bunting": {
+    "w": 128,
+    "h": 5,
+    "name": "Girlanda urodzinowa",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 30
+  },
+  "picture_26": {
+    "w": 20,
+    "h": 16,
+    "name": "Obrazek „26”",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 40
+  },
   "fridge_retro": {
     "w": 40,
     "h": 56,

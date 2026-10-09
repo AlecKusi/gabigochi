@@ -16,6 +16,8 @@ C = {
     'M': (95, 168, 138), 's': (176, 196, 216), 'S': (110, 130, 158), 'c': (247, 239, 223), 't': (217, 119, 74),
     'T': (163, 78, 42), 'f': (95, 184, 74), 'F': (47, 122, 52), 'i': (255, 158, 196), 'I': (217, 96, 143),
     'u': (90, 168, 240), 'U': (47, 95, 174), 'e': (27, 19, 38), 'h': (255, 244, 200),
+    # dekoracje salonu (dawniej rysowane w tle): różowy i fiolet girlandy, rama i tło obrazka, cyfry „26”
+    'z': (255, 127, 176), 'Z': (155, 110, 224), 'x': (92, 58, 38), 'X': (243, 236, 255), 'Q': (122, 79, 179),
 }
 
 
@@ -261,6 +263,37 @@ def wall_clock(phase):
         a.put(5, 6, 'w'); a.put(7, 4, 'w'); a.put(8, 8, 'w'); a.put(13, 8, 'w')
     return a
 
+def bunting():
+    """Urodzinowa girlanda przez całą ścianę: sznurek i chorągiewki (różowa, żółta, niebieska, fioletowa)."""
+    a = Art(128, 5)
+    a.hline(0, 0, 128, 'e')
+    colours = ['z', 'y', 'u', 'Z']
+    for i, x in enumerate(range(2, 128, 10)):
+        for r in range(4):
+            a.hline(x + r, 1 + r, 7 - 2 * r, colours[i % len(colours)])
+    return a
+
+
+DIGITS = {'2': ['QQQ', '..Q', 'QQQ', 'Q..', 'QQQ'], '6': ['QQQ', 'Q..', 'QQQ', 'Q.Q', 'QQQ']}
+
+
+def picture_26():
+    """Obrazek w drewnianej ramce z napisem „26”."""
+    a = Art(20, 16)
+    a.rect(0, 0, 20, 16, 'x')
+    a.rect(2, 2, 16, 12, 'X')
+    for dx, d in ((6, '2'), (11, '6')):
+        for j, row in enumerate(DIGITS[d]):
+            for i, ch in enumerate(row):
+                if ch != '.':
+                    a.put(dx + i, 3 + j, ch)
+    return a
+
+
+# bez automatycznego konturu — wyglądają tak jak dawniej w tle salonu
+NO_OUTLINE = {'bunting', 'picture_26'}
+
+
 def outline(a):
     """Kontur dookoła rysunku (gdzie pusto obok niepustego) — jak w arkuszach."""
     w, h = a.w + 2, a.h + 2
@@ -284,11 +317,11 @@ ITEMS = [('fridge', fridge), ('stove', stove), ('kitchen_counter', counter), ('w
          ('balcony_chair', balcony_chair), ('bistro_table', bistro_table_full), ('string_lights', string_lights),
          ('telescope', telescope), ('wall_clock', lambda: wall_clock('day')),
          ('wall_clock_morning', lambda: wall_clock('morning')), ('wall_clock_evening', lambda: wall_clock('evening')),
-         ('wall_clock_night', lambda: wall_clock('night'))]
+         ('wall_clock_night', lambda: wall_clock('night')), ('bunting', bunting), ('picture_26', picture_26)]
 
 
 def main():
-    arts = [(n, outline(f())) for n, f in ITEMS]
+    arts = [(n, f() if n in NO_OUTLINE else outline(f())) for n, f in ITEMS]
     gap = 6
     W = sum(a.w + gap for _, a in arts) + gap
     H = max(a.h for _, a in arts) + 2 * gap

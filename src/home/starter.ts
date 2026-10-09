@@ -6,6 +6,12 @@ import { DEFAULT_LOOKS, defaultLookIds } from './looks';
 /** Część stanu gry opisująca mieszkanie. */
 export type HomeState = Pick<GameState, 'rooms' | 'inventory' | 'ownedLooks' | 'currentRoom' | 'itemCooldowns' | 'nextUid'>;
 
+/** Dekoracje salonu, które kiedyś były narysowane w tle; stare zapisy dostają je po cichu (`readHome`). */
+export const SALON_DECOR: readonly { itemId: string; x: number; y: number }[] = [
+  { itemId: 'bunting', x: 64, y: 8 },
+  { itemId: 'picture_26', x: 104, y: 40 },
+];
+
 /**
  * Darmowe meble startowe (x — środek, y — linia dolna; px logiczne, na siatce 4 px, w swoich warstwach).
  * Salon odtwarza dawny pokój: okno po lewej, półka po prawej, dywan na środku pod Gabi. Łóżko Gabi ma już szafkę.
@@ -18,6 +24,8 @@ export const STARTER_LAYOUT: Readonly<Record<RoomId, readonly { itemId: string; 
     { itemId: 'monstera', x: 108, y: 140 },
     // zegar z okienkiem pory dnia na środku ściany, nad głową Gabi
     { itemId: 'wall_clock', x: 64, y: 44 },
+    // urodzinowa girlanda pod sufitem i obrazek „26” (dawniej część tła — teraz da się je przesunąć i schować)
+    ...SALON_DECOR,
   ],
   bedroom: [
     // za linią stóp Gabi (FEET_Y = 144) — w dzień chodzi przed łóżkiem, a nie znika za nim

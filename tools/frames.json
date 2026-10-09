@@ -509,6 +509,8 @@
     "wall_clock_morning": {"sheet": "kitchen", "frameOf": "wall_clock", "rect": [1694, 78, 1790, 214]},
     "wall_clock_evening": {"sheet": "kitchen", "frameOf": "wall_clock", "rect": [1802, 78, 1898, 214]},
     "wall_clock_night": {"sheet": "kitchen", "frameOf": "wall_clock", "rect": [1910, 78, 2006, 214]},
+    "bunting": {"sheet": "kitchen", "rect": [2018, 182, 2542, 214], "name": "Girlanda urodzinowa", "category": "decor", "layer": "wall", "interaction": "none", "price": 30},
+    "picture_26": {"sheet": "kitchen", "rect": [2554, 138, 2646, 214], "name": "Obrazek „26”", "category": "decor", "layer": "wall", "interaction": "none", "price": 40},
     "fridge_retro": {"sheet": "fridges", "keep": "largest", "rect": [218, 84, 344, 230], "name": "Lodówka retro (miętowa)", "category": "kitchen", "layer": "floor", "interaction": "fridge", "price": 260},
     "fridge_retro_ajar": {"sheet": "fridges", "frameOf": "fridge_retro", "keep": "largest", "rect": [385, 84, 514, 232], "alignRect": [388, 87, 448, 229]},
     "fridge_retro_open": {"sheet": "fridges", "frameOf": "fridge_retro", "keep": "largest", "rect": [549, 84, 736, 231], "alignRect": [552, 87, 612, 228]},
