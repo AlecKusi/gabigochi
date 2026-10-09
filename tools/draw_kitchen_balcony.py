@@ -207,6 +207,60 @@ def telescope():
     return a
 
 
+def wall_clock(phase):
+    """Zegar ścienny: okrągła fioletowa tarcza i okienko nieba nad nią (jak fazy księżyca w starych zegarach) —
+    po jednej klatce na porę dnia. Wskazówki rysuje gra (prawdziwa godzina); środek tarczy: x 9, y 19 (bez konturu)."""
+    import math
+    a = Art(19, 29)
+    CY, AY = 19, 10
+    sky = set()
+    for y in range(a.h):
+        for x in range(a.w):
+            da = math.hypot(x - 9, y - AY)
+            if y <= AY and da <= 7.6:
+                if da > 6.6:
+                    a.put(x, y, 'k')
+                elif da > 5.4:
+                    a.put(x, y, 'L' if x < 9 else 'p')
+                else:
+                    sky.add((x, y))
+            d = math.hypot(x - 9, y - CY)
+            if d <= 9.4:
+                sky.discard((x, y))
+                if d > 8.4:
+                    c = 'k'
+                elif d > 6.6:
+                    s_ = (x - 9) + (y - CY)
+                    c = 'L' if s_ < -4 else 'P' if s_ > 4 else 'p'
+                else:
+                    c = 'w' if d > 5.6 and (x - 9) + (y - CY) < -5 else 'c'
+                a.put(x, y, c)
+    for x, y in [(9, 13), (9, 14), (15, 19), (9, 24), (3, 19)]:
+        a.put(x, y, 'P')
+    for x, y in [(13, 15), (13, 23), (5, 23), (5, 15)]:
+        a.put(x, y, 'g')
+    top = min(y for _, y in sky)
+    bottom = max(y for _, y in sky)
+    grad = {'morning': ['L', 'l', 'i', 'i'], 'day': ['u', 'u', 's', 's'],
+            'evening': ['P', 'p', 'o', 'y'], 'night': ['e', 'e', 'P', 'P']}[phase]
+    for x, y in sky:
+        a.put(x, y, grad[min(3, (y - top) * 4 // (bottom - top + 1))])
+    blob = lambda x, y, c, hi=None: ([a.put(x + i, y + j, c) for i in (0, 1) for j in (0, 1)], hi and a.put(x, y, hi))
+    if phase == 'morning':
+        blob(5, 7, 'y', 'h')
+    elif phase == 'day':
+        blob(7, 5, 'y', 'h')
+        for x in (10, 11, 12, 13):
+            a.put(x, 7, 'w')
+        a.put(11, 6, 'w'); a.put(12, 6, 'w')
+    elif phase == 'evening':
+        blob(11, 7, 'o', 'y')
+    else:
+        for x, y in [(11, 4), (12, 5), (12, 6), (11, 7), (11, 5), (11, 6)]:  # sierp księżyca
+            a.put(x, y, 'h')
+        a.put(5, 6, 'w'); a.put(7, 4, 'w'); a.put(8, 8, 'w'); a.put(13, 8, 'w')
+    return a
+
 def outline(a):
     """Kontur dookoła rysunku (gdzie pusto obok niepustego) — jak w arkuszach."""
     w, h = a.w + 2, a.h + 2
@@ -228,7 +282,9 @@ def outline(a):
 ITEMS = [('fridge', fridge), ('stove', stove), ('kitchen_counter', counter), ('wall_cabinet', wall_cabinet),
          ('spice_shelf', spice_shelf), ('cat_bowl', cat_bowl), ('flower_box', flower_box),
          ('balcony_chair', balcony_chair), ('bistro_table', bistro_table_full), ('string_lights', string_lights),
-         ('telescope', telescope)]
+         ('telescope', telescope), ('wall_clock', lambda: wall_clock('day')),
+         ('wall_clock_morning', lambda: wall_clock('morning')), ('wall_clock_evening', lambda: wall_clock('evening')),
+         ('wall_clock_night', lambda: wall_clock('night'))]
 
 
 def main():

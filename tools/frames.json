@@ -487,6 +487,10 @@
     "balcony_chair": {"sheet": "kitchen", "rect": [978, 90, 1062, 214], "name": "Krzesełko balkonowe", "category": "balcony", "layer": "floor", "interaction": "none", "price": 60},
     "bistro_table": {"sheet": "kitchen", "rect": [1074, 90, 1166, 214], "name": "Stolik kawiarniany", "category": "balcony", "layer": "floor", "interaction": "coffee", "price": 90},
     "string_lights": {"sheet": "kitchen", "rect": [1178, 146, 1454, 214], "name": "Lampki na balkon", "category": "balcony", "layer": "wall", "interaction": "lamp", "price": 80},
-    "telescope": {"sheet": "kitchen", "rect": [1466, 58, 1574, 214], "name": "Luneta", "category": "balcony", "layer": "floor", "interaction": "window", "price": 250}
+    "telescope": {"sheet": "kitchen", "rect": [1466, 58, 1574, 214], "name": "Luneta", "category": "balcony", "layer": "floor", "interaction": "window", "price": 250},
+    "wall_clock": {"sheet": "kitchen", "rect": [1586, 78, 1682, 214], "name": "Zegar z porą dnia", "category": "decor", "layer": "wall", "interaction": "clock", "price": 60},
+    "wall_clock_morning": {"sheet": "kitchen", "frameOf": "wall_clock", "rect": [1694, 78, 1790, 214]},
+    "wall_clock_evening": {"sheet": "kitchen", "frameOf": "wall_clock", "rect": [1802, 78, 1898, 214]},
+    "wall_clock_night": {"sheet": "kitchen", "frameOf": "wall_clock", "rect": [1910, 78, 2006, 214]}
   }
 }

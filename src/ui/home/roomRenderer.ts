@@ -4,6 +4,7 @@ import type { PlacedItem, RoomId, RoomState } from '../../core/types';
 import { findItem, itemFrames } from '../../home/catalog';
 import { GABI, drawOrder, itemBox } from '../../home/layout';
 import { DEFAULT_LOOKS, findLook } from '../../home/looks';
+import { CLOCK_FACE, WALL_CLOCK, handAngles } from '../../home/clock';
 import { ROOM_PHASE_TINT, WINDOW_PHASE_TINT, type DayPhase } from '../../home/daytime';
 import { NIGHT_TINT, ROOM_H, ROOM_W, drawRoomBase } from '../../pet/room';
 import { deviceRect, drawSprite } from '../pixelStage';
@@ -85,8 +86,10 @@ export function createRoomRenderer(): RoomRenderer {
     const def = findItem(it.itemId);
     if (!def) return;
     // Okno z nocnym wariantem (gwiazdy, księżyc) — w nocy jego klatka zamiast przyciemnionej dziennej.
+    // Zegar ma klatkę na każdą porę dnia (okienko nieba) — zawsze wg godziny, także przy zgaszonym świetle.
     const phase = f.phase ?? 'day';
-    const nightFrame = f.night || phase === 'night' ? itemFrames(it.itemId).night : undefined;
+    const frames = itemFrames(it.itemId);
+    const nightFrame = frames.evening !== undefined ? frames[phase] : f.night || phase === 'night' ? frames.night : undefined;
     const tints = itemTints(def, it, f.night, f.now, phase).filter((t) => !nightFrame || (t !== WINDOW_NIGHT_TINT && t !== WINDOW_PHASE_TINT.night));
     const state = f.states.get(it.uid) ?? nightFrame;
     const stateSrc = state ? itemSource(state, tints) : null;
@@ -100,6 +103,30 @@ export function createRoomRenderer(): RoomRenderer {
     if (!src) return;
     const a = itemAnchor(it, def);
     drawSprite(ctx, k, src, a.meta, { x: a.x, feetY: a.feetY, flip: it.flip, bob: 0, squash: 0, jump: 0 });
+  }
+
+  /** Wskazówki zegara ściennego (godzina z `f.now`) w pół-pikselach logicznych — drobniej niż rama, jak twarz Gabi. */
+  function drawClockHands(ctx: CanvasRenderingContext2D, k: number, it: PlacedItem, f: RoomFrame): void {
+    const u = Math.max(1, Math.round(k / 2));
+    const cx = (it.x + CLOCK_FACE.dx) * k;
+    const cy = (it.y + CLOCK_FACE.dy) * k;
+    const snap = (v: number) => Math.round(v / u) * u;
+    const hand = (angle: number, len: number, size: number, colour: string) => {
+      ctx.fillStyle = colour;
+      const half = (size * u) / 2;
+      for (let r = 0; r <= len * k; r += u / 2) {
+        const x = snap(cx + Math.sin(angle) * r - half);
+        const y = snap(cy - Math.cos(angle) * r - half);
+        ctx.fillRect(x, y, size * u, size * u);
+      }
+    };
+    const a = handAngles(new Date(f.now));
+    const ink = f.night ? '#140e1e' : '#2a1f3d';
+    hand(a.hour, CLOCK_FACE.hour, 2, ink);
+    hand(a.minute, CLOCK_FACE.minute, 1, ink);
+    if (!f.night) hand(a.second, CLOCK_FACE.second, 1, '#e0384f');
+    ctx.fillStyle = f.night ? '#3e2a66' : '#7a4fb3';
+    ctx.fillRect(snap(cx - u), snap(cy - u), 2 * u, 2 * u);
   }
 
   function drawGlow(ctx: CanvasRenderingContext2D, k: number, it: PlacedItem, night: boolean): void {
@@ -144,6 +171,7 @@ export function createRoomRenderer(): RoomRenderer {
         ctx.restore();
       } else {
         drawItem(ctx, k, e, f);
+        if (e.itemId === WALL_CLOCK) drawClockHands(ctx, k, e, f);
         f.itemOverlays?.get(e.uid)?.(ctx, k);
       }
     }

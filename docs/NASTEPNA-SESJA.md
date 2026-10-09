@@ -122,3 +122,8 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
 - Kot: `GameState.cat` {name, hunger, love} (spadek 8/h i 4/h, też offline; `readCat` w zapisie), imię i paski w Profilu, karmienie z miski (`catfood` → kot biegnie i je), głaskanie +sympatia, głodny prosi Gabi i Gabi przypomina „{kot} jest głodny…”, śpi na legowiskach/kanapach/fotelach (`catBeds`, `lift`), im większa sympatia, tym częściej się łasi. Znacznik `{kot}` w kwestiach.
 - Kuchnia i balkon: pokoje 5 i 6 (cicha migracja starych zapisów), meble narysowane w kodzie (`tools/draw_kitchen_balcony.py` → `assets/source/sheet-kitchen.png`, arkusz `kitchen`, paleta 184): lodówka (otwiera jedzenie), kuchenka (gotowanie z parą — danie do lodówki raz na godzinę), blat, szafki, przyprawy, miska kota; balkon: skrzynka z kwiatami (podlewanie), krzesełko (siedzisko), stolik (kawa), lampki, luneta (jak okno). Balkon: niebo + miasto + balustrada + daszek zamiast tapety (bez zakładki „Tapeta”).
 
+
+## Zegar z porą dnia (2026-10-09)
+- Pasek pokoju: zegarek (godzina z telefonu + ikonka `sunrise`/`sun`/`sunset`/`moon`), stuknięcie — dymek „Wieczór · 19:42”.
+- Zegar ścienny `wall_clock` (Ozdoby, 60 monet; w salonie nowej gry na środku ściany): okienko nieba nad tarczą — klatki `wall_clock_morning/_evening/_night` (dzień = zwykły sprite), zawsze wg godziny, także przy zgaszonym świetle. Wskazówki (godzinowa, minutowa, sekundnik w dzień) rysuje `roomRenderer` w pół-pikselach (`CLOCK_FACE` w `src/home/clock.ts`). Interakcja `clock`: Gabi zerka na tarczę i mówi godzinę (`content.lines.clockMorning/Day/Evening/Night`, znacznik `{czas}`).
+- Zegar narysowany w `tools/draw_kitchen_balcony.py` (`wall_clock(phase)`); obecny zapis go nie ma — do kupienia w sklepie.

@@ -1575,5 +1575,41 @@
     "layer": "floor",
     "interaction": "window",
     "price": 250
+  },
+  "wall_clock": {
+    "w": 19,
+    "h": 26,
+    "name": "Zegar z porą dnia",
+    "category": "decor",
+    "layer": "wall",
+    "interaction": "clock",
+    "price": 60
+  },
+  "wall_clock_morning": {
+    "w": 19,
+    "h": 26,
+    "anchorX": 9.5,
+    "foot": 26,
+    "frameOf": "wall_clock",
+    "state": "morning",
+    "overlay": true
+  },
+  "wall_clock_evening": {
+    "w": 19,
+    "h": 26,
+    "anchorX": 9.5,
+    "foot": 26,
+    "frameOf": "wall_clock",
+    "state": "evening",
+    "overlay": true
+  },
+  "wall_clock_night": {
+    "w": 19,
+    "h": 26,
+    "anchorX": 9.5,
+    "foot": 26,
+    "frameOf": "wall_clock",
+    "state": "night",
+    "overlay": true
   }
 }

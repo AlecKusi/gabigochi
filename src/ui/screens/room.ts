@@ -39,7 +39,8 @@ import { needBar } from '../needBar';
 import { clampRoomX, createPetDrag } from '../petDrag';
 import { createPixelStage, deviceRect, drawSprite } from '../pixelStage';
 import { play } from '../sound';
-import { dayPhase } from '../../home/daytime';
+import { PHASE_ICON, clockNow } from '../../home/clock';
+import { PHASE_NAMES, dayPhase, type DayPhase } from '../../home/daytime';
 
 interface Heart {
   x: number;
@@ -67,6 +68,9 @@ const ITEM_TAP_SLOP = 12;
 /** Szansa, że pogawędka przy spragnionej roślinie będzie o kwiatkach. */
 const PLANT_NAG_CHANCE = 0.5;
 /** Nocą (wg zegara) Gabi przy oknie mówi o gwiazdach. */
+/** Kwestie przy zegarze ściennym wg pory dnia. */
+const CLOCK_LINES = { morning: 'clockMorning', day: 'clockDay', evening: 'clockEvening', night: 'clockNight' } as const;
+
 const isNightHour = (d: Date) => d.getHours() >= 21 || d.getHours() < 6;
 /** Poniżej tej energii stuknięcie kanapy to drzemka, a nie szydełko. */
 const NAP_ENERGY = 60;
@@ -186,6 +190,37 @@ export function roomScreen(app: App): Screen {
     mood: needBar('mood', 'Humor', 'heart'),
     energy: needBar('energy', 'Energia', 'bolt'),
   };
+  // zegarek z porą dnia (godzina z telefonu — ta sama co za oknami i na zegarze ściennym)
+  const clockIcon = h('span', { class: 'clock-icon' });
+  const clockTime = h('span', { class: 'clock-time' });
+  const clockPill = h(
+    'button',
+    {
+      class: 'clock-pill px-box',
+      onclick: () => {
+        const c = clockNow(new Date());
+        play('tap');
+        app.toast(`${PHASE_NAMES[c.phase]} · ${c.text}`);
+      },
+    },
+    clockIcon,
+    clockTime,
+  );
+  let shownClock = '';
+  let shownPhase: DayPhase | null = null;
+  function syncClock(): void {
+    const c = clockNow(new Date());
+    if (c.text !== shownClock) {
+      shownClock = c.text;
+      clockTime.textContent = c.text;
+      clockPill.setAttribute('aria-label', `Godzina ${c.text}, ${PHASE_NAMES[c.phase].toLowerCase()}`);
+    }
+    if (c.phase !== shownPhase) {
+      shownPhase = c.phase;
+      clockIcon.replaceChildren(icon(PHASE_ICON[c.phase], 2));
+    }
+  }
+  syncClock();
   const lightIcon = h('span', { class: 'nav-icon' });
   const lightLabel = h('span', {}, 'Światło');
 
@@ -251,6 +286,7 @@ export function roomScreen(app: App): Screen {
       'header',
       { class: 'room-top' },
       h('button', { class: 'profile-btn', 'aria-label': 'Profil', onclick: () => app.go('profile') }, avatar, dayLabel),
+      clockPill,
       coins.el,
     ),
     h('div', { class: 'needs' }, bars.hunger.el, bars.mood.el, bars.energy.el),
@@ -465,6 +501,10 @@ export function roomScreen(app: App): Screen {
   function interactionLine(key: InteractionLine): string {
     const now = Date.now();
     if (key === 'calendar') return `Dziś Dzień ${dayNumber(store.get().createdAt, now)}!`;
+    if (key === 'clock') {
+      const c = clockNow(new Date(now));
+      return pick(content.lines[CLOCK_LINES[c.phase]]).split('{czas}').join(c.text);
+    }
     if (key === 'window') return pick(isNightHour(new Date(now)) ? content.lines.windowNight : content.lines.window);
     return withCat(pick(content.lines[key]));
   }
@@ -1009,6 +1049,7 @@ export function roomScreen(app: App): Screen {
     const dt = Math.max(0, Math.min(50, t - last));
     last = t;
     const s = store.get();
+    syncClock();
     const status = statusAnimation(s.needs);
     const room = s.rooms[viewRoom];
     const items = edit.displayItems(room.items);

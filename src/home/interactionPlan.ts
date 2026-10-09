@@ -25,9 +25,9 @@ export type GabiPose =
  */
 export type PoseAt = 'seat' | 'lie' | 'behind' | 'front' | 'under';
 
-/** Klucze kwestii (`content.lines`) wypowiadanych w interakcjach; `calendar` i `window` są składane w pokoju. */
+/** Klucze kwestii (`content.lines`) wypowiadanych w interakcjach; `calendar`, `window` i `clock` są składane w pokoju. */
 export type InteractionLine =
-  | 'water' | 'read' | 'play' | 'cute' | 'calendar' | 'window'
+  | 'water' | 'read' | 'play' | 'cute' | 'calendar' | 'window' | 'clock'
   | 'toilet' | 'shower' | 'showerDone' | 'bath' | 'bathRelax' | 'sink' | 'towel' | 'hairdryer' | 'nap' | 'coffee'
   | 'cake' | 'kitkat' | 'tea' | 'relaxPhone' | 'tv' | 'cat' | 'fridge' | 'cook' | 'catfood';
 
@@ -129,6 +129,12 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
       return [{ ms: 600, item: null, gabi: IDLE }];
     case 'calendar':
       return [{ ms: 2200, item: null, gabi: { kind: 'frames', frames: ['fun_talk'], fps: 1 }, line: 'calendar' }];
+    case 'clock':
+      // pod zegarem (od tyłu): zerka na tarczę, potem odwraca się i mówi, która godzina
+      return [
+        { ms: 1000, item: null, gabi: at(['back_idle'], 1, 'under') },
+        { ms: 2400, item: null, gabi: { kind: 'frames', frames: ['fun_talk'], fps: 1 }, line: 'clock' },
+      ];
     case 'window':
       // przy oknie (od tyłu): dotyka szyby, w dzień macha sąsiadom, w nocy patrzy w gwiazdy
       return [

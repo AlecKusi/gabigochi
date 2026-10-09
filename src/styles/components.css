@@ -40,6 +40,19 @@
   color: #6b4a00;
   font-size: 18px;
 }
+/* zegarek z porą dnia na pasku pokoju */
+.clock-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.clock-icon { display: inline-flex; }
 .coin-pill.bump { animation: bump 300ms cubic-bezier(.3, 1.8, .5, 1); }
 
 .need { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-light); }

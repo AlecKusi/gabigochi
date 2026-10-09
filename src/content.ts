@@ -44,6 +44,11 @@ export const content = {
     cute: ['Słodziak!', 'Jaki uroczy!'],
     window: ['Ładna pogoda!', 'Ale słoneczko!', 'Hej, sąsiedzi!', 'Pa pa, kotku za oknem!'],
     windowNight: ['Gwiazdy!', 'Jaki piękny księżyc…'],
+    // zegar ścienny — {czas} to godzina z telefonu
+    clockMorning: ['Jest {czas}. Dzień dobry!', '{czas} — pora na kawkę!', 'Już {czas}, wstajemy!'],
+    clockDay: ['Jest {czas}.', '{czas} — dzień w pełni!', 'Dopiero {czas}, jeszcze dużo dnia!'],
+    clockEvening: ['Jest {czas}, robi się wieczór.', '{czas} — zachód słońca!', 'Już {czas}, czas na relaks.'],
+    clockNight: ['Jest {czas}… pora spać!', '{czas}?! Trzeba iść do łóżka.', 'Już {czas}, dobranoc!'],
     toilet: ['Pssst!'],
     shower: ['Czas na prysznic!', 'Ciepła woda!'],
     showerDone: ['Świeżutka!', 'Pachnę jak kwiatuszek!'],

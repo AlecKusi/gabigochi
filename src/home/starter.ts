@@ -16,6 +16,8 @@ export const STARTER_LAYOUT: Readonly<Record<RoomId, readonly { itemId: string; 
     { itemId: 'window_flower', x: 24, y: 48 },
     { itemId: 'wall_shelves', x: 100, y: 84 },
     { itemId: 'monstera', x: 108, y: 140 },
+    // zegar z okienkiem pory dnia na środku ściany, nad głową Gabi
+    { itemId: 'wall_clock', x: 64, y: 44 },
   ],
   bedroom: [
     // za linią stóp Gabi (FEET_Y = 144) — w dzień chodzi przed łóżkiem, a nie znika za nim
