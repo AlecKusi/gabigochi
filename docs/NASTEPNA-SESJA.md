@@ -10,22 +10,24 @@ Gałąź `etap-1` — **działająca wersja** (520 testów, typy i build przecho
 - zajęcia: nauka, praktyka, telefon, szydełko, muzyka, karaoke, taniec, ukulele; cola z animacją picia;
 - pora dnia (okna, poświata, zegarek na pasku), żywe niebo nad balkonem (chmurki i ptaki w dzień, gasnące okna,
   spadające i migoczące gwiazdy nocą); podgląd innej godziny: `?godzina=23` (tylko `npm run dev`);
-- dźwięki 8-bit z wyłącznikiem; 6 minigier z przyciskiem „i”; losowe teksty Gabi (12); sen/drzemka: pełna energia w 10 min.
+- dźwięki 8-bit z wyłącznikiem; 11 minigier z przyciskiem „i”; losowe teksty Gabi (12); sen/drzemka: pełna energia w 10 min.
 
 ## Do decyzji użytkownika
 - treść życzeń w `src/content.ts` (wciąż szkic);
 - zgoda na publiczny link (GitHub Pages; workflow gotowy w `.github/workflows/deploy.yml`, gałąź `main`).
 
 ## Pomysły na nowe minigry (lista dla użytkownika, 2026-10-09)
-Obecne: łapanie jedzenia, świeczki, cegiełki, szyfrokrzyżówka, memory, sudoku. Propozycje (najprostsze pierwsze):
-1. **2048 z jedzeniem** — łączenie jednakowych kafelków: jabłko → truskawki → pączek → … → tort (ikonki już są).
+Obecne: łapanie jedzenia, świeczki, cegiełki, szyfrokrzyżówka, memory, sudoku, a od 2026-10-09 także
+2048 z jedzeniem, kot w pudełkach, ukulele Simon, trzy kubki i skaczący kotek (punkty 1, 3, 4, 7, 8 poniżej — zrobione).
+Propozycje (najprostsze pierwsze):
+1. ~~**2048 z jedzeniem**~~ (zrobione) — łączenie jednakowych kafelków: jabłko → truskawki → pączek → … → tort (ikonki już są).
 2. **Ułóż tort** — warstwa jeździ w poprzek, stuknięcie ją upuszcza, wystające kawałki odpadają; jak najwyższy tort.
-3. **Kot w pudełkach** — Somerka wyskakuje z pudełek, stuknij ją, zanim się schowa (30 s, klatki kota już są).
-4. **Ukulele Simon** — Gabi gra coraz dłuższą melodię na 4 strunach, powtórz ją (dźwięki 8-bit z `sound.ts`).
+3. ~~**Kot w pudełkach**~~ (zrobione) — Somerka wyskakuje z pudełek, stuknij ją, zanim się schowa (30 s, klatki kota już są).
+4. ~~**Ukulele Simon**~~ (zrobione) — Gabi gra coraz dłuższą melodię na 4 strunach, powtórz ją (dźwięki 8-bit z `sound.ts`).
 5. **Zastrzyk w punkt** (pielęgniarka) — wskaźnik biega po pasku, zatrzymaj go w zielonym polu; pole się zwęża.
 6. **Wisielec** — hasła z listy krzyżówki (`cryptoWords.ts`), za każdy błąd kot zjada kawałek KitKata.
-7. **Trzy kubki** — kot chowa się pod kubkiem, kubki się tasują, zgadnij gdzie jest (coraz szybciej).
-8. **Skaczący kotek** — bieg bez końca: stuknięcie = skok nad doniczkami i ogórkami (jak dinozaur z Chrome).
+7. ~~**Trzy kubki**~~ (zrobione) — kot chowa się pod kubkiem, kubki się tasują, zgadnij gdzie jest (coraz szybciej).
+8. ~~**Skaczący kotek**~~ (zrobione) — bieg bez końca: stuknięcie = skok nad doniczkami i ogórkami (jak dinozaur z Chrome).
 9. **Wąż z KitKatami** — klasyczny wąż na kratce, sterowanie przesunięciem palca.
 10. **Kółko i krzyżyk z kotem** — przeciwko prostemu komputerowi (kot = kółko, Gabi = krzyżyk).
 11. **Spadające gwiazdy** — nocny balkon: łap spadające gwiazdy, omijaj chmury (wykorzystuje rysowanie nieba).
@@ -159,3 +161,19 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
 - Żywe niebo nad balkonem: `src/home/balconySky.ts` (czyste funkcje: `litShare`, `windowLit`, `meteorAt`, `starDimmed`) + rysowanie w `pet/room.ts` (`drawBalconyBack` / `drawBalconyLive` / `drawBalconyFront`). Renderer pokoju na balkonie składa warstwy co klatkę: niebo z miastem (bufor) → okna, migotanie, spadające gwiazdy → podłoga z balustradą (bufor) → nocna nakładka przy zgaszonym świetle. Okna wieczorem i nocą gasną/zapalają się (cykl 40–120 s, im później, tym mniej świeci: 22:00 ~80%, 5:00 ~25%); spadająca gwiazda średnio co ~13 s (lot 1 s), co piąta gwiazda migocze.
 - Niebo w dzień: chmurki (`CLOUDS`, `cloudX`) dryfują w prawo (0,8–2,2 px/s) i wracają zza lewej krawędzi — rano, w dzień i wieczorem (różowe); klucze ptaków (`birdsAt`: 1–4 ptaki co ~18 s, przelot 7 s, machają skrzydłami „v”/„^”). Chmurki są teraz w warstwie żywej (`drawBalconyLive`), nie w buforze nieba.
 - Nowe jedzenie (14 potraw): truskawki, pączek, lody, zapiekanka, naleśniki, pierogi, ramen, sushi — ikonki 12×12 w `src/art/icons.ts`, kwestie przy konkretnej potrawie `content.foodLines` (reszta — `lines.eat`), kuchenka gotuje też pierogi, naleśniki, zapiekankę i ramen.
+
+## Pięć nowych minigier (2026-10-09)
+- Logika (czyste funkcje, testy w `tests/games/newGames.test.ts`, zasady w `rules.ts` sprawdzane w `rules.test.ts`):
+  `food2048Logic.ts`, `catBoxesLogic.ts`, `simonLogic.ts`, `cupsLogic.ts`, `catRunLogic.ts`; rysowanie w `*Game.ts`.
+- 2048 z jedzeniem (Łamigłówki): plansza DOM 4×4, przesunięcie palcem / strzałki, łańcuch 13 potraw (jabłko → … → KitKat
+  → tort), przycisk „Zakończ i odbierz”; nagroda 1 moneta / 80 pkt (3–50).
+- Ukulele Simon (Łamigłówki): Gabi gra (klatki `uke_*`) na strunach G C E A (`pluck` w `sound.ts`), gracz powtarza;
+  pomyłka — `sad_cry`; 3 monety za melodię (3–45).
+- Kot w pudełkach (Zręcznościowe): 9 pudełek, 30 s, kot +1, złoty +5, ogórek −3; kot rysowany za przednią ścianką
+  (warstwa fx) i przycinany do pudełka.
+- Trzy kubki (Zręcznościowe): pokaz → tasowanie (3 zamiany + 1 na rundę, coraz szybciej) → wybór; 3 serduszka.
+  Kotek niewidoczny w czasie tasowania (kubki jadą łukiem).
+- Skaczący kotek (Zręcznościowe): bieg z przyspieszeniem, doniczki / ogórki / wysokie doniczki (od prędkości 75),
+  rybki nad przeszkodami (+5); test sprawdza, że każdą przeszkodę da się przeskoczyć.
+- Wspólne: `catDraw.ts` (klatki kota w grach), ikonki `catface`, `cup`, `note`, `fish`.
+- Sprawdzone w przeglądarce na tymczasowej stronie testowej (bez zapisu gry): wszystkie pięć, w tym pełne rundy Simona.

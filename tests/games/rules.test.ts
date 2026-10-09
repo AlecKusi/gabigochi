@@ -9,6 +9,11 @@ import { memoryScore } from '../../src/games/memoryLogic';
 import { catchReward, candlesReward, memoryReward } from '../../src/games/rewards';
 import { COMMON_RULES, GAME_RULES } from '../../src/games/rules';
 import { DIFFICULTY_SCORE } from '../../src/games/sudokuLogic';
+import { BOXES, catBoxesReward } from '../../src/games/catBoxesLogic';
+import { CUPS, cupsReward } from '../../src/games/cupsLogic';
+import { RUN, catRunReward } from '../../src/games/catRunLogic';
+import { food2048Reward, mergePoints } from '../../src/games/food2048Logic';
+import { simonReward } from '../../src/games/simonLogic';
 
 const text = (id: string) => {
   const r = GAME_RULES[id];
@@ -66,6 +71,34 @@ describe('zasady minigier zgadzają się z grą', () => {
     expect(cryptoScore(0)).toBe(60);
     expect(cryptoScore(1)).toBe(50);
     expect(cryptoScore(9)).toBe(30);
+  });
+
+  it('2048: łańcuch potraw, punkty, nagroda', () => {
+    const t = text('food2048');
+    expect(t).toContain('jabłko → truskawki → pączek');
+    expect(t).toContain('KitKat → tort urodzinowy');
+    expect(t).toContain(`truskawki ${mergePoints(2)}, pączek ${mergePoints(3)}, kanapka ${mergePoints(4)}`);
+    expect(t).toContain(`tort ${mergePoints(13)}`);
+    expect(food2048Reward(80 * 20).coins).toBe(20);
+    expect(food2048Reward(1e6).coins).toBe(50);
+    expect(food2048Reward(0).coins).toBe(3);
+  });
+
+  it('kot w pudełkach, kubki, bieg, Simon: liczby i nagrody', () => {
+    const boxes = text('catboxes');
+    expect(boxes).toContain(`${BOXES.duration / 1000} sekund`);
+    expect(boxes).toContain(`${BOXES.count} pudełek`);
+    expect(boxes).toContain(`złoty kotek +${BOXES.points.golden} pkt`);
+    expect(catBoxesReward(10).coins).toBe(12);
+    expect(catBoxesReward(1000).coins).toBe(45);
+    const cups = text('cups');
+    expect(cups).toContain(`${CUPS.baseSwaps} zamiany`);
+    expect(cups).toContain(`${CUPS.lives} serduszka`);
+    expect(cupsReward(4).coins).toBe(12);
+    expect(text('catrun')).toContain(`${RUN.fishPoints} pkt za każdą rybkę`);
+    expect(catRunReward(60).coins).toBe(10);
+    expect(text('simon')).toContain('G, C, E, A');
+    expect(simonReward(4).coins).toBe(12);
   });
 
   it('wspólne: koszt energii', () => {

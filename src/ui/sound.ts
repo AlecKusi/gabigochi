@@ -108,6 +108,13 @@ function arp(type: OscillatorType, notes: number[], step: number, vol = 0.8): vo
 
 const C5 = 523, E5 = 659, G5 = 784, C6 = 1047, A4 = 440, F4 = 349, D5 = 587;
 
+/** Szarpnięta struna (ukulele w minigrze): miękki trójkąt z krótkim „brzdękiem” oktawę wyżej. */
+export function pluck(freq: number): void {
+  if (!enabled) return;
+  tone('triangle', freq, freq, 0.45, 0.9);
+  tone('square', freq * 2, freq * 2, 0.06, 0.18);
+}
+
 export function play(s: Sfx): void {
   if (!enabled) return;
   switch (s) {
