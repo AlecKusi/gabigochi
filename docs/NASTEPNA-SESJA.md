@@ -184,3 +184,14 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   Rysowane w `tools/draw_kitchen_balcony.py` bez automatycznego konturu (`NO_OUTLINE`).
 - `SALON_DECOR` w `starter.ts`; `readHome` dokłada je po cichu do salonu, jeśli nie ma ich ani w pokojach, ani
   w magazynie (schowane nie wracają same).
+
+## Meble balkonowe z dwóch arkuszy (2026-10-09)
+- `sheet-balcony1.jpg`, `sheet-balcony2.jpg` (okres 6,25, skala 0,75), 25 przedmiotów w kategorii „balcony”:
+  krzesła (składane, złożone, metalowe), fotel rattanowy, leżak, stoły (drewniany, okrągły, z parasolem), ławka,
+  zestaw stolik + krzesła, skrzynka na balustradę, doniczka wisząca (ścienna), donica z drzewkiem, kokon, stolik na
+  barierkę, pufa ogrodowa, poduszki podłogowe, markiza (ścienna), mata na barierkę, pergola z pnączem, regał na rośliny,
+  girlanda z żarówkami (ścienna, lampka), lampiony (lampka), dywanik (warstwa dywanów), mini grill (gotowanie).
+- Siedziska (`SEATS`): krzesła, fotel, kokon (`SEAT_LIFT` 3), pufa; kanapy (`SOFAS`): ławka i leżak (leżenie, drzemka).
+  Kot śpi też na nich i na poduszkach podłogowych (`CAT_BED_LIFT`). Stoliki — kawa (poza stolikiem z parasolem:
+  parasol zasłaniałby siedzącą Gabi, więc to dekoracja). Rośliny — podlewanie.
+- Ekstraktor: `shadowHsv` (arkusz albo wpis) — w obszarach `shadow` znika też cień w zadanym kolorze, nawet między nogami.

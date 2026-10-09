@@ -164,6 +164,8 @@ const CAT_BED_LIFT: Readonly<Record<string, number>> = {
   cat_bed_round: 2, cat_cave: 2, bean_bag: 6, pouf: 6, pouf_frog: 6,
   sofa_cozy: 12, sofa_kawaii: 12, sofa_gothic: 12, sofa_leather: 12, loveseat: 12,
   armchair_cozy: 11, armchair_bunny: 11, armchair_gothic: 11, armchair_wingback: 11,
+  // balkon
+  rattan_bench: 12, sun_lounger: 9, rattan_armchair: 11, egg_chair: 11, outdoor_pouf: 7, floor_cushions: 4,
 };
 function catBeds(items: readonly PlacedItem[]): CatBed[] {
   // łapki kota na wysokości siedziska: linia dolna mebla minus wysokość siedziska, liczona od linii kota

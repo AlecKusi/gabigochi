@@ -1631,6 +1631,256 @@
     "interaction": "none",
     "price": 40
   },
+  "balcony_folding_chair": {
+    "w": 31,
+    "h": 43,
+    "scale": 0.75,
+    "name": "Krzesło składane",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 50
+  },
+  "balcony_folded_chair": {
+    "w": 28,
+    "h": 44,
+    "scale": 0.75,
+    "name": "Złożone krzesło",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 30
+  },
+  "balcony_metal_chair": {
+    "w": 28,
+    "h": 41,
+    "scale": 0.75,
+    "name": "Krzesło metalowe",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 60
+  },
+  "rattan_armchair": {
+    "w": 37,
+    "h": 42,
+    "scale": 0.75,
+    "name": "Fotel rattanowy",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 160
+  },
+  "sun_lounger": {
+    "w": 45,
+    "h": 40,
+    "scale": 0.75,
+    "name": "Leżak",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 140
+  },
+  "balcony_wooden_table": {
+    "w": 34,
+    "h": 34,
+    "scale": 0.75,
+    "name": "Stół drewniany",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "coffee",
+    "price": 90
+  },
+  "balcony_round_table": {
+    "w": 30,
+    "h": 32,
+    "scale": 0.75,
+    "name": "Stolik okrągły",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "coffee",
+    "price": 80
+  },
+  "umbrella_table": {
+    "w": 45,
+    "h": 49,
+    "scale": 0.75,
+    "name": "Stolik z parasolem",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 180
+  },
+  "rattan_bench": {
+    "w": 50,
+    "h": 44,
+    "scale": 0.75,
+    "name": "Ławka balkonowa",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 240
+  },
+  "bistro_set": {
+    "w": 72,
+    "h": 40,
+    "scale": 0.75,
+    "name": "Zestaw: stolik i krzesła",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "coffee",
+    "price": 200
+  },
+  "railing_planter": {
+    "w": 47,
+    "h": 36,
+    "scale": 0.75,
+    "name": "Skrzynka na balustradę",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 70
+  },
+  "hanging_planter": {
+    "w": 25,
+    "h": 36,
+    "scale": 0.75,
+    "name": "Doniczka wisząca",
+    "category": "balcony",
+    "layer": "wall",
+    "interaction": "water",
+    "price": 50
+  },
+  "potted_tree": {
+    "w": 24,
+    "h": 41,
+    "scale": 0.75,
+    "name": "Donica z drzewkiem",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 120
+  },
+  "egg_chair": {
+    "w": 29,
+    "h": 42,
+    "scale": 0.75,
+    "name": "Krzesło wiszące (kokon)",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 260
+  },
+  "railing_table": {
+    "w": 32,
+    "h": 38,
+    "scale": 0.75,
+    "name": "Stolik na barierkę",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "coffee",
+    "price": 70
+  },
+  "outdoor_pouf": {
+    "w": 35,
+    "h": 25,
+    "scale": 0.75,
+    "name": "Pufa ogrodowa",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 60
+  },
+  "floor_cushions": {
+    "w": 51,
+    "h": 29,
+    "scale": 0.75,
+    "name": "Poduszki podłogowe",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 45
+  },
+  "balcony_awning": {
+    "w": 52,
+    "h": 37,
+    "scale": 0.75,
+    "name": "Markiza w paski",
+    "category": "balcony",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 120
+  },
+  "privacy_screen": {
+    "w": 36,
+    "h": 33,
+    "scale": 0.75,
+    "name": "Mata na barierkę",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 60
+  },
+  "trellis": {
+    "w": 36,
+    "h": 39,
+    "scale": 0.75,
+    "name": "Pergola z pnączem",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 110
+  },
+  "plant_shelf": {
+    "w": 34,
+    "h": 41,
+    "scale": 0.75,
+    "name": "Regał na rośliny",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 150
+  },
+  "bulb_lights": {
+    "w": 64,
+    "h": 32,
+    "scale": 0.75,
+    "name": "Girlanda świetlna z żarówkami",
+    "category": "balcony",
+    "layer": "wall",
+    "interaction": "lamp",
+    "price": 90
+  },
+  "lanterns": {
+    "w": 33,
+    "h": 37,
+    "scale": 0.75,
+    "name": "Lampiony",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "lamp",
+    "price": 70
+  },
+  "outdoor_rug": {
+    "w": 50,
+    "h": 27,
+    "scale": 0.75,
+    "name": "Dywanik balkonowy",
+    "category": "balcony",
+    "layer": "rug",
+    "interaction": "none",
+    "price": 80
+  },
+  "mini_grill": {
+    "w": 23,
+    "h": 29,
+    "scale": 0.75,
+    "name": "Mini grill",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "cook",
+    "price": 160
+  },
   "fridge_retro": {
     "w": 40,
     "h": 56,

@@ -22,6 +22,8 @@ Retusz (po kwantyzacji do palety, w komórkach natywnych; kształty jak w `erase
          koszulki, przez który szedł pasek, odtworzony z klatki bez paska.
 `fix`  — [[x0,y0,x1,y1,[r,g,b] | null], ...]: ręczne poprawki po retuszu (kolor z palety albo przezroczystość).
 `shadow` — obszary cienia na podłodze narysowanego w arkuszu: znika szara plama wokół butów (`remove_shadow`).
+`shadowHsv` — [odcień od, odcień do, nasycenie max, jasność od, jasność do] (wpis albo arkusz): w obszarach `shadow`
+         znikają też wszystkie komórki w kolorach cienia, nawet otoczone konturem (cień między nogami mebla).
 Podgląd przed/po: tools/out/bag_before_after.png.
 
 Paleta (k-means wszystkich klatek) jest zamrożona w tools/palette.json — usunięcie albo dodanie klatki nie
@@ -148,6 +150,7 @@ def entry(spec, group):
         'pet': spec.get('pet', []),
         'seatMode': spec.get('seatMode', sh.get('seatMode', 'colour')),
         'onlyLargest': spec.get('onlyLargest', sh.get('onlyLargest', False)),
+        'shadowHsv': spec.get('shadowHsv', sh.get('shadowHsv')),
         **{k: spec.get(k, []) for k in LIST_KEYS},
     }
 
@@ -629,7 +632,14 @@ def retouch(idx, mask, xs, ys, e, palette, sources):
             idx[y, x] = darkest
             mask[y, x] = False
     barrier = {i for i, (_, _, v) in enumerate(palette_hsv(palette)) if v < SHADOW_BARRIER_VAL}
-    remove_shadow(idx, mask, erase_mask(xs, ys, e['shadow']), barrier)
+    region = erase_mask(xs, ys, e['shadow'])
+    remove_shadow(idx, mask, region, barrier)
+    if e['shadowHsv']:
+        # cień w kolorze odróżnialnym od mebla (np. szaroniebieski): znika w całym obszarze `shadow`, także między
+        # nogami mebla, dokąd zalewanie od tła nie dochodzi
+        h0, h1, smax, v0, v1 = e['shadowHsv']
+        grey = [i for i, (hh, ss, vv) in enumerate(palette_hsv(palette)) if h0 <= hh <= h1 and ss <= smax and v0 <= vv <= v1]
+        mask |= region & np.isin(idx, grey)
     return idx, mask
 
 
