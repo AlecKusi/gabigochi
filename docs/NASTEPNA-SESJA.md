@@ -1,18 +1,35 @@
-# Gdzie skończyliśmy (2026-10-08)
+# Gdzie skończyliśmy (2026-10-09)
 
 ## Stan
-Gałąź `etap-1` — **działająca wersja** (475 testów, typy i build przechodzą; nic nie jest opublikowane).
-- 4 pokoje, urządzanie, sklep (jedzenie, meble, okna, ozdoby, rośliny, gaming, hobby, łazienka, tapety, podłogi);
+Gałąź `etap-1` — **działająca wersja** (520 testów, typy i build przechodzą; nic nie jest opublikowane).
+- 6 pokoi (salon, sypialnia, pracownia, łazienka, kuchnia, balkon), urządzanie, sklep (14 potraw, meble, okna, ozdoby,
+  rośliny, gaming, hobby, łazienka, kuchnia, balkon, tapety, podłogi);
 - Szafa: 50 ubrań i ozdób, stroje przemalowywane na wszystkich animacjach (sukienki w kształcie A), przymiarka;
-- interakcje z meblami: siedzenie/relaks/drzemka na kanapach i fotelach, stół (kawa/ciasto/KitKat), okno i TV od tyłu,
-  podlewanie konewką, kocie legowiska; łazienka; kot chodzący po pokoju (20 klatek, reakcje na Gabi);
-- zajęcia: nauka, praktyka, telefon, szydełko, muzyka, karaoke, taniec; codzienne miny; animowany ekran urodzinowy;
-- 6 minigier z przyciskiem „i” (zasady, pauza); hasła osobiste w krzyżówce; losowe teksty Gabi;
-- sen i drzemka: pełna energia w 10 minut.
+- interakcje z meblami: siedzenie/relaks/drzemka, stół, okno i TV od tyłu, podlewanie, lodówki z otwieraniem (3 modele),
+  gotowanie, zegar ścienny; łazienka; kot jako postać (imię, głód, sympatia, je z miski w klatkach, śpi na meblach);
+- zajęcia: nauka, praktyka, telefon, szydełko, muzyka, karaoke, taniec, ukulele; cola z animacją picia;
+- pora dnia (okna, poświata, zegarek na pasku), żywe niebo nad balkonem (chmurki i ptaki w dzień, gasnące okna,
+  spadające i migoczące gwiazdy nocą); podgląd innej godziny: `?godzina=23` (tylko `npm run dev`);
+- dźwięki 8-bit z wyłącznikiem; 6 minigier z przyciskiem „i”; losowe teksty Gabi (12); sen/drzemka: pełna energia w 10 min.
 
 ## Do decyzji użytkownika
 - treść życzeń w `src/content.ts` (wciąż szkic);
 - zgoda na publiczny link (GitHub Pages; workflow gotowy w `.github/workflows/deploy.yml`, gałąź `main`).
+
+## Pomysły na nowe minigry (lista dla użytkownika, 2026-10-09)
+Obecne: łapanie jedzenia, świeczki, cegiełki, szyfrokrzyżówka, memory, sudoku. Propozycje (najprostsze pierwsze):
+1. **2048 z jedzeniem** — łączenie jednakowych kafelków: jabłko → truskawki → pączek → … → tort (ikonki już są).
+2. **Ułóż tort** — warstwa jeździ w poprzek, stuknięcie ją upuszcza, wystające kawałki odpadają; jak najwyższy tort.
+3. **Kot w pudełkach** — Somerka wyskakuje z pudełek, stuknij ją, zanim się schowa (30 s, klatki kota już są).
+4. **Ukulele Simon** — Gabi gra coraz dłuższą melodię na 4 strunach, powtórz ją (dźwięki 8-bit z `sound.ts`).
+5. **Zastrzyk w punkt** (pielęgniarka) — wskaźnik biega po pasku, zatrzymaj go w zielonym polu; pole się zwęża.
+6. **Wisielec** — hasła z listy krzyżówki (`cryptoWords.ts`), za każdy błąd kot zjada kawałek KitKata.
+7. **Trzy kubki** — kot chowa się pod kubkiem, kubki się tasują, zgadnij gdzie jest (coraz szybciej).
+8. **Skaczący kotek** — bieg bez końca: stuknięcie = skok nad doniczkami i ogórkami (jak dinozaur z Chrome).
+9. **Wąż z KitKatami** — klasyczny wąż na kratce, sterowanie przesunięciem palca.
+10. **Kółko i krzyżyk z kotem** — przeciwko prostemu komputerowi (kot = kółko, Gabi = krzyżyk).
+11. **Spadające gwiazdy** — nocny balkon: łap spadające gwiazdy, omijaj chmury (wykorzystuje rysowanie nieba).
+12. **Quiz o Gabi** — pytania i odpowiedzi od użytkownika (urodzinowa niespodzianka; potrzebne treści pytań).
 
 ## Pomysły na dalej (lista dla użytkownika, 2026-10-08)
 Szybkie:
