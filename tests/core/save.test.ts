@@ -98,7 +98,7 @@ describe('zapis v2 i migracja v1 → v2', () => {
     const kv = memoryKV({ [SAVE_KEY]: JSON.stringify(obj) });
     return { kv, r: loadState(kv, now) };
   };
-  const defaults = () => Object.values(DEFAULT_LOOKS).flatMap((d) => [d.wallpaper, d.floor]).sort();
+  const defaults = () => [...new Set(Object.values(DEFAULT_LOOKS).flatMap((d) => [d.wallpaper, d.floor]))].sort();
 
   it('v1 → v2: zachowuje wszystko i dodaje domyślne pokoje z meblami startowymi', () => {
     const { r, kv } = load(V1, T0 + 10);

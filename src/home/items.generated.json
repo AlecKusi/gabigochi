@@ -1476,5 +1476,104 @@
     "w": 76,
     "h": 28,
     "scale": 0.38
+  },
+  "fridge": {
+    "w": 22,
+    "h": 45,
+    "name": "Lodówka",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "fridge",
+    "price": 200
+  },
+  "stove": {
+    "w": 27,
+    "h": 31,
+    "name": "Kuchenka z piekarnikiem",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "cook",
+    "price": 220
+  },
+  "kitchen_counter": {
+    "w": 32,
+    "h": 31,
+    "name": "Blat ze zlewem",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 160
+  },
+  "wall_cabinet": {
+    "w": 32,
+    "h": 16,
+    "name": "Szafki kuchenne",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 90
+  },
+  "spice_shelf": {
+    "w": 28,
+    "h": 12,
+    "name": "Półka z przyprawami",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 50
+  },
+  "cat_bowl": {
+    "w": 12,
+    "h": 8,
+    "name": "Miska kota",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "catfood",
+    "price": 40
+  },
+  "flower_box": {
+    "w": 30,
+    "h": 18,
+    "name": "Skrzynka z kwiatami",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "water",
+    "price": 70
+  },
+  "balcony_chair": {
+    "w": 14,
+    "h": 27,
+    "name": "Krzesełko balkonowe",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 60
+  },
+  "bistro_table": {
+    "w": 18,
+    "h": 27,
+    "name": "Stolik kawiarniany",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "coffee",
+    "price": 90
+  },
+  "string_lights": {
+    "w": 66,
+    "h": 9,
+    "name": "Lampki na balkon",
+    "category": "balcony",
+    "layer": "wall",
+    "interaction": "lamp",
+    "price": 80
+  },
+  "telescope": {
+    "w": 18,
+    "h": 31,
+    "name": "Luneta",
+    "category": "balcony",
+    "layer": "floor",
+    "interaction": "window",
+    "price": 250
   }
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createState } from '../../src/core/state';
 import type { GameState } from '../../src/core/types';
 import { INTERACTIONS, itemFrames } from '../../src/home/catalog';
-import { interactionReward, interactionSteps, napMs, rewardInteraction, stepAt, toggleLamp, totalMs } from '../../src/home/interactionPlan';
+import { cookDish, interactionReward, interactionSteps, napMs, rewardInteraction, stepAt, toggleLamp, totalMs } from '../../src/home/interactionPlan';
 import framesMeta from '../../src/sprites/frames.generated.json';
 
 const NOW = new Date(2026, 9, 6, 12).getTime();
@@ -92,6 +92,21 @@ describe('meble: drzemka, stół, okno, TV, siedziska, kotek', () => {
     expect(interactionSteps('relax', { hasRail: false, variant: 0.9 })![1].line).toBe('tea');
     expect(interactionSteps('lounge', { hasRail: false })!.every((st) => st.gabi.kind === 'frames' && st.gabi.at === 'lie')).toBe(true);
     expect(interactionSteps('cat', { hasRail: false })!.some((st) => st.effect === 'hearts')).toBe(true);
+  });
+});
+
+describe('kuchnia', () => {
+  it('lodówka, gotowanie z parą, karmienie kota', () => {
+    expect(interactionSteps('fridge', { hasRail: false })![0].gabi).toMatchObject({ at: 'under' });
+    const cook = interactionSteps('cook', { hasRail: false })!;
+    expect(cook[0].effect).toBe('steam');
+    expect(cook[0].line).toBe('cook');
+    expect(interactionSteps('catfood', { hasRail: false })![0].line).toBe('catfood');
+  });
+  it('gotowanie wkłada danie do lodówki', () => {
+    const s = createState(NOW);
+    const r = cookDish(s, () => 0.5);
+    expect(r.state.fridge[r.food]).toBe((s.fridge[r.food] ?? 0) + 1);
   });
 });
 

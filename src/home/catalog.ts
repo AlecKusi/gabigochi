@@ -1,13 +1,14 @@
 import meta from './items.generated.json';
 
-export const ITEM_CATEGORIES = ['furniture', 'window', 'decor', 'plant', 'gaming', 'hobby', 'bathroom'] as const;
+export const ITEM_CATEGORIES = ['furniture', 'window', 'decor', 'plant', 'gaming', 'hobby', 'bathroom', 'kitchen', 'balcony'] as const;
 export type ItemCategory = (typeof ITEM_CATEGORIES)[number];
 
 export type ItemLayer = 'wall' | 'floor' | 'rug';
 
 export const INTERACTIONS = [
   'water', 'read', 'play', 'study', 'crochet', 'music', 'cute', 'lamp', 'calendar', 'window',
-  'toilet', 'shower', 'bath', 'sink', 'hairdryer', 'wardrobe', 'coffee', 'nap', 'relax', 'lounge', 'tv', 'cat', 'none',
+  'toilet', 'shower', 'bath', 'sink', 'hairdryer', 'wardrobe', 'coffee', 'nap', 'relax', 'lounge', 'tv', 'cat',
+  'fridge', 'cook', 'catfood', 'none',
 ] as const;
 export type Interaction = (typeof INTERACTIONS)[number];
 
@@ -118,6 +119,8 @@ export const SHOP_CATEGORIES: readonly { id: ShopCategory; name: string }[] = [
   { id: 'gaming', name: 'Gaming' },
   { id: 'hobby', name: 'Hobby' },
   { id: 'bathroom', name: 'Łazienka' },
+  { id: 'kitchen', name: 'Kuchnia' },
+  { id: 'balcony', name: 'Balkon' },
   { id: 'wallpaper', name: 'Tapety' },
   { id: 'floor', name: 'Podłogi' },
 ];

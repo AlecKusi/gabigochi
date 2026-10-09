@@ -86,6 +86,10 @@ export function createInventoryPanel(hooks: InventoryHooks): InventoryPanel {
   }
 
   function render(state: GameState, room: RoomId): void {
+    // balkon nie ma tapety (niebo z pory dnia) — bez zakładki „Tapeta”
+    const noWall = room === 'balcony';
+    tabs[1].hidden = noWall;
+    if (noWall && tab === 'wallpaper') tab = 'inventory';
     last = { state, room };
     const r = state.rooms[room];
     const key = JSON.stringify([tab, room, state.inventory, state.ownedLooks, r.wallpaper, r.floor]);

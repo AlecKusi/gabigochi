@@ -4,6 +4,7 @@ import { DEFAULT_LOOKS, LATER_DEFAULT_LOOKS, defaultLookIds, findLook } from '..
 import { STARTER_LAYOUT, createHome, type HomeState } from '../home/starter';
 import { CLOTH_SLOTS, findCloth } from '../wardrobe/catalog';
 import { defaultOutfit } from '../wardrobe/outfit';
+import { CONFIG } from './config';
 import { createState } from './state';
 import type { GameState, Outfit, PlacedItem, RoomId, RoomState } from './types';
 
@@ -34,7 +35,7 @@ const isRecord = (x: unknown): x is Record<string, unknown> =>
  * Pokoje dodane po pierwszej wersji zapisu v2. Zapis bez takiego pokoju nie jest uszkodzony — pokój dochodzi
  * po cichu (domyślny wygląd i meble startowe z nowymi `uid`), bez kopii zapasowej i bez komunikatu.
  */
-const LATER_ROOMS: readonly RoomId[] = ['bathroom'];
+const LATER_ROOMS: readonly RoomId[] = ['bathroom', 'kitchen', 'balcony'];
 
 const isNum = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
 const allNums = (x: Record<string, unknown>): boolean => Object.values(x).every(isNum);
@@ -223,18 +224,26 @@ function readWardrobe(x: Record<string, unknown>): { outfit: Outfit; ownedClothe
   return { outfit, ownedClothes: [...owned] };
 }
 
+/** Kotek (pole dodane później): braki i błędy — po cichu wartości domyślne. */
+function readCat(x: Record<string, unknown>): { cat: GameState['cat'] } {
+  const c = isRecord(x.cat) ? x.cat : {};
+  const name = typeof c.name === 'string' && c.name.trim() !== '' ? c.name.trim().slice(0, CONFIG.cat.maxName) : CONFIG.cat.defaultName;
+  const num = (v: unknown, d: number) => (isNum(v) ? Math.max(0, Math.min(100, v)) : d);
+  return { cat: { name, hunger: num(c.hunger, 80), love: num(c.love, 60) } };
+}
+
 /** Zapis v1 → v2 (dochodzą mieszkanie i szafa), v2 → odczyt z naprawą mieszkania. `null` — zapis nie do odczytania. */
 function migrate(x: unknown, now: number): { state: GameState; repaired: boolean } | null {
   if (!isRecord(x) || !isValidCore(x)) return null;
   if (x.version === 1) {
     return {
-      state: { ...(x as unknown as Omit<GameState, 'version'>), version: 2, ...readWardrobe({}), ...createHome(now) },
+      state: { ...(x as unknown as Omit<GameState, 'version'>), version: 2, ...readWardrobe({}), ...readCat({}), ...createHome(now) },
       repaired: false,
     };
   }
   if (x.version === 2) {
     const { home, repaired } = readHome(x, now);
-    return { state: { ...(x as unknown as GameState), ...readWardrobe(x), ...home }, repaired };
+    return { state: { ...(x as unknown as GameState), ...readWardrobe(x), ...readCat(x), ...home }, repaired };
   }
   return null;
 }

@@ -17,6 +17,7 @@ import framesMeta from './sprites/frames.generated.json';
 import { FRAMES, PORTRAIT_MASKS, loadSprites, maskUrl } from './sprites/loader';
 import { h } from './ui/dom';
 import { mountInstall } from './ui/install';
+import { unlockAudio } from './ui/sound';
 import { birthdayScreen } from './ui/screens/birthday';
 import { gamesScreen } from './ui/screens/games';
 import { profileScreen } from './ui/screens/profile';
@@ -79,6 +80,7 @@ async function boot(): Promise<void> {
   try {
     // iOS Safari uruchamia :active tylko, gdy na dokumencie jest nasłuch dotyku.
     document.addEventListener('touchstart', () => {}, { passive: true });
+    unlockAudio();
     // iOS ignoruje user-scalable=no — pinch-zoom blokujemy tutaj.
     document.addEventListener('gesturestart', (e) => e.preventDefault());
     const root = document.getElementById('app')!;

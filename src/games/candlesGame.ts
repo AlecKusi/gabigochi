@@ -4,6 +4,7 @@ import { makeCanvas, runLoop } from './canvas';
 import { CANDLES, blowCandle, createCandles, stepCandles, type CandlesState } from './candlesLogic';
 import { candlesReward } from './rewards';
 import type { MiniGame } from './types';
+import { play } from '../ui/sound';
 
 const W = 128;
 const H = 176;
@@ -63,6 +64,7 @@ export const candlesGame: MiniGame = {
       if (idx < 0) return;
       const pos = candlePos(s.phase, idx);
       s = blowCandle(s, idx);
+      play('blow');
       puffs.push({ x: pos.x + pos.w / 2, y: pos.top - 4, life: 0.6 });
     });
 

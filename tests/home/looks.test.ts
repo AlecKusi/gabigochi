@@ -38,9 +38,9 @@ describe('wyglądy (tapety i podłogi)', () => {
 
   it('dokładnie 8 domyślnych za 0 (po dwa na pokój), reszta płatna', () => {
     const free = LOOKS.filter((l) => l.price === 0).map((l) => l.id).sort();
-    const defaults = Object.values(DEFAULT_LOOKS).flatMap((d) => [d.wallpaper, d.floor]).sort();
+    const defaults = [...new Set(Object.values(DEFAULT_LOOKS).flatMap((d) => [d.wallpaper, d.floor]))].sort();
     expect(free).toEqual(defaults);
-    expect(free).toHaveLength(8);
+    expect(free).toHaveLength(11); // 6 pokoi (balkon bez własnej tapety — niebo)
     for (const l of LOOKS) if (l.price > 0) expect(l.price).toBeGreaterThanOrEqual(30);
   });
 
@@ -61,8 +61,9 @@ describe('wyglądy (tapety i podłogi)', () => {
     expect(lookById(DEFAULT_LOOKS.salon.floor).colors.slice(0, 2)).toEqual(['#8d68c4', '#7f5bb6']);
   });
 
-  it('wyglądy dodane później (łazienka) są darmowe i domyślne', () => {
-    expect([...LATER_DEFAULT_LOOKS].sort()).toEqual([DEFAULT_LOOKS.bathroom.wallpaper, DEFAULT_LOOKS.bathroom.floor].sort());
+  it('wyglądy dodane później (łazienka, kuchnia, balkon) są darmowe i domyślne', () => {
+    const later = [...new Set(['bathroom', 'kitchen', 'balcony'].flatMap((r) => [DEFAULT_LOOKS[r as 'kitchen'].wallpaper, DEFAULT_LOOKS[r as 'kitchen'].floor]))];
+    expect([...LATER_DEFAULT_LOOKS].sort()).toEqual(later.sort());
     for (const id of LATER_DEFAULT_LOOKS) expect(lookById(id).price).toBe(0);
   });
 

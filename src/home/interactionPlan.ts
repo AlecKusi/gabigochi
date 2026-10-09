@@ -1,4 +1,4 @@
-import { CONFIG } from '../core/config';
+import { CONFIG, type FoodId } from '../core/config';
 import type { GameState, RoomId } from '../core/types';
 import type { Interaction } from './catalog';
 import { findItem } from './catalog';
@@ -29,9 +29,9 @@ export type PoseAt = 'seat' | 'lie' | 'behind' | 'front' | 'under';
 export type InteractionLine =
   | 'water' | 'read' | 'play' | 'cute' | 'calendar' | 'window'
   | 'toilet' | 'shower' | 'showerDone' | 'bath' | 'bathRelax' | 'sink' | 'towel' | 'hairdryer' | 'nap' | 'coffee'
-  | 'cake' | 'kitkat' | 'tea' | 'relaxPhone' | 'tv' | 'cat';
+  | 'cake' | 'kitkat' | 'tea' | 'relaxPhone' | 'tv' | 'cat' | 'fridge' | 'cook' | 'catfood';
 
-export type InteractionEffect = 'water' | 'hearts' | 'screen';
+export type InteractionEffect = 'water' | 'hearts' | 'screen' | 'steam';
 
 export interface InteractionStep {
   ms: number;
@@ -137,6 +137,21 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
         { ms: 1600, item: null, gabi: ctx.night ? at(['back_idle'], 1, 'under') : at(['back_wave', 'back_idle'], 2.5, 'under') },
         { ms: 800, item: null, gabi: at(['back_hips'], 1, 'under') },
       ];
+    case 'fridge':
+      // zagląda do lodówki (od tyłu), potem panel jedzenia
+      return [{ ms: 1400, item: null, gabi: at(['back_touch'], 1, 'under'), line: 'fridge' }];
+    case 'cook':
+      // przy kuchence (od tyłu): miesza w garnku, para; danie trafia do lodówki
+      return [
+        { ms: 5200, item: null, gabi: at(['back_touch', 'back_idle'], 1.2, 'under'), line: 'cook', effect: 'steam' },
+        { ms: 1400, item: null, gabi: { kind: 'frames', frames: ['fun_eat'], fps: 1 }, effect: 'hearts' },
+      ];
+    case 'catfood':
+      // nasypuje karmy do miski (kuca przy niej), kotek przybiega
+      return [
+        { ms: 1600, item: null, gabi: { kind: 'frames', frames: ['care_soil'], fps: 1, face: true }, line: 'catfood' },
+        { ms: 1200, item: null, gabi: { kind: 'frames', frames: ['expr_love'], fps: 1 }, effect: 'hearts' },
+      ];
     case 'nap':
       // drzemka na kanapie na leżąco
       // drzemka trwa, aż energia się zapełni (pokój dolicza energię w tempie snu); stuknięcie Gabi ją przerywa
@@ -225,6 +240,9 @@ export function interactionReward(kind: Interaction): { mood: number; energy: nu
       return { mood: 3, energy: -1 };
     case 'cat':
       return { mood: 3, energy: 0 };
+    case 'cook':
+    case 'catfood':
+      return { mood: 2, energy: 0 };
     case 'nap':
       return { mood: 1, energy: 0 }; // energia rośnie w trakcie drzemki
     default:
@@ -256,3 +274,13 @@ export function toggleLamp(state: GameState, room: RoomId, uid: string): HomeOut
     state: { ...state, rooms: { ...state.rooms, [room]: { ...r, items: r.items.map((i) => (i.uid === uid ? { ...i, lampOn: !i.lampOn } : i)) } } },
   };
 }
+
+/** Dania z kuchenki (do lodówki): częściej kanapka i pizza, rzadziej tort. */
+const DISHES: readonly FoodId[] = ['sandwich', 'sandwich', 'pizza', 'pizza', 'apple', 'cake'];
+
+/** Gotowanie: losowe danie trafia do lodówki. */
+export function cookDish(state: GameState, rng: () => number): { state: GameState; food: FoodId } {
+  const food = DISHES[Math.min(DISHES.length - 1, Math.floor(rng() * DISHES.length))];
+  return { state: { ...state, fridge: { ...state.fridge, [food]: (state.fridge[food] ?? 0) + 1 } }, food };
+}
+

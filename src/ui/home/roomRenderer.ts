@@ -4,6 +4,7 @@ import type { PlacedItem, RoomId, RoomState } from '../../core/types';
 import { findItem, itemFrames } from '../../home/catalog';
 import { GABI, drawOrder, itemBox } from '../../home/layout';
 import { DEFAULT_LOOKS, findLook } from '../../home/looks';
+import { ROOM_PHASE_TINT, WINDOW_PHASE_TINT, type DayPhase } from '../../home/daytime';
 import { NIGHT_TINT, ROOM_H, ROOM_W, drawRoomBase } from '../../pet/room';
 import { deviceRect, drawSprite } from '../pixelStage';
 import { itemSource } from './itemSprites';
@@ -25,6 +26,8 @@ export interface RoomFrame {
   items: readonly PlacedItem[];
   /** Zgaszone światło. */
   night: boolean;
+  /** Pora dnia (okna, balkon, poświata pokoju). */
+  phase?: DayPhase;
   /** Date.now() — stan roślin. */
   now: number;
   /** performance.now() — animacje (kropla). */
@@ -62,13 +65,14 @@ export function createRoomRenderer(): RoomRenderer {
   let baseKey = '';
 
   function drawBackground(bg: CanvasRenderingContext2D, f: RoomFrame): void {
-    const key = `${f.room}|${f.looks.wallpaper}|${f.looks.floor}|${f.night}`;
+    const phase = f.phase ?? 'day';
+    const key = `${f.room}|${f.looks.wallpaper}|${f.looks.floor}|${f.night}|${phase}`;
     if (key !== baseKey) {
       baseKey = key;
       const wall = findLook(f.looks.wallpaper) ?? findLook(DEFAULT_LOOKS[f.room].wallpaper)!;
       const floor = findLook(f.looks.floor) ?? findLook(DEFAULT_LOOKS[f.room].floor)!;
       baseCtx.clearRect(0, 0, ROOM_W, ROOM_H);
-      drawRoomBase(baseCtx, f.room, wall, floor);
+      drawRoomBase(baseCtx, f.room, wall, floor, phase);
       if (f.night) {
         baseCtx.fillStyle = NIGHT_TINT;
         baseCtx.fillRect(0, 0, ROOM_W, ROOM_H);
@@ -81,8 +85,9 @@ export function createRoomRenderer(): RoomRenderer {
     const def = findItem(it.itemId);
     if (!def) return;
     // Okno z nocnym wariantem (gwiazdy, księżyc) — w nocy jego klatka zamiast przyciemnionej dziennej.
-    const nightFrame = f.night ? itemFrames(it.itemId).night : undefined;
-    const tints = itemTints(def, it, f.night, f.now).filter((t) => !nightFrame || t !== WINDOW_NIGHT_TINT);
+    const phase = f.phase ?? 'day';
+    const nightFrame = f.night || phase === 'night' ? itemFrames(it.itemId).night : undefined;
+    const tints = itemTints(def, it, f.night, f.now, phase).filter((t) => !nightFrame || (t !== WINDOW_NIGHT_TINT && t !== WINDOW_PHASE_TINT.night));
     const state = f.states.get(it.uid) ?? nightFrame;
     const stateSrc = state ? itemSource(state, tints) : null;
     if (state && stateSrc) {
@@ -154,6 +159,12 @@ export function createRoomRenderer(): RoomRenderer {
   }
 
   function drawOverlays(fx: CanvasRenderingContext2D, f: RoomFrame): void {
+    // poświata pory dnia przy zapalonym świetle (rano ciepło, wieczorem pomarańczowo, nocą chłodno)
+    const glow = f.night ? null : ROOM_PHASE_TINT[f.phase ?? 'day'];
+    if (glow) {
+      fx.fillStyle = glow;
+      fx.fillRect(0, 0, ROOM_W, ROOM_H);
+    }
     const drop = artCanvas(ICONS.drop);
     const bob = Math.floor(f.t / 500) % 2;
     for (const it of f.items) {

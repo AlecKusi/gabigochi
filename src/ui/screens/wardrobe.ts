@@ -8,6 +8,7 @@ import { h, icon } from '../dom';
 import { createPixelStage, deviceRect, drawSprite } from '../pixelStage';
 import { itemUrl } from '../home/itemSprites';
 import { screenHeader } from '../screenHeader';
+import { play } from '../sound';
 
 /** Scena podglądu (px logiczne): Gabi na środku, stopy nad dolną krawędzią. */
 const W = 72;
@@ -60,6 +61,7 @@ export function wardrobeScreen(app: App): Screen {
   let poseName = 'pose_tada';
   let poseUntil = 0;
   const showOff = () => {
+    play('sparkle');
     pop = performance.now() + 360;
     poseName = SHOW_OFF[Math.floor(Math.random() * SHOW_OFF.length)];
     poseUntil = performance.now() + 1600;
@@ -170,6 +172,7 @@ export function wardrobeScreen(app: App): Screen {
         }
         const dressed = wear(bought.state, def.id);
         app.store.update(() => (dressed.ok ? dressed.state : bought.state));
+        play('buy');
         app.toast(`${def.name} — nowa rzecz w szafie!`);
         app.celebrate();
         showOff();

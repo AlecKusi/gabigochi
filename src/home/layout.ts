@@ -3,13 +3,15 @@ import { FLOOR_Y, ROOM_H, ROOM_W } from '../pet/room';
 import { findItem, itemSize, type ItemDef } from './catalog';
 import { findLook } from './looks';
 
-export const ROOMS: readonly RoomId[] = ['salon', 'bedroom', 'studio', 'bathroom'];
+export const ROOMS: readonly RoomId[] = ['salon', 'bedroom', 'studio', 'bathroom', 'kitchen', 'balcony'];
 
 export const ROOM_NAMES: Readonly<Record<RoomId, string>> = {
   salon: 'Salon',
   bedroom: 'Sypialnia',
   studio: 'Pracownia',
   bathroom: 'Łazienka',
+  kitchen: 'Kuchnia',
+  balcony: 'Balkon',
 };
 
 /** Siatka przesuwania przedmiotów w px logicznych. */

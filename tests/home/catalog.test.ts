@@ -59,7 +59,7 @@ describe('katalog przedmiotów', () => {
 
   it('kategorie sklepu: Meble, Okna, Ozdoby, Rośliny, Gaming, Hobby, Łazienka, Tapety, Podłogi', () => {
     expect(SHOP_CATEGORIES.map((c) => c.name)).toEqual(
-      ['Meble', 'Okna', 'Ozdoby', 'Rośliny', 'Gaming', 'Hobby', 'Łazienka', 'Tapety', 'Podłogi'],
+      ['Meble', 'Okna', 'Ozdoby', 'Rośliny', 'Gaming', 'Hobby', 'Łazienka', 'Kuchnia', 'Balkon', 'Tapety', 'Podłogi'],
     );
     expect(SHOP_CATEGORIES.find((c) => c.name === 'Łazienka')!.id).toBe('bathroom');
     for (const cat of ITEM_CATEGORIES) expect(CATALOG.some((d) => d.category === cat), cat).toBe(true);

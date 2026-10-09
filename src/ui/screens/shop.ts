@@ -9,6 +9,7 @@ import { h, icon } from '../dom';
 import { itemUrl } from '../home/itemSprites';
 import { lookSwatch } from '../home/lookSwatch';
 import { screenHeader } from '../screenHeader';
+import { play } from '../sound';
 
 type Tab = 'food' | 'home';
 
@@ -46,6 +47,7 @@ export function shopScreen(app: App): Screen {
         return;
       }
       app.store.update(() => res.state);
+      play('buy');
       app.toast(`${food.name} jest w lodówce!`);
       app.celebrate();
       render();
@@ -88,6 +90,7 @@ export function shopScreen(app: App): Screen {
       const res = buyItem(app.store.get(), def.id);
       if (!res.ok) return failBuy(buy, res.reason);
       app.store.update(() => res.state);
+      play('buy');
       app.toast(`${def.name} w magazynie — postaw w trybie Urządzaj`);
       app.celebrate();
       render(true);
@@ -125,6 +128,8 @@ export function shopScreen(app: App): Screen {
         const res = buyLook(app.store.get(), look.id);
         if (!res.ok) return failBuy(buy, res.reason);
         app.store.update(() => res.state);
+        play('buy');
+      play('buy');
         app.toast(`${look.name} — ustaw w trybie Urządzaj`);
         app.celebrate();
         render(true);

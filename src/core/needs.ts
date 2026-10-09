@@ -32,11 +32,22 @@ export function applyElapsed(state: GameState, now: number): GameState {
     energy -= hours * n.awakeDecayPerHour.energy;
   }
 
+  // kotek głodnieje i tęskni także, gdy aplikacja jest zamknięta
+  const allHours = dtMs / HOUR;
+  const cat = state.cat
+    ? {
+        ...state.cat,
+        hunger: clamp(state.cat.hunger - allHours * CONFIG.cat.hungerPerHour),
+        love: clamp(state.cat.love - allHours * CONFIG.cat.lovePerHour),
+      }
+    : state.cat;
+
   return {
     ...state,
     lastUpdate: now,
     sleeping,
     needs: { hunger: clamp(hunger), mood: clamp(mood), energy: clamp(energy) },
+    cat,
   };
 }
 

@@ -20,6 +20,7 @@ export function createState(now: number): GameState {
     records: {},
     outfit: defaultOutfit(),
     ownedClothes: [],
+    cat: { name: CONFIG.cat.defaultName, hunger: 80, love: 60 },
     ...createHome(now),
   };
 }

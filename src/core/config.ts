@@ -15,6 +15,8 @@ export const CONFIG = {
   coins: { start: 150, dailyBonus: 20 },
   pet: { moodGain: 2, cooldownMs: 30_000 },
   games: { energyCost: 5, tiredBelow: 10 },
+  /** Kotek: spadek najedzenia i sympatii na godzinę, ile daje karmienie i głaskanie. */
+  cat: { defaultName: 'Kotek', hungerPerHour: 8, lovePerHour: 4, feedLove: 10, petLove: 20, hungryBelow: 35, maxName: 14 },
 } as const;
 
 export type FoodId = 'apple' | 'sandwich' | 'kitkat' | 'pizza' | 'cake';

@@ -8,7 +8,7 @@ export interface Needs {
 
 export type MoodLevel = 'happy' | 'ok' | 'sad';
 
-export type RoomId = 'salon' | 'bedroom' | 'studio' | 'bathroom';
+export type RoomId = 'salon' | 'bedroom' | 'studio' | 'bathroom' | 'kitchen' | 'balcony';
 
 /** Przedmiot postawiony w pokoju; `x` — środek, `y` — linia dolna (stopy), w px logicznych pokoju. */
 export interface PlacedItem {
@@ -67,6 +67,14 @@ export interface GameState {
   ownedClothes: string[];
   /** Licznik do nadawania unikalnych `uid` postawionym przedmiotom. */
   nextUid: number;
+  /** Kotek Gabi: imię, najedzenie i sympatia (0–100). */
+  cat: CatInfo;
+}
+
+export interface CatInfo {
+  name: string;
+  hunger: number;
+  love: number;
 }
 
 export interface GameResult {

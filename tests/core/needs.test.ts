@@ -59,4 +59,12 @@ describe('needStatus', () => {
     expect(needStatus({ hunger: 24, mood: 24, energy: 19 })).toEqual({ hungry: true, bored: true, sleepy: true });
     expect(needStatus({ hunger: 25, mood: 25, energy: 20 })).toEqual({ hungry: false, bored: false, sleepy: false });
   });
+
+  it('kotek głodnieje i tęskni z czasem (także offline)', () => {
+    const start = { ...createState(T0), cat: { name: 'Kotek', hunger: 80, love: 60 } };
+    const s = applyElapsed(start, T0 + 5 * HOUR);
+    expect(s.cat.hunger).toBeCloseTo(40);
+    expect(s.cat.love).toBeCloseTo(40);
+    expect(applyElapsed(start, T0 + 100 * HOUR).cat).toMatchObject({ hunger: 0, love: 0 });
+  });
 });

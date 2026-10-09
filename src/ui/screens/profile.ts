@@ -4,6 +4,10 @@ import { dayNumber } from '../../core/time';
 import { GAMES } from '../../games';
 import { h, icon } from '../dom';
 import { screenHeader } from '../screenHeader';
+import { CONFIG } from '../../core/config';
+import { itemUrl } from '../home/itemSprites';
+import { needBar } from '../needBar';
+import { play, setSoundEnabled, soundEnabled } from '../sound';
 
 export function profileScreen(app: App): Screen {
   const header = screenHeader(app, 'Profil');
@@ -25,9 +29,68 @@ export function profileScreen(app: App): Screen {
         h('h2', {}, content.name),
         h('p', {}, `Dzień ${dayNumber(s.createdAt, Date.now())} w ${content.appName}`),
       ),
+      catCard(app),
       h('section', { class: 'records px-box' }, h('h2', {}, 'Rekordy'), h('ul', {}, ...rows)),
+      soundToggle(),
       h('button', { class: 'px-btn', onclick: () => app.go('birthday', { replay: true }) }, 'Pokaż życzenia'),
     ),
   );
   return { el, destroy: header.destroy };
 }
+
+/** Karta kotka: obrazek, imię do zmiany, najedzenie i sympatia. */
+function catCard(app: App): HTMLElement {
+  const cat = app.store.get().cat;
+  const hunger = needBar('hunger', 'Najedzenie', 'apple');
+  const love = needBar('mood', 'Sympatia', 'heart');
+  hunger.set(cat.hunger);
+  love.set(cat.love);
+  const name = h('input', {
+    class: 'cat-name',
+    type: 'text',
+    value: cat.name,
+    maxlength: String(CONFIG.cat.maxName),
+    'aria-label': 'Imię kotka',
+    enterkeyhint: 'done',
+  });
+  const save = () => {
+    const v = name.value.trim().slice(0, CONFIG.cat.maxName);
+    if (!v) {
+      name.value = app.store.get().cat.name;
+      return;
+    }
+    if (v !== app.store.get().cat.name) {
+      app.store.update((st) => ({ ...st, cat: { ...st.cat, name: v } }));
+      play('meow');
+      app.toast(`Kotek nazywa się teraz ${v}!`);
+    }
+  };
+  name.addEventListener('change', save);
+  name.addEventListener('keydown', (e) => {
+    if ((e as KeyboardEvent).key === 'Enter') name.blur();
+  });
+  const mood =
+    cat.hunger < CONFIG.cat.hungryBelow ? 'Jest głodny — nasyp karmy do miski w kuchni!' : cat.love > 70 ? 'Uwielbia Gabi i łasi się do niej.' : 'Pogłaszcz go, a polubi Gabi jeszcze bardziej.';
+  return h(
+    'section',
+    { class: 'cat-card px-box' },
+    h('img', { class: 'px cat-pic', src: itemUrl('cat_sit'), alt: '' }),
+    h('div', { class: 'cat-info' }, h('label', { class: 'cat-label' }, 'Imię kotka', name), hunger.el, love.el, h('small', {}, mood)),
+  );
+}
+
+/** Przełącznik dźwięków 8-bit. */
+function soundToggle(): HTMLElement {
+  const btn = h('button', { class: 'px-btn secondary sound-toggle', 'aria-pressed': String(soundEnabled()) });
+  const label = () => {
+    btn.textContent = soundEnabled() ? 'Dźwięki: włączone' : 'Dźwięki: wyłączone';
+    btn.setAttribute('aria-pressed', String(soundEnabled()));
+  };
+  btn.addEventListener('click', () => {
+    setSoundEnabled(!soundEnabled());
+    label();
+  });
+  label();
+  return btn;
+}
+

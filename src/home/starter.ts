@@ -39,6 +39,23 @@ export const STARTER_LAYOUT: Readonly<Record<RoomId, readonly { itemId: string; 
     { itemId: 'snake_plant', x: 20, y: 140 },
     { itemId: 'toilet', x: 92, y: 136 },
   ],
+  // Kuchnia: lodówka, kuchenka i blat za linią stóp Gabi, szafki i przyprawy na ścianie, miska kota z przodu.
+  kitchen: [
+    { itemId: 'fridge', x: 16, y: 136 },
+    { itemId: 'stove', x: 44, y: 136 },
+    { itemId: 'kitchen_counter', x: 76, y: 136 },
+    { itemId: 'wall_cabinet', x: 76, y: 72 },
+    { itemId: 'spice_shelf', x: 44, y: 76 },
+    { itemId: 'window_flower', x: 108, y: 80 },
+    { itemId: 'cat_bowl', x: 96, y: 148 },
+  ],
+  // Balkon: lampki pod niebem, skrzynka z kwiatami, krzesełko i stolik.
+  balcony: [
+    { itemId: 'string_lights', x: 64, y: 20 },
+    { itemId: 'flower_box', x: 20, y: 140 },
+    { itemId: 'balcony_chair', x: 88, y: 140 },
+    { itemId: 'bistro_table', x: 108, y: 140 },
+  ],
 };
 
 /** Mieszkanie na start gry (i po migracji z zapisu v1): domyślne wyglądy i meble startowe, rośliny podlane `now`. */

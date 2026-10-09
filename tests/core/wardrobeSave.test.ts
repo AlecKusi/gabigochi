@@ -188,4 +188,26 @@ describe('szafa w zapisie', () => {
     const moved = load(fresh).r.state;
     expect(moved.inventory.clothes_rack).toBeUndefined();
   });
+
+  it('kotek w zapisie: brak pola → domyślny, imię przycięte, liczby w zakresie', () => {
+    const fresh = createState(T0);
+    expect(fresh.cat).toEqual({ name: 'Kotek', hunger: 80, love: 60 });
+    const { cat: _omit, ...noCat } = fresh;
+    expect(load(noCat).r.state.cat).toEqual({ name: 'Kotek', hunger: 80, love: 60 });
+    const odd = load({ ...fresh, cat: { name: '  Hachi Hachi Hachi Hachi  ', hunger: 250, love: 'x' } }).r.state.cat;
+    expect(odd.name).toBe('Hachi Hachi Ha');
+    expect(odd.hunger).toBe(100);
+    expect(odd.love).toBe(60);
+    expect(load({ ...fresh, cat: { name: 'Floppa', hunger: 12, love: 99 } }).r.state.cat).toEqual({ name: 'Floppa', hunger: 12, love: 99 });
+  });
+
+  it('kuchnia i balkon: stare zapisy dostają je po cichu z meblami startowymi', () => {
+    const fresh = createState(T0);
+    const { kitchen: _k, balcony: _b, ...oldRooms } = fresh.rooms;
+    const { r } = load({ ...fresh, rooms: oldRooms });
+    expect(r.repaired).toBe(false);
+    expect(r.state.rooms.kitchen.items.map((i) => i.itemId)).toContain('fridge');
+    expect(r.state.rooms.balcony.items.map((i) => i.itemId)).toContain('flower_box');
+    expect(r.state.ownedLooks).toContain('floor_deck');
+  });
 });

@@ -6,6 +6,7 @@ import { makeCanvas, runLoop } from './canvas';
 import { CATCH, createCatch, stepCatch } from './catchLogic';
 import { catchReward } from './rewards';
 import type { MiniGame } from './types';
+import { play } from '../ui/sound';
 
 export const catchGame: MiniGame = {
   id: 'catch',
@@ -52,7 +53,11 @@ export const catchGame: MiniGame = {
     await runLoop(env.signal, (dt) => {
       const { state, events } = stepCatch(s, dt, Math.random);
       s = state;
-      if (events.some((e) => e.type === 'hit')) flash = 300;
+      if (events.some((e) => e.type === 'hit')) {
+        flash = 300;
+        play('bad');
+      }
+      if (events.some((e) => e.type === 'caught')) play('catch');
       flash = Math.max(0, flash - dt);
       if (s.moving !== 0) walkT += dt;
       draw();

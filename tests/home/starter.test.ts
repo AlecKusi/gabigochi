@@ -19,7 +19,7 @@ describe('dom startowy', () => {
     expect(home.currentRoom).toBe('salon');
     expect(home.inventory).toEqual({});
     expect(home.itemCooldowns).toEqual({});
-    expect([...home.ownedLooks].sort()).toEqual(Object.values(DEFAULT_LOOKS).flatMap((d) => [d.wallpaper, d.floor]).sort());
+    expect([...home.ownedLooks].sort()).toEqual([...new Set(Object.values(DEFAULT_LOOKS).flatMap((d) => [d.wallpaper, d.floor]))].sort());
   });
 
   it('darmowe meble startowe w każdym pokoju', () => {

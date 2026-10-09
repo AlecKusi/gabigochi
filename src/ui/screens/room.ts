@@ -3,14 +3,14 @@ import type { IconName } from '../../art/icons';
 import { ICONS } from '../../art/icons';
 import { artCanvas } from '../../art/pixels';
 import { content } from '../../content';
-import { CONFIG, type FoodId } from '../../core/config';
+import { CONFIG, foodById, type FoodId } from '../../core/config';
 import { feed, finishActivity, petCharacter, setSleeping } from '../../core/economy';
 import { moodLevel } from '../../core/needs';
 import { dayNumber } from '../../core/time';
 import type { GameState, PlacedItem, RoomId } from '../../core/types';
 import { SEATS, SOFAS, activityAllowedIn, activityAvailability, availabilityHint, pickActivityHere, seatAnchor, seatNear, spotAnchor, type Spot } from '../../home/activitySpots';
 import { GABI_BED, findItem, itemById, itemFrames, type Interaction } from '../../home/catalog';
-import { interactionSteps, rewardInteraction, toggleLamp, type GabiPose, type InteractionLine } from '../../home/interactionPlan';
+import { cookDish, interactionSteps, rewardInteraction, toggleLamp, type GabiPose, type InteractionLine } from '../../home/interactionPlan';
 import { ROOMS, hitItem, itemBox } from '../../home/layout';
 import { shouldNagPlants, water } from '../../home/plants';
 import { ACTIVITIES, ACTIVITY_IDS, type ActivityId } from '../../pet/activities';
@@ -22,7 +22,7 @@ import { ANGRY_TAPS, SUGAR_RUSH, avatarFor, countRecent, statusAnimation, type S
 import { ANIMATIONS, frameAt, resolveAnimation } from '../../sprites/animations';
 import { DISPLAY_HEIGHT, FRAMES, type FrameMeta } from '../../sprites/loader';
 import itemsMeta from '../../home/items.generated.json';
-import { CAT_SPRITE_NAMES, CAT_Y, calmCat, catFrame, catReact, createCat, stepCat, type CatState } from '../../home/cat';
+import { CAT_SPRITE_NAMES, CAT_Y, callToBowl, calmCat, catFrame, catReact, createCat, feedCatInfo, petCatInfo, stepCat, type CatBed, type CatState } from '../../home/cat';
 import { openActivities } from '../activitiesSheet';
 import { SCENE_AT, createActivityPlayer, drawActivity, fitSpot, hitsScene, type Placed } from '../activityPlayer';
 import { coinCounter } from '../coinCounter';
@@ -38,6 +38,8 @@ import { approachX, entryWalk, findBed, itemAnchor, itemFrameAnchor, neighborRoo
 import { needBar } from '../needBar';
 import { clampRoomX, createPetDrag } from '../petDrag';
 import { createPixelStage, deviceRect, drawSprite } from '../pixelStage';
+import { play } from '../sound';
+import { dayPhase } from '../../home/daytime';
 
 interface Heart {
   x: number;
@@ -135,6 +137,34 @@ function drawNotes(fx: CanvasRenderingContext2D, x: number, topY: number, t: num
     art.forEach((row, ry) => [...row].forEach((ch, rx) => { if (ch === 'k') fx.fillRect(nx + rx, ny + ry, 1, 1); }));
     fx.restore();
   }
+}
+
+/** Para nad garnkiem: białe kłębki unoszące się i znikające. */
+function drawSteam(fx: CanvasRenderingContext2D, b: { x: number; y: number; w: number; h: number }, t: number): void {
+  for (let i = 0; i < 4; i++) {
+    const p = ((t / 1400 + i / 4) % 1 + 1) % 1;
+    const x = Math.round(b.x + 5 + i * 3 + Math.sin(t / 300 + i) * 2);
+    const y = Math.round(b.y - 2 - p * 14);
+    fx.save();
+    fx.globalAlpha = 0.8 * (1 - p);
+    fx.fillStyle = '#ffffff';
+    fx.fillRect(x, y, 2, 2);
+    fx.fillRect(x + 1, y - 1, 1, 1);
+    fx.restore();
+  }
+}
+
+/** Miejsca do spania kota: wysokość siedziska nad linią dolną mebla (legowiska nisko, kanapy i fotele wyżej). */
+const CAT_BED_LIFT: Readonly<Record<string, number>> = {
+  cat_bed_round: 2, cat_cave: 2, bean_bag: 6, pouf: 6, pouf_frog: 6,
+  sofa_cozy: 12, sofa_kawaii: 12, sofa_gothic: 12, sofa_leather: 12, loveseat: 12,
+  armchair_cozy: 11, armchair_bunny: 11, armchair_gothic: 11, armchair_wingback: 11,
+};
+function catBeds(items: readonly PlacedItem[]): CatBed[] {
+  // łapki kota na wysokości siedziska: linia dolna mebla minus wysokość siedziska, liczona od linii kota
+  return items
+    .filter((i) => CAT_BED_LIFT[i.itemId] !== undefined)
+    .map((i) => ({ x: i.x, lift: Math.max(0, CAT_Y - (i.y + 1 - CAT_BED_LIFT[i.itemId])) }));
 }
 
 /** Kierunek (do strzałek/przejścia) z pokoju `from` do `to` — bez zawijania. */
@@ -285,6 +315,7 @@ export function roomScreen(app: App): Screen {
 
   function jump(now: number): void {
     jumpStart = now;
+    play('jump');
     brain = triggerBrain(brain, 'happy', now);
   }
 
@@ -326,6 +357,7 @@ export function roomScreen(app: App): Screen {
    */
   function goToRoom(room: RoomId, dir: -1 | 1, enter: boolean): void {
     if (room === viewRoom || destroyed) return;
+    play('whoosh');
     // Interakcja zostaje w starym pokoju; zajęcie przy meblu albo „pokojowe” (muzyka w salonie…) się kończy.
     cancelErrands();
     if (activity.current && !activityAllowedIn(activity.current.id, room, activitySpot)) stopActivity(performance.now());
@@ -434,7 +466,12 @@ export function roomScreen(app: App): Screen {
     const now = Date.now();
     if (key === 'calendar') return `Dziś Dzień ${dayNumber(store.get().createdAt, now)}!`;
     if (key === 'window') return pick(isNightHour(new Date(now)) ? content.lines.windowNight : content.lines.window);
-    return pick(content.lines[key]);
+    return withCat(pick(content.lines[key]));
+  }
+
+  /** Imię kotka w kwestii (znacznik `{kot}`). */
+  function withCat(line: string): string {
+    return line.split('{kot}').join(store.get().cat.name);
   }
 
   /** Co Gabi robi z przedmiotem po stuknięciu: interakcja z katalogu, a siedzisko — szydełkowanie na nim. */
@@ -527,6 +564,18 @@ export function roomScreen(app: App): Screen {
       void app.go('wardrobe');
       return;
     }
+    if (run.kind === 'fridge') {
+      openFridge(app, el, stage, doFeed);
+      return;
+    }
+    if (run.kind === 'catfood') {
+      // pełna miska: kotek przybiega i je
+      store.update((st) => ({ ...st, cat: feedCatInfo(st.cat, CONFIG.cat.feedLove) }));
+      const bowl = store.get().rooms[run.room].items.find((i) => i.uid === run.uid);
+      if (bowl && run.room === viewRoom) cat = callToBowl(cat, bowl.x, t);
+      play('meow');
+    }
+    if (run.kind === 'cat') store.update((st) => ({ ...st, cat: petCatInfo(st.cat, CONFIG.cat.petLove) }));
     let rewarded = false;
     store.update((s) => {
       let st = s;
@@ -539,6 +588,21 @@ export function roomScreen(app: App): Screen {
       return res.state;
     });
     if (rewarded) addHearts(3);
+    if (run.kind === 'cook') {
+      // danie do lodówki raz na godzinę z jednej kuchenki
+      if (rewarded) {
+        let food: FoodId = 'sandwich';
+        store.update((st) => {
+          const r = cookDish(st, Math.random);
+          food = r.food;
+          return r.state;
+        });
+        play('coin');
+        app.toast(`Ugotowane: ${foodById(food).name} — w lodówce!`);
+      } else {
+        say(pick(content.lines.cookLater), 2200);
+      }
+    }
     nextChatAt = Math.max(nextChatAt, t + 10_000);
   }
 
@@ -547,6 +611,8 @@ export function roomScreen(app: App): Screen {
     const st = interaction.step(t);
     if (st.entered?.line) say(interactionLine(st.entered.line), Math.min(3200, Math.max(1800, st.entered.ms)));
     if (st.entered?.effect === 'hearts') addHearts(5);
+    if (st.entered?.effect === 'water') play('water');
+    if (st.entered?.effect === 'steam') play('cook');
     if (st.finished) finishInteraction(st.finished, t);
   }
 
@@ -589,6 +655,7 @@ export function roomScreen(app: App): Screen {
     // kotek obok prosi o kawałek
     cat = catReact(cat, 'beg', performance.now(), brain.x, Math.random);
     say(pick(id === 'kitkat' ? content.lines.kitkat : content.lines.eat), 2400);
+    play('eat');
     if (id !== 'kitkat') return;
     const now = Date.now();
     kitkats.push(now);
@@ -640,6 +707,7 @@ export function roomScreen(app: App): Screen {
     if (countRecent(taps, now, ANGRY_TAPS.windowMs) >= ANGRY_TAPS.count) {
       taps.length = 0;
       brain = triggerBrain(brain, 'angry', now);
+      play('bad');
       cat = catReact(cat, 'scared', now, brain.x, Math.random);
       say(pick(content.lines.angry), 2000);
       return;
@@ -652,6 +720,7 @@ export function roomScreen(app: App): Screen {
       if (r < 0.4) jump(now);
       else brain = triggerBrain(brain, r < 0.7 ? 'laugh' : 'shy', now);
       addHearts(3);
+      play('pet');
       say(pick(content.lines.pet), 2000);
     } else {
       brain = triggerBrain(brain, 'wave', now);
@@ -850,7 +919,8 @@ export function roomScreen(app: App): Screen {
     stopActivity(t);
     cancelErrands();
     cat = calmCat(cat, t);
-    say(pick(content.lines.cat), 1800);
+    say(withCat(pick(content.lines.cat)), 1800);
+    play('meow');
     walkTo(cat.x + (brain.x < cat.x ? -12 : 12), { kind: 'cat' });
   }
 
@@ -859,17 +929,18 @@ export function roomScreen(app: App): Screen {
     const f = catFrame(cat, t);
     const m = catMeta(f.sprite);
     const x = cat.x + f.dx;
+    const lift = cat.lift ?? 0;
     return {
       orderY: CAT_Y,
       alpha,
       draw: (ctx, k) => {
         if (!m) return; // brak obrazka kota — bez rysowania (gra działa dalej)
         const w = m.w * m.scale * 0.7;
-        const r = deviceRect(k, { x: x - w / 2, y: CAT_Y - 1, w, h: 2 });
+        const r = deviceRect(k, { x: x - w / 2, y: CAT_Y - 1 - lift, w, h: 2 });
         ctx.fillStyle = SHADOW_COLOR;
         ctx.fillRect(r.x, r.y, r.w, r.h);
         const src = itemSource(f.sprite);
-        if (src) drawSprite(ctx, k, src, m, { x, feetY: CAT_Y, flip: f.flip, bob: 0, squash: 0, jump: f.lift });
+        if (src) drawSprite(ctx, k, src, m, { x, feetY: CAT_Y - lift, flip: f.flip, bob: 0, squash: 0, jump: f.lift });
       },
     };
   }
@@ -1039,8 +1110,13 @@ export function roomScreen(app: App): Screen {
       cat = createCat(t, Math.random);
     }
     if (!s.sleeping && interaction.current?.kind !== 'cat' && pending?.kind !== 'cat') {
-      // blisko stojącej Gabi kot czasem się łasi
-      cat = stepCat(cat, dt, t, Math.random, free && brain.action === 'idle' && !act && !iv ? brain.x : null);
+      // blisko stojącej Gabi kot czasem się łasi; głodny prosi; śpi na legowiskach i kanapach z pokoju
+      cat = stepCat(cat, dt, t, Math.random, {
+        gabiX: free && brain.action === 'idle' && !act && !iv ? brain.x : null,
+        beds: catBeds(items),
+        hungry: s.cat.hunger < CONFIG.cat.hungryBelow,
+        love: s.cat.love,
+      });
     }
     const extras = catVisible() ? [catLayer(t, alpha)] : [];
     // obraz w telewizorze rysowany razem z nim — Gabi siedząca przed ekranem go zasłania
@@ -1055,6 +1131,7 @@ export function roomScreen(app: App): Screen {
       looks: room,
       items,
       night: s.sleeping,
+      phase: dayPhase(new Date()),
       now: Date.now(),
       t,
       hidden: hiddenItems(stage, inBed && !edit.active ? bed : null, act),
@@ -1071,6 +1148,10 @@ export function roomScreen(app: App): Screen {
       const m = FRAMES[act.cur.frame];
       const top = m ? act.cur.feetY - (m.foot ?? m.h) * m.scale : act.cur.feetY - 56;
       drawNotes(fx, act.cur.x, top, t);
+    }
+    if (iv?.step.effect === 'steam') {
+      const stove = items.find((i) => i.uid === iv.run.uid);
+      if (stove) drawSteam(fx, itemBox(stove), t);
     }
     if (iv?.step.effect === 'water') {
       const plant = items.find((i) => i.uid === iv.run.uid);
@@ -1092,7 +1173,11 @@ export function roomScreen(app: App): Screen {
         addHearts(4);
       } else if (Math.random() < 0.5) {
         brain = triggerBrain(brain, 'talk', t);
-        say(pickLine(s.needs));
+        // głodny kotek — Gabi o nim przypomina (i kotek miauczy)
+        if (s.cat.hunger < CONFIG.cat.hungryBelow && Math.random() < 0.5) {
+          say(withCat(pick(content.lines.catHungry)));
+          play('meow');
+        } else say(pickLine(s.needs));
       } else {
         // codzienna mina: ziewanie, nuda, zamyślenie, pomysł, przeciąganie, śmiech
         const emote = pickEmote(s.needs, Math.random);

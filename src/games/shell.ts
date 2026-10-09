@@ -4,6 +4,7 @@ import { h, icon } from '../ui/dom';
 import { setGamesPaused } from './canvas';
 import { COMMON_RULES, GAME_RULES } from './rules';
 import type { MiniGame } from './types';
+import { play } from '../ui/sound';
 
 /** Okienko z zasadami gry; gra stoi, dopóki jest otwarte. */
 export function showRules(host: HTMLElement, game: MiniGame): void {
@@ -47,7 +48,10 @@ export function runGame(game: MiniGame, app: App, onResult: (result: GameResult)
     const close = h('button', { class: 'px-btn secondary', 'aria-label': 'Zakończ grę' }, 'X');
     const info = h('button', { class: 'px-btn secondary rules-btn', 'aria-label': 'Zasady gry' }, 'i');
     const shell = h('div', { class: 'game-shell' }, h('header', { class: 'game-head' }, close, h('h1', {}, game.name), hud, info), body);
-    info.addEventListener('click', () => showRules(shell, game));
+    info.addEventListener('click', () => {
+      play('tap');
+      showRules(shell, game);
+    });
     app.root.append(shell);
 
     const aborted: GameResult = { gameId: game.id, score: 0, coins: 0, moodBoost: 0, aborted: true };
@@ -89,6 +93,7 @@ export function runGame(game: MiniGame, app: App, onResult: (result: GameResult)
             ),
           ),
         );
+        play(score > 0 ? 'win' : 'lose');
         if (isRecord || reward.coins >= 30) app.celebrate();
       })
       .catch(() => {

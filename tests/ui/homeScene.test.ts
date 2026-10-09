@@ -122,7 +122,8 @@ describe('nawigacja między pokojami', () => {
       expect(neighborRoom(ROOMS[i], -1)).toBe(ROOMS[(i - 1 + ROOMS.length) % ROOMS.length]);
     }
     expect(neighborRoom('studio', 1)).toBe('bathroom');
-    expect(neighborRoom('bathroom', 1)).toBe('salon');
+    expect(neighborRoom('bathroom', 1)).toBe('kitchen');
+    expect(neighborRoom('balcony', 1)).toBe('salon');
   });
 
   it('Gabi wchodzi od strony, z której przyszła, i idzie w głąb', () => {
@@ -157,7 +158,7 @@ describe('tryb urządzania — pomocnicze', () => {
   it('posiadane wyglądy danego rodzaju', () => {
     const owned = createHome(T0).ownedLooks;
     const walls = ownedLooksOf(owned, 'wallpaper');
-    expect(walls.length).toBe(ROOMS.length);
+    expect(walls.length).toBe(ROOMS.length - 1); // balkon dzieli tapetę z kuchnią (niewidoczna — niebo)
     expect(walls.every((l) => l.kind === 'wallpaper')).toBe(true);
     expect(ownedLooksOf(owned, 'floor').every((l) => l.kind === 'floor')).toBe(true);
   });

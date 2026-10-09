@@ -44,6 +44,11 @@ export const LOOKS: readonly LookDef[] = [
   floor('floor_dark_boards', 'Ciemne deski', 120, 'boards', ['#6e4a33', '#553724', '#80583e']),
   floor('floor_herringbone', 'Parkiet w jodełkę', 160, 'herringbone', ['#c99260', '#ad7646', '#8c5a32']),
   floor('floor_blue_tiles', 'Niebieskie kafelki', 0, 'tiles', ['#cfe3f7', '#a3bfdc']),
+  wall('wall_kitchen_tiles', 'Kuchenne kafelki', 0, 'tiles', ['#fbf3e4', '#e9d8bd', '#c9a77a']),
+  floor('floor_terracotta', 'Terakota', 0, 'tiles', ['#e3a27f', '#c98463']),
+  floor('floor_deck', 'Deski tarasowe', 0, 'boards', ['#b98b62', '#9a6f4a', '#c99c72']),
+  wall('wall_lemon_tiles', 'Cytrynowe kafelki', 90, 'tiles', ['#fff6c9', '#f2e08f', '#c9a640']),
+  floor('floor_checker', 'Szachownica', 120, 'tiles', ['#f3eef8', '#2f2a3d'])
 ];
 
 /** Darmowe wyglądy startowe; salon odtwarza dawny pokój (lawendowe paski + fioletowe deski). */
@@ -52,13 +57,16 @@ export const DEFAULT_LOOKS: Readonly<Record<RoomId, { wallpaper: string; floor: 
   bedroom: { wallpaper: 'wall_pink_dots', floor: 'floor_light_boards' },
   studio: { wallpaper: 'wall_mint', floor: 'floor_white_tiles' },
   bathroom: { wallpaper: 'wall_aqua_tiles', floor: 'floor_blue_tiles' },
+  kitchen: { wallpaper: 'wall_kitchen_tiles', floor: 'floor_terracotta' },
+  // balkon: zamiast tapety niebo z pory dnia (tapeta niewidoczna)
+  balcony: { wallpaper: 'wall_kitchen_tiles', floor: 'floor_deck' },
 };
 
 /**
  * Darmowe wyglądy dodane po pierwszej wersji zapisu v2 (z łazienką). Starszy zapis ich nie zna — dostaje je
  * po cichu, bez zgłaszania naprawy.
  */
-export const LATER_DEFAULT_LOOKS: readonly string[] = ['wall_aqua_tiles', 'floor_blue_tiles'];
+export const LATER_DEFAULT_LOOKS: readonly string[] = ['wall_aqua_tiles', 'floor_blue_tiles', 'wall_kitchen_tiles', 'floor_terracotta', 'floor_deck'];
 
 const BY_ID: ReadonlyMap<string, LookDef> = new Map(LOOKS.map((l) => [l.id, l]));
 

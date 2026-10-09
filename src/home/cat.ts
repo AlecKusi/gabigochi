@@ -6,7 +6,22 @@
 
 export type CatMode =
   | 'sit' | 'walk' | 'run' | 'sleep' | 'stretch' | 'yawn' | 'wash'
-  | 'play' | 'roll' | 'hunt' | 'beg' | 'rub' | 'scared';
+  | 'play' | 'roll' | 'hunt' | 'beg' | 'rub' | 'scared' | 'eat';
+
+/** Miejsce do spania w pokoju (legowisko, kanapa, fotel): środek i wysokość nad podłogą. */
+export interface CatBed {
+  x: number;
+  lift: number;
+}
+
+/** Otoczenie kota w pokoju (z gry): gdzie śpi, gdzie miska, czy jest głodny, jak lubi Gabi. */
+export interface CatEnv {
+  gabiX: number | null;
+  beds?: readonly CatBed[];
+  hungry?: boolean;
+  /** 0–100: im większa, tym częściej łasi się do Gabi. */
+  love?: number;
+}
 
 export interface CatState {
   x: number;
@@ -17,6 +32,10 @@ export interface CatState {
   /** Do kiedy trwa obecny tryb (spacer i bieg — do dojścia). */
   until: number;
   facing: 'left' | 'right';
+  /** Wysokość nad podłogą (śpi na kanapie / w legowisku). */
+  lift?: number;
+  /** Cel spaceru: po dojściu — sen na meblu albo jedzenie z miski. */
+  goal?: { kind: 'sleep'; lift: number } | { kind: 'eat'; bowlX: number };
 }
 
 /** Gdzie kot może chodzić (px logiczne pokoju) i jak szybko. */
@@ -50,6 +69,7 @@ const POUNCE_MS = 500;
 const DURATION: Readonly<Partial<Record<CatMode, [number, number]>>> = {
   sit: [3000, 7000],
   sleep: [9000, 18000],
+  eat: [3500, 4500],
   stretch: [1300, 1600],
   yawn: [1100, 1300],
   wash: [3000, 5000],
@@ -78,18 +98,32 @@ export function createCat(now: number, rng: () => number): CatState {
   return { x, targetX: x, mode: 'sit', since: now, until: now + span(DURATION.sit!, rng), facing: rng() < 0.5 ? 'left' : 'right' };
 }
 
-/** Co dalej po skończonym trybie (`gabiX` — gdzie stoi Gabi: blisko niej kot czasem się łasi). */
-function next(c: CatState, now: number, rng: () => number, gabiX: number | null): CatState {
+/** Co dalej po skończonym trybie (blisko Gabi kot czasem się łasi — tym częściej, im bardziej ją lubi). */
+function next(c: CatState, now: number, rng: () => number, env: CatEnv): CatState {
+  const gabiX = env.gabiX;
   switch (c.mode) {
     case 'sleep':
       return timed(c, 'stretch', now, rng);
     case 'stretch':
-      return timed(c, 'yawn', now, rng);
+      // zeskok z mebla po przeciągnięciu
+      return { ...timed(c, 'yawn', now, rng), lift: 0 };
     case 'sit': {
-      if (gabiX !== null && Math.abs(gabiX - c.x) < 14 && rng() < 0.35) {
+      const rubChance = 0.15 + 0.4 * ((env.love ?? 60) / 100);
+      if (gabiX !== null && Math.abs(gabiX - c.x) < 14 && rng() < rubChance) {
         return { ...timed(c, 'rub', now, rng), facing: gabiX < c.x ? 'left' : 'right' };
       }
+      // głodny kot prosi Gabi o jedzenie
+      if (env.hungry && gabiX !== null && rng() < 0.5) {
+        return Math.abs(gabiX - c.x) < 16
+          ? { ...timed(c, 'beg', now, rng), facing: gabiX < c.x ? 'left' : 'right' }
+          : go(c, 'walk', clampX(gabiX + (c.x < gabiX ? -12 : 12)), now);
+      }
       const r = rng();
+      if (r < 0.12 && env.beds && env.beds.length > 0) {
+        // drzemka na legowisku / kanapie
+        const bed = env.beds[Math.min(env.beds.length - 1, Math.floor(rng() * env.beds.length))];
+        return { ...go(c, 'walk', clampX(bed.x), now), goal: { kind: 'sleep', lift: bed.lift } };
+      }
       if (r < 0.35) return go(c, 'walk', randomX(rng), now);
       if (r < 0.43) {
         // bieg na drugi koniec pokoju
@@ -108,18 +142,24 @@ function next(c: CatState, now: number, rng: () => number, gabiX: number | null)
   }
 }
 
-export function stepCat(c: CatState, dt: number, now: number, rng: () => number, gabiX: number | null = null): CatState {
+export function stepCat(c: CatState, dt: number, now: number, rng: () => number, envOrGabi: CatEnv | number | null = null): CatState {
+  const env: CatEnv = typeof envOrGabi === 'object' && envOrGabi !== null ? envOrGabi : { gabiX: envOrGabi };
   if (c.mode === 'walk' || c.mode === 'run') {
     const d = c.targetX - c.x;
     const step = ((c.mode === 'run' ? CAT_BOUNDS.runSpeed : CAT_BOUNDS.speed) * dt) / 1000;
-    if (Math.abs(d) <= step) return next({ ...c, x: c.targetX }, now, rng, gabiX);
+    if (Math.abs(d) <= step) {
+      const at = { ...c, x: c.targetX, goal: undefined };
+      if (c.goal?.kind === 'sleep') return { ...timed(at, 'sleep', now, rng), lift: c.goal.lift };
+      if (c.goal?.kind === 'eat') return { ...timed(at, 'eat', now, rng), facing: c.goal.bowlX < at.x ? 'left' : 'right' };
+      return next(at, now, rng, env);
+    }
     return { ...c, x: c.x + Math.sign(d) * step };
   }
   if (now >= c.until) {
     // skok w zabawie i rzut w polowaniu przesuwają kota do przodu
     const dir = c.facing === 'left' ? -1 : 1;
     const moved = c.mode === 'play' ? clampX(c.x + dir * LEAP_DX) : c.mode === 'hunt' ? clampX(c.x + dir * 6) : c.x;
-    return next({ ...c, x: moved, targetX: moved }, now, rng, gabiX);
+    return next({ ...c, x: moved, targetX: moved }, now, rng, env);
   }
   return c;
 }
@@ -150,6 +190,9 @@ export function catFrame(c: CatState, now: number): { sprite: string; lift: numb
     }
     case 'hunt':
       return t < HUNT_MS ? { sprite: 'cat_hunt', lift: 0, dx: 0, flip } : { sprite: 'cat_pounce', lift: 0, dx: dir * 6, flip };
+    case 'eat':
+      // jedzenie z miski: pochylony nad miską, kiwa głową
+      return { sprite: Math.floor(t / 400) % 2 === 0 ? 'cat_hunt' : 'cat_land', lift: 0, dx: 0, flip };
     case 'roll':
       // turlanie: przewrót co pół sekundy
       return { sprite: 'cat_roll', lift: 0, dx: 0, flip: Math.floor(t / 500) % 2 === 1 };
@@ -158,9 +201,16 @@ export function catFrame(c: CatState, now: number): { sprite: string; lift: numb
   }
 }
 
+/** Miska napełniona: kot biegnie do niej i je. */
+export function callToBowl(c: CatState, bowlX: number, now: number): CatState {
+  // obok miski (głowa nad nią), od strony, z której kot przybiega
+  const spot = clampX(bowlX + (c.x < bowlX ? -9 : 9));
+  return { ...go({ ...c, lift: 0 }, 'run', spot, now), goal: { kind: 'eat', bowlX } };
+}
+
 /** Stuknięty kot siada i czeka na Gabi. */
 export function calmCat(c: CatState, now: number): CatState {
-  return { ...c, mode: 'sit', since: now, targetX: c.x, until: now + 60_000 };
+  return { ...c, mode: 'sit', since: now, targetX: c.x, until: now + 60_000, lift: 0, goal: undefined };
 }
 
 /** Reakcja na Gabi: prosi o jedzenie (gdy Gabi je obok), jeży się (gdy Gabi się złości). */
@@ -169,3 +219,14 @@ export function catReact(c: CatState, kind: 'beg' | 'scared', now: number, gabiX
   if (kind === 'beg' && Math.abs(gabiX - c.x) > 40) return c;
   return { ...timed(c, kind, now, rng), facing: gabiX < c.x ? 'left' : 'right' };
 }
+
+/** Kot nakarmiony z miski: pełny brzuszek i trochę więcej sympatii. */
+export function feedCatInfo(info: { name: string; hunger: number; love: number }, feedLove: number): typeof info {
+  return { ...info, hunger: 100, love: Math.min(100, info.love + feedLove) };
+}
+
+/** Kot pogłaskany: więcej sympatii. */
+export function petCatInfo(info: { name: string; hunger: number; love: number }, petLove: number): typeof info {
+  return { ...info, love: Math.min(100, info.love + petLove) };
+}
+

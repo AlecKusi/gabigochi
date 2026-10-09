@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CAT_BOUNDS, CAT_SPRITE_NAMES, calmCat, catFrame, catReact, createCat, stepCat, type CatState } from '../../src/home/cat';
+import { CAT_BOUNDS, CAT_SPRITE_NAMES, callToBowl, calmCat, catFrame, catReact, createCat, feedCatInfo, petCatInfo, stepCat, type CatState } from '../../src/home/cat';
 import items from '../../src/home/items.generated.json';
 
 const seq = (...v: number[]) => {
@@ -82,5 +82,47 @@ describe('kotek w pokoju', () => {
     for (const mode of ['sit', 'sleep', 'wash', 'yawn', 'stretch', 'roll', 'hunt', 'beg', 'rub', 'scared'] as const) {
       expect(CAT_SPRITE_NAMES).toContain(catFrame(cat({ mode, since: 0 }), 100).sprite);
     }
+  });
+
+  it('drzemka na legowisku / kanapie: idzie do mebla, śpi wyżej, po przebudzeniu zeskakuje', () => {
+    const beds = [{ x: 90, lift: 26 }];
+    let c = stepCat(cat({ x: 30 }), 16, 200, seq(0.05, 0.5), { gabiX: null, beds });
+    expect(c.mode).toBe('walk');
+    expect(c.targetX).toBe(90);
+    for (let t = 0; t < 20_000 && c.mode === 'walk'; t += 50) c = stepCat(c, 50, 200 + t, seq(0.5), { gabiX: null, beds });
+    expect(c.mode).toBe('sleep');
+    expect(c.lift).toBe(26);
+    c = stepCat(c, 16, c.until + 1, seq(0.5));
+    expect(c.mode).toBe('stretch');
+    c = stepCat(c, 16, c.until + 1, seq(0.5));
+    expect(c.mode).toBe('yawn');
+    expect(c.lift).toBe(0);
+  });
+
+  it('pełna miska: kot biegnie i je, potem siada', () => {
+    let c = callToBowl(cat({ x: 20, mode: 'sleep', lift: 20, until: 9e9 }), 100, 0);
+    expect(c.mode).toBe('run');
+    expect(c.lift).toBe(0);
+    for (let t = 0; t < 20_000 && c.mode === 'run'; t += 50) c = stepCat(c, 50, t, seq(0.5));
+    expect(c.mode).toBe('eat');
+    expect(c.x).toBe(91); // obok miski, głową do niej
+    expect(c.facing).toBe('right');
+    expect(['cat_hunt', 'cat_land']).toContain(catFrame(c, c.since + 100).sprite);
+    c = stepCat(c, 16, c.until + 1, seq(0.5));
+    expect(c.mode).toBe('sit');
+  });
+
+  it('głodny kot prosi Gabi; im większa sympatia, tym częściej się łasi', () => {
+    const beg = stepCat(cat({ x: 50 }), 16, 200, seq(0.3), { gabiX: 58, hungry: true, love: 0 });
+    expect(beg.mode).toBe('beg');
+    const rubLoved = stepCat(cat({ x: 50 }), 16, 200, seq(0.5), { gabiX: 58, love: 100 });
+    expect(rubLoved.mode).toBe('rub');
+    const noRub = stepCat(cat({ x: 50 }), 16, 200, seq(0.5), { gabiX: 58, love: 0 });
+    expect(noRub.mode).not.toBe('rub');
+  });
+
+  it('karmienie i głaskanie: najedzenie i sympatia', () => {
+    expect(feedCatInfo({ name: 'K', hunger: 10, love: 50 }, 10)).toEqual({ name: 'K', hunger: 100, love: 60 });
+    expect(petCatInfo({ name: 'K', hunger: 10, love: 95 }, 20).love).toBe(100);
   });
 });
