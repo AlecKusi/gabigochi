@@ -195,3 +195,18 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   Kot śpi też na nich i na poduszkach podłogowych (`CAT_BED_LIFT`). Stoliki — kawa (poza stolikiem z parasolem:
   parasol zasłaniałby siedzącą Gabi, więc to dekoracja). Rośliny — podlewanie.
 - Ekstraktor: `shadowHsv` (arkusz albo wpis) — w obszarach `shadow` znika też cień w zadanym kolorze, nawet między nogami.
+
+## Ubrania — przegląd i naprawa masek (opcja A, 2026-10-09)
+- Strona przeglądu (tylko `npm run dev`): `http://localhost:5173/tools/wardrobe-review.html` (`?names=a,b` — wybrane
+  klatki, `?zoom=3`). Każda klatka z maską w 5 strojach kontrolnych; liczniki z `src/wardrobe/review.ts`:
+  przecieki (przemalowany jasny piksel spoza nadruku), braki (nieprzemalowane kolory koszulki/dżinsów; bez kota
+  i strefy butów), alarm „brak koszulki w masce”. Najgorsze klatki na górze; `window.__review` — wyniki.
+- Poprawki w `dresser.ts`: wyspy koszulki/nogawek odcięte dłońmi (`colourParts`, zasięg 10 px, min. 6 px, tylko ciemne
+  kolory), skóra/włosy/jasne rekwizyty nigdy nie są ubraniem (`isSkinOrHair`), kot z maski nigdy nie jest dopełniany
+  (dopełnianie włączone też w klatkach z kotem), spódnica nie zamalowuje ciemnych rekwizytów w ciepłych kolorach
+  (`clothDark`), śliniaczek z jednym środkiem tułowia. Ekstraktor: góra spodni w klatkach ze zwierzakiem z największego
+  kawałka spodni (przytulanie kota gubiło całą koszulkę).
+- Wynik na tych samych licznikach: przecieki 1812 → 586, braki 9464 → 6232 (reszta to głównie fałszywe alarmy:
+  okładki książek, obrys dymka, cienie włosów), klatki z błędami ≥ 200: 14 → 3 (`study_1`, `study_3` — książka;
+  `dance_3` — linie ruchu w masce spodni).
+- Do zrobienia dalej: linie ruchu w tańcu, sukienki w pozach siedzących/leżących (kształt spódnicy).

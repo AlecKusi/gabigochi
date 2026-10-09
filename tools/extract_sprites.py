@@ -1576,13 +1576,17 @@ def save_wardrobe(body, frames, portraits_im, pets=None):
             arr0 = np.asarray(im).astype(int)
             cls0 = wardrobe_classes(arr0)
             dark_cloth = (arr0[:, :, 3] > 0) & (cls0['shirt'] | cls0['shade'] | cls0['mid'] | cls0['jeans']) & keep
-            jrows = np.nonzero(jeans.any(axis=1))[0]
-            if len(jrows):
+            # góra spodni z największego kawałka spodni — pojedyncze „spodniowe” piksele przy kocie trzymanym na
+            # piersi (przytulanie) nie przesuwają pasa na wysokość klatki piersiowej
+            main_legs = max(parts_of(jeans), key=lambda p: p.sum(), default=None)
+            if main_legs is not None and main_legs.any():
+                jtop = int(np.nonzero(main_legs.any(axis=1))[0].min())
+                jeans &= ~np.pad(np.ones((jtop, jeans.shape[1]), bool), ((0, jeans.shape[0] - jtop), (0, 0))) | main_legs
                 band = np.zeros_like(jeans)
-                band[int(jrows.min()):shoe_row if f == 2 else im.height] = True
+                band[jtop:shoe_row if f == 2 else im.height] = True
                 jeans |= dark_cloth & band & ~shirt & ~printed
                 # czarne buty nisko (kucanie) bywają wzięte za koszulkę — koszulka tylko nad strefą butów
-                shirt[int(jrows.min()) + 3:] = False
+                shirt[jtop + 3:] = False
         meta['mask'] = bool(shirt.any() or jeans.any())
         if meta['mask']:
             write(name, shirt, printed, jeans, pets.get(name) if pets else None)

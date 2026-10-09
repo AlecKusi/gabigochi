@@ -35,7 +35,7 @@ export interface DressOpts {
   art?: (sprite: string) => Pixels | null;
   /** Klatka od tyłu (bez znaczka na piersi). */
   back?: boolean;
-  /** Dopełnianie maski po kolorach (domyślnie tak; nie w klatkach z czarnym kotem w ramionach). */
+  /** Dopełnianie maski po kolorach (domyślnie tak); zwierzak z maski (biały) nigdy nie jest dopełniany. */
   flood?: boolean;
 }
 
@@ -44,6 +44,24 @@ interface Paint {
   colors: ClothColors;
   pattern?: ClothPattern;
   patternColor?: string;
+}
+
+/**
+ * Jak daleko (px natywne) od koszulki z maski sięga dopełnianie po kolorach: ręce skrzyżowane na piersi dzielą
+ * koszulkę na kawałki, z których maska bierze tylko część — reszta w tych samych kolorach dochodzi tutaj.
+ */
+export const SHIRT_REACH = 10;
+/** Koszulka z rysunku jest prawie czarna: wyspy tylko w kolorach ciemniejszych niż to (bez skóry z brudnej maski). */
+export const SHIRT_LUM = 60;
+/** Najmniejsza wyspa ubrania (px): mniejsze ciemne kawałki obok to szczegóły rekwizytów (oczy pluszaka, guziki). */
+export const MIN_ISLAND = 6;
+/** Dżinsy z rysunku są ciemnoniebieskie (jaśniejsze niż koszulka, ale ciemniejsze niż skóra i podeszwy). */
+export const JEANS_LUM = 100;
+
+/** Pierwszy wiersz butów (czarne buty mają kolor dolnych nogawek — strój ich nie przemalowuje). */
+export function shoeTopRow(meta: FrameMeta, h: number): number {
+  const foot = meta.foot ?? h;
+  return foot - Math.max(2, Math.round(foot * 0.085));
 }
 
 /** Klatki, w których nogi nie stoją pionowo — wiersz kolan nic tu nie znaczy. */
@@ -84,6 +102,30 @@ export function hex(c: string): RGB {
 }
 
 const lum = (r: number, g: number, b: number) => 0.299 * r + 0.587 * g + 0.114 * b;
+
+/**
+ * Skóra, włosy i jasne rekwizyty (pluszak, kubek): jasne i ciepłe albo jasnolawendowe kolory, których ubranie
+ * z rysunku (prawie czarna koszulka, ciemne dżinsy) nigdy nie ma — strój ich nie przemalowuje, nawet gdy maska
+ * albo dopełnianie zahaczy o brzeg dłoni, końcówki włosów czy łapę misia.
+ */
+export function isSkinOrHair(r: number, g: number, b: number): boolean {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const v = max / 255;
+  const s = max === 0 ? 0 : (max - min) / max;
+  if (v < 0.42) return false;
+  let hue = 0;
+  if (max !== min) {
+    if (max === r) hue = (((g - b) / (max - min)) % 6) * 60;
+    else if (max === g) hue = ((b - r) / (max - min) + 2) * 60;
+    else hue = ((r - g) / (max - min) + 4) * 60;
+    if (hue < 0) hue += 360;
+  }
+  // ciepłe (skóra, brąz pluszaka, drewno): czerwono-pomarańczowo-żółte, wyraźnie nasycone
+  if ((hue <= 50 || hue >= 345) && s >= 0.15) return true;
+  // włosy: jasne lawendowe i srebrne
+  return hue >= 240 && hue <= 320 && s <= 0.5 && v >= 0.5;
+}
 
 export function lookOf(outfit: Outfit): Look {
   const get = (id: string | null) => (id ? (findCloth(id) ?? null) : null);
@@ -297,7 +339,15 @@ function recolorBody(src: Pixels, mask: Pixels, out: Pixels, meta: FrameMeta, lo
   }
   // Okruchy, które maska pominęła (pojedyncze piksele nadruku/szwów otoczone ubraniem), dołączamy do regionu.
   const lumAt = (i: number) => lum(src.data[i * 4], src.data[i * 4 + 1], src.data[i * 4 + 2]);
-  const taken = new Set([...shirt, ...print, ...jeans]);
+  // skóra, włosy i jasne rekwizyty na brzegu maski zostają oryginalne (nadruk — tak jak jest, to część koszulki)
+  const own = (i: number) => !isSkinOrHair(src.data[i * 4], src.data[i * 4 + 1], src.data[i * 4 + 2]);
+  const keepCloth = (list: number[]) => list.splice(0, list.length, ...list.filter(own));
+  keepCloth(shirt);
+  keepCloth(jeans);
+  // zwierzak (biały w masce) i skóra/włosy są „zajęte” od początku — dopełnianie ich nie zabierze
+  const taken = new Set([...shirt, ...print, ...jeans, ...pet]);
+  const printed = new Set(print);
+  for (let i = 0; i < w * h; i++) if (src.data[i * 4 + 3] !== 0 && !own(i) && !printed.has(i)) taken.add(i);
   print.push(...strays(src, taken, new Set([...shirt, ...print])));
   for (const i of print) taken.add(i);
   jeans.push(...strays(src, taken, new Set(jeans)));
@@ -307,13 +357,22 @@ function recolorBody(src: Pixels, mask: Pixels, out: Pixels, meta: FrameMeta, lo
   if (flood) {
     const jeansTop = jeans.length > 0 ? Math.min(...jeans.map((i) => Math.floor(i / w))) : h;
     const nearShirt = near(shirt, w, h, 3);
-    const moreShirt = colourFlood(src, taken, shirt, (i) => Math.floor(i / w) < jeansTop && nearShirt.has(i));
+    const aboveWaist = (i: number) => Math.floor(i / w) < jeansTop && !pet.has(i);
+    // wyspy koszulki odcięte rękami (dłonie na piersi, skrzyżowane ramiona) — w tych samych (ciemnych) kolorach, obok
+    const islands = colourParts(src, taken, shirt, aboveWaist, SHIRT_REACH, SHIRT_LUM);
+    shirt.push(...islands);
+    for (const i of islands) taken.add(i);
+    const moreShirt = colourFlood(src, taken, shirt, (i) => aboveWaist(i) && nearShirt.has(i));
     shirt.push(...moreShirt);
     for (const i of moreShirt) taken.add(i);
     // bez strefy butów (czarne buty mają kolor dolnych nogawek)
-    const foot = meta.foot ?? h;
-    const shoeTop = foot - Math.max(2, Math.round(foot * 0.085));
-    jeans.push(...colourFlood(src, taken, jeans, (i) => Math.floor(i / w) >= jeansTop && Math.floor(i / w) < shoeTop));
+    const shoeTop = shoeTopRow(meta, h);
+    const legsZone = (i: number) => Math.floor(i / w) >= jeansTop && Math.floor(i / w) < shoeTop && !pet.has(i);
+    // nogawki odcięte dłońmi, kotem albo rekwizytem — w kolorach spodni, obok
+    const legIslands = colourParts(src, taken, jeans, legsZone, SHIRT_REACH, JEANS_LUM);
+    jeans.push(...legIslands);
+    for (const i of legIslands) taken.add(i);
+    jeans.push(...colourFlood(src, taken, jeans, legsZone));
   }
   const upper = look.dress ?? look.top;
   const lower = look.dress ?? look.bottom;
@@ -338,11 +397,16 @@ function recolorBody(src: Pixels, mask: Pixels, out: Pixels, meta: FrameMeta, lo
       const top = Math.min(...ys);
       const bot = Math.max(...ys);
       const bibFrom = top + Math.round((bot - top) * 0.35);
+      // śliniaczek na środku tułowia (jeden środek dla całej koszulki — wiersze przecięte dłonią albo prezentem
+      // nie dostają własnego „środka”, który robił plamy)
+      const xs = all.map((i) => i % w).sort((a, b) => a - b);
+      const cx = xs[Math.floor(xs.length / 2)];
+      const half = Math.max(1, (xs[Math.floor(xs.length * 0.9)] - xs[Math.floor(xs.length * 0.1)]) * 0.2);
       for (const i of all) {
         const x = i % w;
         const y = Math.floor(i / w);
         const tone = tones.get(i)!;
-        if (look.dress?.bib && y >= bibFrom && inCentre(x, rows.get(y)!, 0.4)) setPx(out, i, trim(look.dress.bib, tone));
+        if (look.dress?.bib && y >= bibFrom && Math.abs(x - cx) <= half) setPx(out, i, trim(look.dress.bib, tone));
         if (look.dress?.waist && y >= bot - 2) setPx(out, i, trim(look.dress.waist, tone));
         if (look.dress?.collar && y <= top + 1) setPx(out, i, trim(look.dress.collar, tone));
       }
@@ -387,6 +451,53 @@ export function colourFlood(src: Pixels, taken: ReadonlySet<number>, region: rea
       found.push(j);
       queue.push(j);
     }
+  }
+  return found;
+}
+
+/**
+ * Wyspy w kolorach regionu (występujących w nim co najmniej 3 razy): 4-spójne kawałki niezajętych pikseli tych
+ * kolorów (nie kontur, spełniające `allowed`), z których choć jeden piksel leży najwyżej `reach` px od regionu.
+ * W odróżnieniu od `colourFlood` sięga też do kawałków oddzielonych od regionu czymś innym (dłonią, ramieniem).
+ */
+export function colourParts(
+  src: Pixels,
+  taken: ReadonlySet<number>,
+  region: readonly number[],
+  allowed: (i: number) => boolean,
+  reach: number,
+  maxLum = 256,
+): number[] {
+  const { w, h, data } = src;
+  if (region.length === 0) return [];
+  const key = (i: number) => (data[i * 4] << 16) | (data[i * 4 + 1] << 8) | data[i * 4 + 2];
+  const counts = new Map<number, number>();
+  for (const i of region) if (lum(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]) < maxLum) counts.set(key(i), (counts.get(key(i)) ?? 0) + 1);
+  const colours = new Set([...counts].filter(([, n]) => n >= 3).map(([k]) => k));
+  const inRegion = new Set(region);
+  const close = near(region, w, h, reach);
+  const ok = (i: number) =>
+    !inRegion.has(i) && !taken.has(i) && data[i * 4 + 3] !== 0 && colours.has(key(i)) && allowed(i) &&
+    lum(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]) >= 8;
+  const seen = new Set<number>();
+  const found: number[] = [];
+  for (let s = 0; s < w * h; s++) {
+    if (seen.has(s) || !ok(s)) continue;
+    const part: number[] = [];
+    const queue = [s];
+    seen.add(s);
+    while (queue.length > 0) {
+      const i = queue.pop()!;
+      part.push(i);
+      const x = i % w;
+      for (const j of [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, i - w, i + w]) {
+        if (j < 0 || j >= w * h || seen.has(j) || !ok(j)) continue;
+        seen.add(j);
+        queue.push(j);
+      }
+    }
+    // drobne ciemne punkty (oczka i nosek pluszaka, szczegóły rekwizytów) to nie ubranie
+    if (part.length >= MIN_ISLAND && part.some((i) => close.has(i))) found.push(...part);
   }
   return found;
 }
@@ -473,8 +584,9 @@ function skirt(src: Pixels, out: Pixels, jeans: number[], def: ClothDef, ref: nu
   const jeansSet = new Set(jeans);
   const lumOf = (i: number) => lum(src.data[i * 4], src.data[i * 4 + 1], src.data[i * 4 + 2]);
   const alpha = (i: number) => src.data[i * 4 + 3];
-  // ubranie/nogawka/tło — wolno zamalować; jasne (dłonie, skóra, białe podeszwy) zostają
-  const paintable = (i: number) => !pet.has(i) && (alpha(i) === 0 || jeansSet.has(i) || lumOf(i) < 95);
+  // ubranie/nogawka/tło — wolno zamalować; jasne (dłonie, skóra, białe podeszwy) i ciemne rekwizyty w ciepłych
+  // kolorach (pudełko z prezentem, pluszak, konewka) zostają
+  const paintable = (i: number) => !pet.has(i) && (alpha(i) === 0 || jeansSet.has(i) || (lumOf(i) < 95 && clothDark(src, i)));
   const waist = Math.min(...rows.keys());
   const lastJeans = Math.max(...rows.keys());
   const foot = Math.min(h - 1, (meta.foot ?? h) - 1);
@@ -534,9 +646,29 @@ function skirt(src: Pixels, out: Pixels, jeans: number[], def: ClothDef, ref: nu
       const i = y * w + x;
       const l = lumOf(i);
       if (alpha(i) === 0 || pet.has(i)) continue;
-      if (jeansSet.has(i) || (l >= 24 && l < 95)) setPx(out, i, legColor(def.legs, toneOf(l, ref), x, y));
+      if (jeansSet.has(i) || (l >= 24 && l < 95 && clothDark(src, i))) setPx(out, i, legColor(def.legs, toneOf(l, ref), x, y));
     }
   }
+}
+
+/**
+ * Ciemny piksel, który może być ubraniem albo konturem: prawie czarny, chłodny (fioletowo-granatowy jak koszulka
+ * i dżinsy) albo szary. Ciemne brązy i czerwienie to rekwizyty (pudełko, miś) — spódnica ich nie zamalowuje.
+ */
+function clothDark(src: Pixels, i: number): boolean {
+  const r = src.data[i * 4];
+  const g = src.data[i * 4 + 1];
+  const b = src.data[i * 4 + 2];
+  if (lum(r, g, b) < 30) return true;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  if (max === 0 || (max - min) / max < 0.18) return true;
+  let hue: number;
+  if (max === r) hue = (((g - b) / (max - min)) % 6) * 60;
+  else if (max === g) hue = ((b - r) / (max - min) + 2) * 60;
+  else hue = ((r - g) / (max - min) + 4) * 60;
+  if (hue < 0) hue += 360;
+  return hue >= 190 && hue <= 300;
 }
 
 /** Zakładka spódnicy: co ~1/4 szerokości (bez skrajnych kolumn). */

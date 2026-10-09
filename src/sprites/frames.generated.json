@@ -320,7 +320,7 @@
       "foot": 124,
       "scale": 0.4516,
       "mask": true,
-      "knee": 64,
+      "knee": 90,
       "head": {
         "x": 19.5,
         "y": 0,
@@ -376,7 +376,7 @@
       "foot": 108,
       "scale": 0.4516,
       "mask": true,
-      "knee": 76,
+      "knee": 85,
       "head": {
         "x": 38.5,
         "y": 0,
