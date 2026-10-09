@@ -1,0 +1,21 @@
+/*
+ * Poprawiona cyfra „5” w Pixelify Sans (oryginał wygląda jak „S”) — tylko znak U+0035, nałożony na tę samą rodzinę.
+ * Musi być zadeklarowany po @fontsource (przy nakładających się `unicode-range` wygrywa ostatnia deklaracja).
+ * Pliki generuje tools/fix_font_five.py.
+ */
+@font-face {
+  font-family: 'Pixelify Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/pixelify-five-400.woff2') format('woff2');
+  unicode-range: U+0035;
+}
+@font-face {
+  font-family: 'Pixelify Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/pixelify-five-700.woff2') format('woff2');
+  unicode-range: U+0035;
+}

@@ -1,5 +1,6 @@
 import '@fontsource/pixelify-sans/400.css';
 import '@fontsource/pixelify-sans/700.css';
+import './styles/fonts.css';
 import './styles/theme.css';
 import './styles/components.css';
 import './styles/screens.css';
