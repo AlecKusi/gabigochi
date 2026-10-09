@@ -1,4 +1,4 @@
-export type ActivityId = 'study' | 'nursing' | 'phone' | 'crochet' | 'music' | 'karaoke' | 'dance';
+export type ActivityId = 'study' | 'nursing' | 'phone' | 'crochet' | 'music' | 'karaoke' | 'dance' | 'ukulele';
 
 export interface ActivityDef {
   id: ActivityId;
@@ -78,6 +78,12 @@ export const ACTIVITIES: Record<ActivityId, ActivityDef> = {
     frames: ['dance_1', 'dance_2', 'dance_3', 'dance_4'],
     centered: [], notes: true,
     lines: ['Tańczymy!', 'Raz, dwa, trzy!', 'Ale imprezka!'],
+  },
+  ukulele: {
+    id: 'ukulele', name: 'Ukulele', kind: 'loop', fps: 2.2,
+    frames: ['uke_1', 'uke_2', 'uke_3', 'uke_4', 'uke_5', 'uke_6'],
+    centered: [], notes: true,
+    lines: ['Brzdęk, brzdęk!', 'Zagram coś dla Ciebie!', 'Nowa piosenka!'],
   },
 };
 

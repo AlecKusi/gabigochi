@@ -206,7 +206,7 @@ describe('szafa w zapisie', () => {
     const { kitchen: _k, balcony: _b, ...oldRooms } = fresh.rooms;
     const { r } = load({ ...fresh, rooms: oldRooms });
     expect(r.repaired).toBe(false);
-    expect(r.state.rooms.kitchen.items.map((i) => i.itemId)).toContain('fridge');
+    expect(r.state.rooms.kitchen.items.map((i) => i.itemId)).toContain('fridge_retro');
     expect(r.state.rooms.balcony.items.map((i) => i.itemId)).toContain('flower_box');
     expect(r.state.ownedLooks).toContain('floor_deck');
   });

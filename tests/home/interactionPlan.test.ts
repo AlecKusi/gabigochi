@@ -142,3 +142,21 @@ describe('bonusy i lampki', () => {
     expect(toggleLamp(withLamp, 'bedroom', 'nope')).toEqual({ ok: false, reason: 'not-found' });
   });
 });
+
+describe('lodówki z arkusza: drzwi się otwierają', () => {
+  const states = ['ajar', 'open', 'gabi'];
+  it('w oryginalnym stroju Gabi jest w klatce lodówki; w innym — zagląda do otwartej (od tyłu)', () => {
+    const dressed = interactionSteps('fridge', { hasRail: false, itemStates: states, defaultOutfit: false })!;
+    const plain = interactionSteps('fridge', { hasRail: false, itemStates: states, defaultOutfit: true })!;
+    expect(plain.map((s) => s.item)).toEqual(['ajar', 'open', 'gabi', 'ajar']);
+    expect(plain[2].gabi.kind).toBe('hidden');
+    expect(dressed.map((s) => s.item)).toEqual(['ajar', 'open', 'open', 'ajar']);
+    expect(dressed.every((s) => s.gabi.kind === 'frames')).toBe(true);
+    expect(dressed.some((s) => s.line === 'fridge')).toBe(true);
+  });
+  it('zwykła lodówka (bez klatek) — jak dawniej', () => {
+    const steps = interactionSteps('fridge', { hasRail: false })!;
+    expect(steps).toHaveLength(1);
+    expect(steps[0].item).toBeNull();
+  });
+});

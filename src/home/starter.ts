@@ -41,13 +41,14 @@ export const STARTER_LAYOUT: Readonly<Record<RoomId, readonly { itemId: string; 
     { itemId: 'snake_plant', x: 20, y: 140 },
     { itemId: 'toilet', x: 92, y: 136 },
   ],
-  // Kuchnia: lodówka, kuchenka i blat za linią stóp Gabi, szafki i przyprawy na ścianie, miska kota z przodu.
+  // Kuchnia: miętowa lodówka retro (otwiera się), kuchenka i blat za linią stóp Gabi, szafki i przyprawy nad
+  // kuchenką, okno nad blatem, miska kota z przodu (kot je po jej lewej).
   kitchen: [
-    { itemId: 'fridge', x: 16, y: 136 },
-    { itemId: 'stove', x: 44, y: 136 },
-    { itemId: 'kitchen_counter', x: 76, y: 136 },
-    { itemId: 'wall_cabinet', x: 76, y: 72 },
-    { itemId: 'spice_shelf', x: 44, y: 76 },
+    { itemId: 'fridge_retro', x: 20, y: 136 },
+    { itemId: 'stove', x: 56, y: 136 },
+    { itemId: 'kitchen_counter', x: 88, y: 136 },
+    { itemId: 'wall_cabinet', x: 56, y: 56 },
+    { itemId: 'spice_shelf', x: 56, y: 76 },
     { itemId: 'window_flower', x: 108, y: 80 },
     { itemId: 'cat_bowl', x: 96, y: 148 },
   ],

@@ -1523,8 +1523,9 @@
     "price": 50
   },
   "cat_bowl": {
-    "w": 12,
-    "h": 8,
+    "w": 36,
+    "h": 24,
+    "scale": 0.228,
     "name": "Miska kota",
     "category": "kitchen",
     "layer": "floor",
@@ -1610,6 +1611,184 @@
     "foot": 26,
     "frameOf": "wall_clock",
     "state": "night",
+    "overlay": true
+  },
+  "fridge_retro": {
+    "w": 40,
+    "h": 56,
+    "name": "Lodówka retro (miętowa)",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "fridge",
+    "price": 260
+  },
+  "fridge_retro_ajar": {
+    "w": 40,
+    "h": 56,
+    "anchorX": 20.0,
+    "foot": 56,
+    "frameOf": "fridge_retro",
+    "state": "ajar",
+    "overlay": true
+  },
+  "fridge_retro_open": {
+    "w": 64,
+    "h": 56,
+    "anchorX": 20.0,
+    "foot": 56,
+    "frameOf": "fridge_retro",
+    "state": "open",
+    "overlay": true
+  },
+  "fridge_retro_gabi": {
+    "w": 64,
+    "h": 62,
+    "anchorX": 20.0,
+    "foot": 57,
+    "frameOf": "fridge_retro",
+    "state": "gabi",
+    "overlay": true
+  },
+  "fridge_modern": {
+    "w": 39,
+    "h": 56,
+    "name": "Lodówka dwudrzwiowa",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "fridge",
+    "price": 320
+  },
+  "fridge_modern_ajar": {
+    "w": 42,
+    "h": 57,
+    "anchorX": 19.5,
+    "foot": 57,
+    "frameOf": "fridge_modern",
+    "state": "ajar",
+    "overlay": true
+  },
+  "fridge_modern_open": {
+    "w": 69,
+    "h": 56,
+    "anchorX": 19.5,
+    "foot": 57,
+    "frameOf": "fridge_modern",
+    "state": "open",
+    "overlay": true
+  },
+  "fridge_modern_gabi": {
+    "w": 81,
+    "h": 61,
+    "anchorX": 19.5,
+    "foot": 56,
+    "frameOf": "fridge_modern",
+    "state": "gabi",
+    "overlay": true
+  },
+  "fridge_kawaii": {
+    "w": 34,
+    "h": 45,
+    "name": "Mini-lodówka kawaii",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "fridge",
+    "price": 240
+  },
+  "fridge_kawaii_ajar": {
+    "w": 36,
+    "h": 45,
+    "anchorX": 17.0,
+    "foot": 45,
+    "frameOf": "fridge_kawaii",
+    "state": "ajar",
+    "overlay": true
+  },
+  "fridge_kawaii_open": {
+    "w": 56,
+    "h": 45,
+    "anchorX": 17.0,
+    "foot": 45,
+    "frameOf": "fridge_kawaii",
+    "state": "open",
+    "overlay": true
+  },
+  "fridge_kawaii_gabi": {
+    "w": 60,
+    "h": 49,
+    "anchorX": 17.0,
+    "foot": 48,
+    "frameOf": "fridge_kawaii",
+    "state": "gabi",
+    "overlay": true
+  },
+  "cat_bowl_eat_1": {
+    "w": 114,
+    "h": 84,
+    "scale": 0.228,
+    "anchorX": 95.92,
+    "foot": 83,
+    "frameOf": "cat_bowl",
+    "state": "eat_1",
+    "overlay": true
+  },
+  "cat_bowl_eat_2": {
+    "w": 116,
+    "h": 80,
+    "scale": 0.228,
+    "anchorX": 96.82,
+    "foot": 79,
+    "frameOf": "cat_bowl",
+    "state": "eat_2",
+    "overlay": true
+  },
+  "cat_bowl_eat_3": {
+    "w": 110,
+    "h": 62,
+    "scale": 0.228,
+    "anchorX": 90.86,
+    "foot": 59,
+    "frameOf": "cat_bowl",
+    "state": "eat_3",
+    "overlay": true
+  },
+  "cat_bowl_eat_4": {
+    "w": 106,
+    "h": 72,
+    "scale": 0.228,
+    "anchorX": 87.64,
+    "foot": 71,
+    "frameOf": "cat_bowl",
+    "state": "eat_4",
+    "overlay": true
+  },
+  "cat_bowl_eat_5": {
+    "w": 128,
+    "h": 60,
+    "scale": 0.228,
+    "anchorX": 109.38,
+    "foot": 59,
+    "frameOf": "cat_bowl",
+    "state": "eat_5",
+    "overlay": true
+  },
+  "cat_bowl_eat_6": {
+    "w": 122,
+    "h": 64,
+    "scale": 0.228,
+    "anchorX": 102.21,
+    "foot": 63,
+    "frameOf": "cat_bowl",
+    "state": "eat_6",
+    "overlay": true
+  },
+  "cat_bowl_eat_7": {
+    "w": 114,
+    "h": 64,
+    "scale": 0.228,
+    "anchorX": 94.83,
+    "foot": 63,
+    "frameOf": "cat_bowl",
+    "state": "eat_7",
     "overlay": true
   }
 }

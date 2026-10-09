@@ -126,3 +126,67 @@ describe('kotek w pokoju', () => {
     expect(petCatInfo({ name: 'K', hunger: 10, love: 95 }, 20).love).toBe(100);
   });
 });
+
+describe('kot je z miski (klatki miski z kotem)', () => {
+  const seqv = (...v: number[]) => {
+    let i = 0;
+    return () => v[i++ % v.length];
+  };
+  const base = (p: Partial<CatState>): CatState => ({ x: 50, targetX: 50, mode: 'sit', since: 0, until: 100, facing: 'right', ...p });
+
+  it('biegnie na lewą stronę miski i je w klatkach miski: siada, pochyla się, je, na koniec oblizuje się', async () => {
+    const { BOWL_SIDE, bowlEatState } = await import('../../src/home/cat');
+    let c = callToBowl(base({ x: 110 }), 96, 0, true);
+    expect(c.targetX).toBe(96 - BOWL_SIDE);
+    for (let t = 0; t < 20_000 && c.mode === 'run'; t += 50) c = stepCat(c, 50, t, seqv(0.5));
+    expect(c).toMatchObject({ mode: 'eat', atBowl: true, x: 96 - BOWL_SIDE });
+    expect(bowlEatState(c, c.since + 100)).toBe('eat_1');
+    expect(bowlEatState(c, c.since + 600)).toBe('eat_2');
+    expect(['eat_3', 'eat_4', 'eat_5', 'eat_7']).toContain(bowlEatState(c, c.since + 1500));
+    expect(bowlEatState(c, c.until - 100)).toBe('eat_6');
+    const after = stepCat(c, 16, c.until + 1, seqv(0.5));
+    expect(after.atBowl).toBeUndefined();
+    expect(bowlEatState(after, c.until + 2)).toBeNull();
+  });
+
+  it('miska przy lewej ścianie — kot je obok jak dawniej (bez klatek miski)', async () => {
+    const { bowlEatState } = await import('../../src/home/cat');
+    let c = callToBowl(base({ x: 60 }), 16, 0, true);
+    for (let t = 0; t < 20_000 && c.mode === 'run'; t += 50) c = stepCat(c, 50, t, seqv(0.5));
+    expect(c.mode).toBe('eat');
+    expect(c.atBowl).toBe(false);
+    expect(bowlEatState(c, c.since + 100)).toBeNull();
+  });
+
+  it('każdy stan miski z kotem ma obrazek', () => {
+    for (let i = 1; i <= 7; i++) expect((items as Record<string, unknown>)[`cat_bowl_eat_${i}`]).toBeDefined();
+  });
+});
+
+describe('miska stojąca głębiej', () => {
+  it('kot w biegu stopniowo wchodzi w głąb do linii miski, a w zwykłym spacerze wraca na swoją linię', () => {
+    const seqv = () => 0.5;
+    let c = callToBowl({ x: 40, targetX: 40, mode: 'sit', since: 0, until: 100, facing: 'right' }, 96, 0, true, 18);
+    let mid = -1;
+    for (let t = 0; t < 20_000 && c.mode === 'run'; t += 50) {
+      c = stepCat(c, 50, t, seqv);
+      if (mid < 0 && c.x > 60) mid = c.lift ?? 0;
+    }
+    expect(mid).toBeGreaterThan(0);
+    expect(mid).toBeLessThan(18);
+    expect(c).toMatchObject({ mode: 'eat', lift: 18 });
+    let w: CatState = { ...c, mode: 'walk', targetX: 30, until: Infinity, atBowl: undefined };
+    for (let t = 0; t < 20_000 && w.mode === 'walk'; t += 50) w = stepCat(w, 50, 30_000 + t, seqv);
+    expect(w.lift ?? 0).toBe(0);
+  });
+});
+
+describe('mała miska', () => {
+  it('da się ją stuknąć obok rysunku (obszar co najmniej 12×10)', async () => {
+    const { hitItem } = await import('../../src/home/layout');
+    const bowl = { uid: 'b', itemId: 'cat_bowl', x: 96, y: 148, flip: false };
+    expect(hitItem([bowl], 96 + 5.5, 147)).toBe(bowl);
+    expect(hitItem([bowl], 96, 140)).toBe(bowl);
+    expect(hitItem([bowl], 96 + 7, 147)).toBeNull();
+  });
+});

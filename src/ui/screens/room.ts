@@ -10,6 +10,7 @@ import { dayNumber } from '../../core/time';
 import type { GameState, PlacedItem, RoomId } from '../../core/types';
 import { SEATS, SOFAS, activityAllowedIn, activityAvailability, availabilityHint, pickActivityHere, seatAnchor, seatNear, spotAnchor, type Spot } from '../../home/activitySpots';
 import { GABI_BED, findItem, itemById, itemFrames, type Interaction } from '../../home/catalog';
+import { isDefaultOutfit } from '../../wardrobe/outfit';
 import { cookDish, interactionSteps, rewardInteraction, toggleLamp, type GabiPose, type InteractionLine } from '../../home/interactionPlan';
 import { ROOMS, hitItem, itemBox } from '../../home/layout';
 import { shouldNagPlants, water } from '../../home/plants';
@@ -22,7 +23,7 @@ import { ANGRY_TAPS, SUGAR_RUSH, avatarFor, countRecent, statusAnimation, type S
 import { ANIMATIONS, frameAt, resolveAnimation } from '../../sprites/animations';
 import { DISPLAY_HEIGHT, FRAMES, type FrameMeta } from '../../sprites/loader';
 import itemsMeta from '../../home/items.generated.json';
-import { CAT_SPRITE_NAMES, CAT_Y, callToBowl, calmCat, catFrame, catReact, createCat, feedCatInfo, petCatInfo, stepCat, type CatBed, type CatState } from '../../home/cat';
+import { BOWL_SIDE, CAT_SPRITE_NAMES, CAT_Y, bowlEatState, callToBowl, calmCat, catFrame, catReact, createCat, feedCatInfo, petCatInfo, stepCat, type CatBed, type CatState } from '../../home/cat';
 import { openActivities } from '../activitiesSheet';
 import { SCENE_AT, createActivityPlayer, drawActivity, fitSpot, hitsScene, type Placed } from '../activityPlayer';
 import { coinCounter } from '../coinCounter';
@@ -587,7 +588,14 @@ export function roomScreen(app: App): Screen {
     const it = items.find((i) => i.uid === p.uid);
     const kind = it ? (p.use ?? findItem(it.itemId)?.interaction) : undefined;
     const steps = it && kind
-      ? interactionSteps(kind, { hasRail: hasTowelRail(items), night: isNightHour(new Date()), variant: Math.random(), energy: store.get().needs.energy })
+      ? interactionSteps(kind, {
+          hasRail: hasTowelRail(items),
+          night: isNightHour(new Date()),
+          variant: Math.random(),
+          energy: store.get().needs.energy,
+          itemStates: Object.keys(itemFrames(it.itemId)),
+          defaultOutfit: isDefaultOutfit(store.get().outfit),
+        })
       : null;
     if (!it || !kind || !steps) return;
     brain = { ...brain, action: 'idle', targetX: brain.x, facing: it.x < brain.x ? 'left' : 'right' };
@@ -612,7 +620,7 @@ export function roomScreen(app: App): Screen {
       // pełna miska: kotek przybiega i je
       store.update((st) => ({ ...st, cat: feedCatInfo(st.cat, CONFIG.cat.feedLove) }));
       const bowl = store.get().rooms[run.room].items.find((i) => i.uid === run.uid);
-      if (bowl && run.room === viewRoom) cat = callToBowl(cat, bowl.x, t);
+      if (bowl && run.room === viewRoom) cat = callToBowl(cat, bowl.x, t, itemFrames(bowl.itemId).eat_1 !== undefined, CAT_Y - bowl.y);
       play('meow');
     }
     if (run.kind === 'cat') store.update((st) => ({ ...st, cat: petCatInfo(st.cat, CONFIG.cat.petLove) }));
@@ -691,11 +699,12 @@ export function roomScreen(app: App): Screen {
     store.update(() => res.state);
     // Jedzenie przerywa zajęcie (bez bonusu) — inaczej animacja jedzenia byłaby niewidoczna.
     stopActivity(performance.now());
-    brain = triggerBrain(brain, 'eat', performance.now());
+    // cola: Gabi pije z puszki (cała animacja picia), reszta — jedzenie
+    brain = triggerBrain(brain, id === 'cola' ? 'drink' : 'eat', performance.now());
     // kotek obok prosi o kawałek
     cat = catReact(cat, 'beg', performance.now(), brain.x, Math.random);
-    say(pick(id === 'kitkat' ? content.lines.kitkat : content.lines.eat), 2400);
-    play('eat');
+    say(pick(id === 'kitkat' ? content.lines.kitkat : id === 'cola' ? content.lines.drink : content.lines.eat), 2400);
+    play(id === 'cola' ? 'pop' : 'eat');
     if (id !== 'kitkat') return;
     const now = Date.now();
     kitkats.push(now);
@@ -945,7 +954,7 @@ export function roomScreen(app: App): Screen {
     const m = catMeta(f.sprite);
     const x = cat.x + f.dx;
     if (!m) return { x, y: CAT_Y, w: 0, h: 0 };
-    return { x: x - (m.w * m.scale) / 2, y: CAT_Y - f.lift - m.h * m.scale, w: m.w * m.scale, h: m.h * m.scale };
+    return { x: x - (m.w * m.scale) / 2, y: CAT_Y - (cat.lift ?? 0) - f.lift - m.h * m.scale, w: m.w * m.scale, h: m.h * m.scale };
   }
 
   function catAt(x: number, y: number): boolean {
@@ -1159,7 +1168,11 @@ export function roomScreen(app: App): Screen {
         love: s.cat.love,
       });
     }
-    const extras = catVisible() ? [catLayer(t, alpha)] : [];
+    // kot jedzący z miski jest w klatce miski (miska z kotem w jej miejscu) — bez osobnej warstwy kota
+    const eating = catVisible() ? bowlEatState(cat, t) : null;
+    const bowl = eating ? items.find((i) => itemFrames(i.itemId)[eating] !== undefined && Math.abs(i.x - BOWL_SIDE - cat.x) < 1.5) : undefined;
+    const states = bowl && eating ? new Map([...stage.states, [bowl.uid, itemFrames(bowl.itemId)[eating]]]) : stage.states;
+    const extras = catVisible() && !bowl ? [catLayer(t, alpha)] : [];
     // obraz w telewizorze rysowany razem z nim — Gabi siedząca przed ekranem go zasłania
     const itemOverlays = new Map<string, (ctx: CanvasRenderingContext2D, k: number) => void>();
     if (iv?.step.effect === 'screen') {
@@ -1176,7 +1189,7 @@ export function roomScreen(app: App): Screen {
       now: Date.now(),
       t,
       hidden: hiddenItems(stage, inBed && !edit.active ? bed : null, act),
-      states: stage.states,
+      states,
       selectedUid: edit.selectedUid,
       gabi,
       extras,

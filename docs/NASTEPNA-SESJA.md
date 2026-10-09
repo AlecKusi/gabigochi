@@ -128,3 +128,12 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
 - Zegar ścienny `wall_clock` (Ozdoby, 60 monet; w salonie nowej gry na środku ściany): okienko nieba nad tarczą — klatki `wall_clock_morning/_evening/_night` (dzień = zwykły sprite), zawsze wg godziny, także przy zgaszonym świetle. Wskazówki (godzinowa, minutowa, sekundnik w dzień) rysuje `roomRenderer` w pół-pikselach (`CLOCK_FACE` w `src/home/clock.ts`). Interakcja `clock`: Gabi zerka na tarczę i mówi godzinę (`content.lines.clockMorning/Day/Evening/Night`, znacznik `{czas}`).
 - Zegar narysowany w `tools/draw_kitchen_balcony.py` (`wall_clock(phase)`); obecny zapis go nie ma — do kupienia w sklepie.
 - Cyfra „5”: Pixelify Sans rysuje ją jak „S” — poprawiony glif (tylko U+0035, wagi 400 i 700) w `src/styles/fonts/pixelify-five-*.woff2`, nałożony w `src/styles/fonts.css` (`unicode-range`, import zaraz po @fontsource). Generator: `tools/fix_font_five.py` (fonttools + brotli w /c/gvenv).
+
+## Ukulele, cola, lodówki z otwieraniem, kot przy misce (2026-10-09)
+- Nowe arkusze: `sheet-ukulele.jpg` (okres 8,3), `sheet-drink.jpg` (4,7), `sheet-fridges.jpg` (gładki, 2,48, skala 1), `sheet-cateat.jpg` (gładki, 3,9, skala 0,228 — kot jak `cat2`).
+- Ukulele: zajęcie `ukulele` (gdziekolwiek, nutki), klatki `uke_1…6` z maskami szafy (instrument się nie przebarwia).
+- Cola: jedzenie `cola` (8 monet, głód +5, humor +15), ikonka `cola`, akcja `drink` (animacja `drink_1…7`), kwestie `drink`.
+- Lodówki `fridge_retro` / `fridge_modern` / `fridge_kawaii` (Kuchnia): stany `ajar`, `open`, `gabi`. Interakcja `fridge` z `PlanCtx.itemStates`: drzwi się uchylają i otwierają; klatka z Gabi (`gabi`) tylko w oryginalnym stroju (`defaultOutfit`), inaczej Gabi w swoim stroju zagląda od tyłu. Włosy w tych klatkach — `hairTone` we wpisie (teraz też na poziomie wpisu). W nowej grze kuchnia ma lodówkę retro.
+- Kot przy misce: miska `cat_bowl` wycięta z arkusza jedzenia (czerwona); stany `cat_bowl_eat_1…7` (kot + miska, kotwica ze środka miski: `anchorAt` w ekstraktorze). `callToBowl(…, framed, bowlLift)`: kot biegnie na lewą stronę miski (`BOWL_SIDE` = 10), w biegu stopniowo wchodzi w głąb do linii miski (`lift`), je w klatkach miski (`bowlEatState`, warstwa kota ukryta), w zwykłym spacerze wraca na swoją linię. Miska przy lewej ścianie — dawne jedzenie obok.
+- `hitItem`: obszar stuknięcia co najmniej 12×10 (mała miska).
+- Ekstraktor: obrys (`outline`) poszerza też współrzędne komórek (klatki stanów z obrysem).

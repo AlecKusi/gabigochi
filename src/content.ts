@@ -26,6 +26,7 @@ export const content = {
       'Żyjemy w symulacji?',
     ],
     eat: ['Mniam!', 'Pyszne!', 'Dziękuję!'],
+    drink: ['Ahh, orzeźwiające!', 'Bąbelki!', 'Psst… pyszna cola!'],
     kitkat: ['KITKAT! Kocham!', 'Mój ulubiony!!!', 'Najlepszy prezent!'],
     pet: ['Hihi!', 'To łaskocze!', 'Miło!'],
     goodNight: ['Dobranoc!', 'Słodkich snów…'],

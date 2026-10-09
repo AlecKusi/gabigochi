@@ -663,6 +663,104 @@
         "w": 19
       }
     },
+    "drink_1": {
+      "w": 38,
+      "h": 72,
+      "anchorX": 13.5,
+      "foot": 72,
+      "scale": 0.7778,
+      "mask": true,
+      "knee": 55,
+      "head": {
+        "x": 14.0,
+        "y": 0,
+        "w": 22
+      }
+    },
+    "drink_2": {
+      "w": 39,
+      "h": 72,
+      "anchorX": 13.08,
+      "foot": 72,
+      "scale": 0.7778,
+      "mask": true,
+      "knee": 55,
+      "head": {
+        "x": 13.0,
+        "y": 0,
+        "w": 23
+      }
+    },
+    "drink_3": {
+      "w": 33,
+      "h": 72,
+      "anchorX": 12.55,
+      "foot": 72,
+      "scale": 0.7778,
+      "mask": true,
+      "knee": 55,
+      "head": {
+        "x": 12.5,
+        "y": 0,
+        "w": 23
+      }
+    },
+    "drink_4": {
+      "w": 33,
+      "h": 72,
+      "anchorX": 13.0,
+      "foot": 72,
+      "scale": 0.7778,
+      "mask": true,
+      "knee": 55,
+      "head": {
+        "x": 13.0,
+        "y": 0,
+        "w": 24
+      }
+    },
+    "drink_5": {
+      "w": 33,
+      "h": 74,
+      "anchorX": 13.46,
+      "foot": 74,
+      "scale": 0.7778,
+      "mask": true,
+      "knee": 55,
+      "head": {
+        "x": 13.5,
+        "y": 0,
+        "w": 23
+      }
+    },
+    "drink_6": {
+      "w": 28,
+      "h": 74,
+      "anchorX": 13.39,
+      "foot": 74,
+      "scale": 0.7778,
+      "mask": true,
+      "knee": 56,
+      "head": {
+        "x": 13.5,
+        "y": 0,
+        "w": 23
+      }
+    },
+    "drink_7": {
+      "w": 38,
+      "h": 74,
+      "anchorX": 13.39,
+      "foot": 74,
+      "scale": 0.7778,
+      "mask": true,
+      "knee": 56,
+      "head": {
+        "x": 13.5,
+        "y": 0,
+        "w": 23
+      }
+    },
     "expr_bored": {
       "w": 44,
       "h": 119,
@@ -2027,6 +2125,90 @@
         "w": 17
       }
     },
+    "uke_1": {
+      "w": 35,
+      "h": 74,
+      "anchorX": 13.08,
+      "foot": 74,
+      "scale": 0.7568,
+      "mask": true,
+      "knee": 54,
+      "head": {
+        "x": 13.0,
+        "y": 0,
+        "w": 21
+      }
+    },
+    "uke_2": {
+      "w": 35,
+      "h": 74,
+      "anchorX": 13.23,
+      "foot": 74,
+      "scale": 0.7568,
+      "mask": true,
+      "knee": 54,
+      "head": {
+        "x": 13.0,
+        "y": 0,
+        "w": 22
+      }
+    },
+    "uke_3": {
+      "w": 36,
+      "h": 74,
+      "anchorX": 13.23,
+      "foot": 74,
+      "scale": 0.7568,
+      "mask": true,
+      "knee": 54,
+      "head": {
+        "x": 13.0,
+        "y": 0,
+        "w": 22
+      }
+    },
+    "uke_4": {
+      "w": 36,
+      "h": 74,
+      "anchorX": 13.58,
+      "foot": 74,
+      "scale": 0.7568,
+      "mask": true,
+      "knee": 54,
+      "head": {
+        "x": 13.5,
+        "y": 0,
+        "w": 22
+      }
+    },
+    "uke_5": {
+      "w": 36,
+      "h": 74,
+      "anchorX": 13.58,
+      "foot": 74,
+      "scale": 0.7568,
+      "mask": true,
+      "knee": 54,
+      "head": {
+        "x": 13.5,
+        "y": 0,
+        "w": 22
+      }
+    },
+    "uke_6": {
+      "w": 35,
+      "h": 74,
+      "anchorX": 12.08,
+      "foot": 74,
+      "scale": 0.7568,
+      "mask": true,
+      "knee": 54,
+      "head": {
+        "x": 12.0,
+        "y": 0,
+        "w": 21
+      }
+    },
     "walk_a1": {
       "w": 20,
       "h": 42,
@@ -2190,6 +2372,13 @@
     "drag_3",
     "drag_4",
     "drag_5",
+    "drink_1",
+    "drink_2",
+    "drink_3",
+    "drink_4",
+    "drink_5",
+    "drink_6",
+    "drink_7",
     "expr_bored",
     "expr_idea",
     "expr_laugh",
@@ -2290,6 +2479,12 @@
     "tv_2",
     "tv_3",
     "tv_4",
+    "uke_1",
+    "uke_2",
+    "uke_3",
+    "uke_4",
+    "uke_5",
+    "uke_6",
     "walk_a1",
     "walk_a2",
     "walk_a3",

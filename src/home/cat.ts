@@ -34,9 +34,14 @@ export interface CatState {
   facing: 'left' | 'right';
   /** Wysokość nad podłogą (śpi na kanapie / w legowisku). */
   lift?: number;
-  /** Cel spaceru: po dojściu — sen na meblu albo jedzenie z miski. */
-  goal?: { kind: 'sleep'; lift: number } | { kind: 'eat'; bowlX: number };
+  /** Cel spaceru: po dojściu — sen na meblu albo jedzenie z miski (`framed` — z klatkami kota przy misce). */
+  goal?: { kind: 'sleep'; lift: number } | { kind: 'eat'; bowlX: number; framed?: boolean; lift?: number };
+  /** Je z miski rysowanej razem z nim (klatki `cat_bowl_eat_*` w miejscu miski, kot po jej lewej). */
+  atBowl?: boolean;
 }
+
+/** Kot jedzący z miski stoi tyle (px logiczne) na lewo od jej środka — jak w klatkach `cat_bowl_eat_*`. */
+export const BOWL_SIDE = 10;
 
 /** Gdzie kot może chodzić (px logiczne pokoju) i jak szybko. */
 export const CAT_BOUNDS = { minX: 14, maxX: 114, speed: 11, runSpeed: 34 } as const;
@@ -147,19 +152,25 @@ export function stepCat(c: CatState, dt: number, now: number, rng: () => number,
   if (c.mode === 'walk' || c.mode === 'run') {
     const d = c.targetX - c.x;
     const step = ((c.mode === 'run' ? CAT_BOUNDS.runSpeed : CAT_BOUNDS.speed) * dt) / 1000;
+    // głębokość: do miski stojącej dalej od linii łapek kot dochodzi stopniowo (razem z krokiem), a w zwykłym
+    // spacerze wraca na swoją linię; na meble (sen) wskakuje dopiero na miejscu
+    const liftGoal = c.goal?.kind === 'eat' ? (c.goal.lift ?? 0) : c.goal?.kind === 'sleep' ? (c.lift ?? 0) : 0;
+    const lift = (c.lift ?? 0) + (liftGoal - (c.lift ?? 0)) * Math.min(1, step / Math.max(step, Math.abs(d)));
     if (Math.abs(d) <= step) {
-      const at = { ...c, x: c.targetX, goal: undefined };
+      const at = { ...c, x: c.targetX, goal: undefined, lift: liftGoal || undefined };
       if (c.goal?.kind === 'sleep') return { ...timed(at, 'sleep', now, rng), lift: c.goal.lift };
-      if (c.goal?.kind === 'eat') return { ...timed(at, 'eat', now, rng), facing: c.goal.bowlX < at.x ? 'left' : 'right' };
+      if (c.goal?.kind === 'eat') {
+        return { ...timed(at, 'eat', now, rng), facing: c.goal.bowlX < at.x ? 'left' : 'right', atBowl: c.goal.framed === true };
+      }
       return next(at, now, rng, env);
     }
-    return { ...c, x: c.x + Math.sign(d) * step };
+    return { ...c, x: c.x + Math.sign(d) * step, lift: lift || undefined };
   }
   if (now >= c.until) {
     // skok w zabawie i rzut w polowaniu przesuwają kota do przodu
     const dir = c.facing === 'left' ? -1 : 1;
     const moved = c.mode === 'play' ? clampX(c.x + dir * LEAP_DX) : c.mode === 'hunt' ? clampX(c.x + dir * 6) : c.x;
-    return next({ ...c, x: moved, targetX: moved }, now, rng, env);
+    return next({ ...c, x: moved, targetX: moved, atBowl: undefined }, now, rng, env);
   }
   return c;
 }
@@ -201,23 +212,49 @@ export function catFrame(c: CatState, now: number): { sprite: string; lift: numb
   }
 }
 
-/** Miska napełniona: kot biegnie do niej i je. */
-export function callToBowl(c: CatState, bowlX: number, now: number): CatState {
-  // obok miski (głowa nad nią), od strony, z której kot przybiega
+/**
+ * Miska napełniona: kot biegnie do niej i je. `framed` — miska ma klatki kota przy misce: kot staje po jej lewej
+ * (jak w klatkach), jeśli się tam zmieści; inaczej obok miski od strony, z której przybiega (zwykłe klatki kota).
+ */
+export function callToBowl(c: CatState, bowlX: number, now: number, framed = false, bowlLift = 0): CatState {
+  // ze śpiącego na kanapie zeskakuje; potem biegnie (do miski stojącej głębiej — stopniowo w głąb, `bowlLift`)
+  const base = { ...c, lift: c.mode === 'sleep' ? 0 : c.lift, atBowl: undefined };
+  if (framed && bowlX - BOWL_SIDE >= CAT_BOUNDS.minX) {
+    return { ...go(base, 'run', bowlX - BOWL_SIDE, now), goal: { kind: 'eat', bowlX, framed: true, lift: Math.max(0, bowlLift) } };
+  }
   const spot = clampX(bowlX + (c.x < bowlX ? -9 : 9));
-  return { ...go({ ...c, lift: 0 }, 'run', spot, now), goal: { kind: 'eat', bowlX } };
+  return { ...go(base, 'run', spot, now), goal: { kind: 'eat', bowlX } };
+}
+
+/** Klatki jedzenia z miski (stany `cat_bowl`): siada, pochyla się, je (pętla), na koniec oblizuje się. */
+const BOWL_INTRO: readonly [string, number][] = [['eat_1', 500], ['eat_2', 400]];
+const BOWL_LOOP = ['eat_3', 'eat_4', 'eat_5', 'eat_4', 'eat_3', 'eat_7'];
+const BOWL_LOOP_MS = 300;
+const BOWL_LICK_MS = 700;
+
+/** Stan miski (klatka z kotem) w chwili `now`, gdy kot je przy niej (`atBowl`); inaczej null. */
+export function bowlEatState(c: CatState, now: number): string | null {
+  if (c.mode !== 'eat' || !c.atBowl) return null;
+  const t = Math.max(0, now - c.since);
+  if (now >= c.until - BOWL_LICK_MS) return 'eat_6';
+  let acc = 0;
+  for (const [state, ms] of BOWL_INTRO) {
+    if (t < acc + ms) return state;
+    acc += ms;
+  }
+  return BOWL_LOOP[Math.floor((t - acc) / BOWL_LOOP_MS) % BOWL_LOOP.length];
 }
 
 /** Stuknięty kot siada i czeka na Gabi. */
 export function calmCat(c: CatState, now: number): CatState {
-  return { ...c, mode: 'sit', since: now, targetX: c.x, until: now + 60_000, lift: 0, goal: undefined };
+  return { ...c, mode: 'sit', since: now, targetX: c.x, until: now + 60_000, lift: 0, goal: undefined, atBowl: undefined };
 }
 
 /** Reakcja na Gabi: prosi o jedzenie (gdy Gabi je obok), jeży się (gdy Gabi się złości). */
 export function catReact(c: CatState, kind: 'beg' | 'scared', now: number, gabiX: number, rng: () => number): CatState {
   if (c.mode === 'sleep') return c;
   if (kind === 'beg' && Math.abs(gabiX - c.x) > 40) return c;
-  return { ...timed(c, kind, now, rng), facing: gabiX < c.x ? 'left' : 'right' };
+  return { ...timed(c, kind, now, rng), facing: gabiX < c.x ? 'left' : 'right', atBowl: undefined };
 }
 
 /** Kot nakarmiony z miski: pełny brzuszek i trochę więcej sympatii. */

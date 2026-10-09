@@ -2,6 +2,7 @@
   "idle": { "frames": ["idle_front"], "fps": 1 },
   "walk": { "frames": ["walk_a1", "walk_a2", "walk_a3", "walk_a4"], "fps": 6, "flipForRight": true },
   "eat": { "frames": ["fun_eat", "idle_front"], "fps": 2.5 },
+  "drink": { "frames": ["drink_1", "drink_2", "drink_3", "drink_4", "drink_5", "drink_6", "drink_7"], "fps": 2.5 },
   "wave": { "frames": ["fun_wave"], "fps": 1 },
   "talk": { "frames": ["fun_talk"], "fps": 1 },
   "sleep": { "intro": ["bed_1", "bed_3"], "introFps": 0.7, "frames": ["bed_4", "bed_4z"], "fps": 1.2 },

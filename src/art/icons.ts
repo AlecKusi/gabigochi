@@ -241,6 +241,20 @@ export const ICONS = {
     '...kkkkkk...',
     '............',
   ],
+  cola: [
+    '...kkkkkk...',
+    '...kgwggk...',
+    '...krrrrk...',
+    '...kwrrrk...',
+    '...krwwrk...',
+    '...krrwwk...',
+    '...kwwrrk...',
+    '...krrrRk...',
+    '...krrrRk...',
+    '...kggggk...',
+    '...kkkkkk...',
+    '............',
+  ],
   // pory dnia (zegarek na pasku pokoju)
   sun: [
     '.....oo.....',

@@ -2,7 +2,7 @@ import type { MoodLevel } from '../core/types';
 import type { StatusAnim } from './status';
 
 export type PetAction =
-  | 'idle' | 'walk' | 'eat' | 'wave' | 'talk' | 'happy' | 'angry' | 'scared' | 'crazy'
+  | 'idle' | 'walk' | 'eat' | 'drink' | 'wave' | 'talk' | 'happy' | 'angry' | 'scared' | 'crazy'
   // codzienne miny
   | 'yawn' | 'stretch' | 'think' | 'idea' | 'shy' | 'laugh' | 'love' | 'bored';
 export type TimedAction = Exclude<PetAction, 'idle' | 'walk'>;
@@ -30,7 +30,7 @@ export const ROOM_BOUNDS = { minX: 24, maxX: 104, walkSpeed: 14 } as const;
 /** Po przebudzeniu postać stoi (macha) co najmniej tyle, zanim ruszy w drogę. */
 export const WAKE_PAUSE_MS = 2500;
 export const ACTION_MS: Record<TimedAction, number> = {
-  eat: 1600, wave: 1200, talk: 2500, happy: 900, angry: 2000, scared: 1800, crazy: 2500,
+  eat: 1600, drink: 2800, wave: 1200, talk: 2500, happy: 900, angry: 2000, scared: 1800, crazy: 2500,
   yawn: 1600, stretch: 1600, think: 2200, idea: 1500, shy: 1600, laugh: 1500, love: 1800, bored: 2200,
 };
 

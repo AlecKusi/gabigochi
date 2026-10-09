@@ -57,7 +57,9 @@ największego kształtu). `"flipX": true` — klatka odbita w poziomie po wycię
 `scaleRef` arkusza może wskazywać przedmiot (np. klatkę stanu z Gabi) zamiast klatki postaci: wysokość Gabi to
 liczba wierszy z nieprzezroczystymi komórkami w kolumnach `scaleRefCols` ([x0, x1] w px arkusza); `scaleCheck`
 ({klatka: [x0, x1]}) tylko wypisuje, jak wysoka wyjdzie Gabi w innych klatkach. `holeTol` może być też we wpisie;
-`holeTolAll` (arkusz albo wpis, domyślnie 15) — to samo dla wpisów `keep: "all"` (jasne płaszczyzny blisko tła, np.
+`anchorAt` ([x, y] w px arkusza) — zamiast dopasowania kolorów: ten punkt klatki pokrywa się z kotwicą przedmiotu
+(rozmyte arkusze, w których kolory przedmiotu w klatkach nie są identyczne, np. miska z kotem). `hairTone` (patrz
+`hair_tone`) może być też we wpisie. `holeTolAll` (arkusz albo wpis, domyślnie 15) — to samo dla wpisów `keep: "all"` (jasne płaszczyzny blisko tła, np.
 brodzik prysznica, nie stają się dziurami).
 Arkusz z `"itemPreview": nazwa` — podgląd ×3·skala jego przedmiotów, klatek stanów i pozy postaci (z `idle_front`)
 oraz przenikanie każdej serii (przedmiot + stany w kotwicy przedmiotu) w tools/out/<nazwa>.png.
@@ -140,7 +142,7 @@ def entry(spec, group):
         'noSeat': spec.get('noSeat', []),
         'sampleMode': sh.get('sampleMode', 'pixel'),
         'reduce': sh.get('reduce', 1),
-        'hairTone': sh.get('hairTone'),
+        'hairTone': spec.get('hairTone', sh.get('hairTone')),
         'outline': sh.get('outline', []),
         'pet': spec.get('pet', []),
         'seatMode': spec.get('seatMode', sh.get('seatMode', 'colour')),
@@ -999,7 +1001,14 @@ def save_items(images, coords, sheet_scale, gabi_scale, body, frames):
             base_name = spec['frameOf']
             base = images[base_name][2]
             state = spec.get('state', name.removeprefix(base_name + '_'))
-            if spec.get('overlay', True):
+            if 'anchorAt' in spec:
+                # punkt (px arkusza), który ma się pokryć z kotwicą przedmiotu — gdy kolory nie pasują 1:1 (rozmyty arkusz)
+                xs, ys = (np.asarray(v, dtype=float) for v in coords[name])
+                ax, ay = spec['anchorAt']
+                meta[name].update(anchorX=round((ax - xs[0]) / (xs[1] - xs[0]) + 0.5, 2),
+                                  foot=int(round((ay - ys[0]) / (ys[1] - ys[0]) + 0.5)))
+                print(f'kotwica {name} -> {base_name}: {meta[name]["anchorX"]}, {meta[name]["foot"]}')
+            elif spec.get('overlay', True):
                 dx, dy, score, n = item_shift(im, coords[name], spec.get('alignRect'), base)
                 meta[name].update(anchorX=base.width / 2 - dx, foot=base.height - dy)
                 print(f'wyrównanie {name} -> {base_name}: dx={dx:+d} dy={dy:+d} zgodnych px={score}/{n}')
@@ -1770,9 +1779,16 @@ def main():
     for name, (group, e, im) in list(images.items()):
         if e['outline']:
             images[name] = (group, e, outer_outline(im, e['outline']))
+            pad = len(e['outline'])
             if name in pets:
-                pad = len(e['outline'])
                 pets[name] = np.pad(pets[name], pad)
+            if name in coords:
+                # pierścienie obrysu poszerzają obrazek — środki komórek (px arkusza) dopisane w tym samym okresie
+                def grow(v):
+                    step = float(v[1] - v[0]) if len(v) > 1 else 1.0
+                    k = np.arange(1, pad + 1)
+                    return np.concatenate([v[0] - step * k[::-1], v, v[-1] + step * k])
+                coords[name] = tuple(grow(np.asarray(v, dtype=float)) for v in coords[name])
 
     # Największy kształt każdej klatki ciała: wysokość ciała, stopy, kotwica.
     body = {}

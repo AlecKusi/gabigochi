@@ -19,7 +19,7 @@ export const CONFIG = {
   cat: { defaultName: 'Kotek', hungerPerHour: 8, lovePerHour: 4, feedLove: 10, petLove: 20, hungryBelow: 35, maxName: 14 },
 } as const;
 
-export type FoodId = 'apple' | 'sandwich' | 'kitkat' | 'pizza' | 'cake';
+export type FoodId = 'apple' | 'sandwich' | 'kitkat' | 'pizza' | 'cake' | 'cola';
 
 export interface FoodDef {
   id: FoodId;
@@ -35,6 +35,8 @@ export const FOODS: readonly FoodDef[] = [
   { id: 'kitkat', name: 'KitKat', price: 15, hunger: 15, mood: 25 },
   { id: 'pizza', name: 'Pizza', price: 20, hunger: 35, mood: 5 },
   { id: 'cake', name: 'Tort urodzinowy', price: 40, hunger: 30, mood: 20 },
+  // napój: Gabi pije z puszki (animacja picia zamiast jedzenia)
+  { id: 'cola', name: 'Cola', price: 8, hunger: 5, mood: 15 },
 ];
 
 export function foodById(id: FoodId): FoodDef {

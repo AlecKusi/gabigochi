@@ -32,6 +32,7 @@ export const ACTIVITY_RULES: Readonly<Record<ActivityId, SpotRule>> = {
   music: { kind: 'room', room: 'salon', label: 'Tylko w salonie' },
   karaoke: { kind: 'room', room: 'salon', label: 'Tylko w salonie' },
   dance: { kind: 'any' },
+  ukulele: { kind: 'any' },
 };
 
 /** Mebel, przy którym odbywa się zajęcie. */

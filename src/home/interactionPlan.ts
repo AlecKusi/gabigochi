@@ -61,6 +61,10 @@ export interface PlanCtx {
   variant?: number;
   /** Bieżąca energia (drzemka trwa, aż się zapełni). */
   energy?: number;
+  /** Klatki stanów przedmiotu (np. lodówka: `ajar`, `open`, `gabi`). */
+  itemStates?: readonly string[];
+  /** Gabi w oryginalnym stroju — może być narysowana w klatce przedmiotu (tam ma koszulkę i dżinsy z rysunku). */
+  defaultOutfit?: boolean;
 }
 
 /** Ile trwa drzemka od energii `energy` do pełna — w tempie snu (pełna energia w 10 minut); co najmniej 9 s. */
@@ -143,9 +147,21 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
         { ms: 1600, item: null, gabi: ctx.night ? at(['back_idle'], 1, 'under') : at(['back_wave', 'back_idle'], 2.5, 'under') },
         { ms: 800, item: null, gabi: at(['back_hips'], 1, 'under') },
       ];
-    case 'fridge':
+    case 'fridge': {
+      const states = ctx.itemStates ?? [];
       // zagląda do lodówki (od tyłu), potem panel jedzenia
-      return [{ ms: 1400, item: null, gabi: at(['back_touch'], 1, 'under'), line: 'fridge' }];
+      if (!states.includes('open')) return [{ ms: 1400, item: null, gabi: at(['back_touch'], 1, 'under'), line: 'fridge' }];
+      // lodówka z arkusza: drzwi się uchylają i otwierają; Gabi w swoim stroju — wyjmuje coś z półki (klatka z Gabi)
+      const look: InteractionStep = states.includes('gabi') && ctx.defaultOutfit
+        ? { ms: 2200, item: 'gabi', gabi: HIDDEN, line: 'fridge' }
+        : { ms: 1800, item: 'open', gabi: at(['back_touch', 'back_idle'], 1.2, 'under'), line: 'fridge' };
+      return [
+        { ms: 300, item: 'ajar', gabi: at(['back_touch'], 1, 'under') },
+        { ms: 500, item: 'open', gabi: at(['back_idle'], 1, 'under') },
+        look,
+        { ms: 300, item: 'ajar', gabi: at(['back_idle'], 1, 'under') },
+      ];
+    }
     case 'cook':
       // przy kuchence (od tyłu): miesza w garnku, para; danie trafia do lodówki
       return [

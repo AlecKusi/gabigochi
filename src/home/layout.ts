@@ -205,12 +205,18 @@ export function drawOrder(items: readonly PlacedItem[], gabiFeetY?: number): Dra
 }
 
 /** Przedmiot pod punktem (prostokąt sprite'a), najwyżej w kolejności rysowania; `null`, gdy żaden. */
+/** Najmniejszy obszar stuknięcia przedmiotu (px logiczne) — malutkie (miska kota) da się trafić palcem. */
+const MIN_HIT = { w: 12, h: 10 } as const;
+
 export function hitItem(items: readonly PlacedItem[], x: number, y: number): PlacedItem | null {
   const order = drawOrder(items);
   for (let k = order.length - 1; k >= 0; k--) {
     const it = order[k] as PlacedItem;
     const b = itemBox(it);
-    if (x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h) return it;
+    // mały przedmiot: obszar poszerzony na boki i w górę (dół zostaje na jego linii)
+    const padX = Math.max(0, (MIN_HIT.w - b.w) / 2);
+    const top = b.y - Math.max(0, MIN_HIT.h - b.h);
+    if (x >= b.x - padX && x < b.x + b.w + padX && y >= top && y < b.y + b.h) return it;
   }
   return null;
 }

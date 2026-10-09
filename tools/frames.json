@@ -69,7 +69,11 @@
     "back": {"path": "assets/source/sheet-back.jpg", "background": [206, 206, 211], "gridPeriod": 4.0, "holeTol": 15, "paletteColours": 168, "preview": "preview_back", "scaleRef": "back_idle"},
     "sitting": {"path": "assets/source/sheet-sitting.jpg", "outline": ["#030205"], "hairTone": [0.6, 1.1], "sampleMode": "smooth", "background": [194, 198, 201], "gridPeriod": 2.4, "holeTol": 15, "paletteColours": 168, "preview": "preview_sitting", "bodyScale": 0.47},
     "cat2": {"path": "assets/source/sheet-cat2.jpg", "outline": ["#9a8fb8"], "sampleMode": "smooth", "background": [196, 200, 203], "gridPeriod": 2.0, "holeTol": 15, "paletteColours": 168, "itemPreview": "cat2_preview"},
-    "karaoke": {"path": "assets/source/sheet-karaoke.jpg", "hairTone": [0.6, 1.1], "background": [206, 206, 211], "gridPeriod": 4.0, "holeTol": 15, "paletteColours": 168, "preview": "preview_karaoke", "scaleRef": "karaoke_5"}
+    "karaoke": {"path": "assets/source/sheet-karaoke.jpg", "hairTone": [0.6, 1.1], "background": [206, 206, 211], "gridPeriod": 4.0, "holeTol": 15, "paletteColours": 168, "preview": "preview_karaoke", "scaleRef": "karaoke_5"},
+    "ukulele": {"path": "assets/source/sheet-ukulele.jpg", "hairTone": [0.6, 1.1], "background": [208, 209, 214], "gridPeriod": 8.3, "holeTol": 15, "paletteColours": 168, "preview": "preview_ukulele", "scaleRef": "uke_1"},
+    "drink": {"path": "assets/source/sheet-drink.jpg", "hairTone": [0.6, 1.1], "background": [206, 211, 217], "gridPeriod": 4.7, "holeTol": 15, "paletteColours": 168, "preview": "preview_drink", "scaleRef": "drink_1"},
+    "fridges": {"path": "assets/source/sheet-fridges.jpg", "background": [203, 203, 203], "sampleMode": "smooth", "gridPeriod": 2.48, "holeTol": 15, "holeTolAll": 15, "paletteColours": 184, "scale": 1.0, "itemPreview": "fridges_preview"},
+    "cateat": {"path": "assets/source/sheet-cateat.jpg", "outline": ["#9a8fb8"], "sampleMode": "smooth", "background": [205, 208, 215], "gridPeriod": 3.9, "holeTol": 15, "holeTolAll": 15, "paletteColours": 184, "scale": 0.228, "itemPreview": "cateat_preview"}
   },
   "body": {
     "idle_front": { "holeTol": 15, "rect": [34, 47, 127, 266],
@@ -269,7 +273,20 @@
     "karaoke_2": {"onlyLargest": true, "sheet": "karaoke", "rect": [350, 200, 492, 462], "shadow": [[350, 446, 492, 464]]},
     "karaoke_3": {"onlyLargest": true, "sheet": "karaoke", "rect": [550, 332, 720, 604], "shadow": [[550, 588, 720, 606]]},
     "karaoke_4": {"onlyLargest": true, "sheet": "karaoke", "rect": [114, 688, 300, 996], "shadow": [[114, 980, 300, 998]]},
-    "karaoke_5": {"onlyLargest": true, "sheet": "karaoke", "rect": [536, 700, 700, 996], "shadow": [[536, 980, 700, 998]]}
+    "karaoke_5": {"onlyLargest": true, "sheet": "karaoke", "rect": [536, 700, 700, 996], "shadow": [[536, 980, 700, 998]]},
+    "uke_1": {"onlyLargest": true, "sheet": "ukulele", "rect": [69, 289, 373, 919]},
+    "uke_2": {"onlyLargest": true, "sheet": "ukulele", "rect": [393, 289, 698, 919]},
+    "uke_3": {"onlyLargest": true, "sheet": "ukulele", "rect": [710, 289, 1023, 919]},
+    "uke_4": {"onlyLargest": true, "sheet": "ukulele", "rect": [1027, 289, 1340, 919]},
+    "uke_5": {"onlyLargest": true, "sheet": "ukulele", "rect": [1343, 289, 1657, 919]},
+    "uke_6": {"onlyLargest": true, "sheet": "ukulele", "rect": [1668, 289, 1973, 919]},
+    "drink_1": {"onlyLargest": true, "sheet": "drink", "rect": [70, 105, 259, 453]},
+    "drink_2": {"onlyLargest": true, "sheet": "drink", "rect": [375, 105, 568, 453]},
+    "drink_3": {"onlyLargest": true, "sheet": "drink", "rect": [674, 105, 840, 453]},
+    "drink_4": {"onlyLargest": true, "sheet": "drink", "rect": [979, 105, 1144, 453]},
+    "drink_5": {"onlyLargest": true, "sheet": "drink", "rect": [374, 518, 540, 874]},
+    "drink_6": {"onlyLargest": true, "sheet": "drink", "rect": [679, 518, 821, 874]},
+    "drink_7": {"onlyLargest": true, "sheet": "drink", "rect": [984, 518, 1172, 874]}
   },
   "portraits": {
     "portrait_a": [507, 40, 753, 290],
@@ -482,7 +499,7 @@
     "kitchen_counter": {"sheet": "kitchen", "rect": [274, 74, 422, 214], "name": "Blat ze zlewem", "category": "kitchen", "layer": "floor", "interaction": "none", "price": 160},
     "wall_cabinet": {"sheet": "kitchen", "rect": [434, 130, 582, 214], "name": "Szafki kuchenne", "category": "kitchen", "layer": "wall", "interaction": "none", "price": 90},
     "spice_shelf": {"sheet": "kitchen", "rect": [594, 142, 726, 214], "name": "Półka z przyprawami", "category": "kitchen", "layer": "wall", "interaction": "none", "price": 50},
-    "cat_bowl": {"sheet": "kitchen", "rect": [738, 166, 814, 214], "name": "Miska kota", "category": "kitchen", "layer": "floor", "interaction": "catfood", "price": 40},
+    "cat_bowl": {"sheet": "cateat", "keep": "largest", "rect": [355, 516, 497, 611], "name": "Miska kota", "category": "kitchen", "layer": "floor", "interaction": "catfood", "price": 40},
     "flower_box": {"sheet": "kitchen", "rect": [826, 122, 966, 214], "name": "Skrzynka z kwiatami", "category": "balcony", "layer": "floor", "interaction": "water", "price": 70},
     "balcony_chair": {"sheet": "kitchen", "rect": [978, 90, 1062, 214], "name": "Krzesełko balkonowe", "category": "balcony", "layer": "floor", "interaction": "none", "price": 60},
     "bistro_table": {"sheet": "kitchen", "rect": [1074, 90, 1166, 214], "name": "Stolik kawiarniany", "category": "balcony", "layer": "floor", "interaction": "coffee", "price": 90},
@@ -491,6 +508,25 @@
     "wall_clock": {"sheet": "kitchen", "rect": [1586, 78, 1682, 214], "name": "Zegar z porą dnia", "category": "decor", "layer": "wall", "interaction": "clock", "price": 60},
     "wall_clock_morning": {"sheet": "kitchen", "frameOf": "wall_clock", "rect": [1694, 78, 1790, 214]},
     "wall_clock_evening": {"sheet": "kitchen", "frameOf": "wall_clock", "rect": [1802, 78, 1898, 214]},
-    "wall_clock_night": {"sheet": "kitchen", "frameOf": "wall_clock", "rect": [1910, 78, 2006, 214]}
+    "wall_clock_night": {"sheet": "kitchen", "frameOf": "wall_clock", "rect": [1910, 78, 2006, 214]},
+    "fridge_retro": {"sheet": "fridges", "keep": "largest", "rect": [218, 84, 344, 230], "name": "Lodówka retro (miętowa)", "category": "kitchen", "layer": "floor", "interaction": "fridge", "price": 260},
+    "fridge_retro_ajar": {"sheet": "fridges", "frameOf": "fridge_retro", "keep": "largest", "rect": [385, 84, 514, 232], "alignRect": [388, 87, 448, 229]},
+    "fridge_retro_open": {"sheet": "fridges", "frameOf": "fridge_retro", "keep": "largest", "rect": [549, 84, 736, 231], "alignRect": [552, 87, 612, 228]},
+    "fridge_retro_gabi": {"hairTone": [0.35, 1.08], "sheet": "fridges", "frameOf": "fridge_retro", "keep": "largest", "rect": [767, 84, 956, 243], "alignRect": [770, 87, 830, 240]},
+    "fridge_modern": {"sheet": "fridges", "keep": "largest", "rect": [218, 248, 344, 395], "name": "Lodówka dwudrzwiowa", "category": "kitchen", "layer": "floor", "interaction": "fridge", "price": 320},
+    "fridge_modern_ajar": {"sheet": "fridges", "frameOf": "fridge_modern", "keep": "largest", "rect": [385, 247, 517, 395], "alignRect": [388, 250, 448, 392]},
+    "fridge_modern_open": {"sheet": "fridges", "frameOf": "fridge_modern", "keep": "largest", "rect": [551, 249, 751, 395], "alignRect": [554, 252, 614, 392]},
+    "fridge_modern_gabi": {"hairTone": [0.35, 1.08], "sheet": "fridges", "frameOf": "fridge_modern", "keep": "largest", "rect": [755, 248, 978, 408], "alignRect": [758, 251, 818, 405]},
+    "fridge_kawaii": {"sheet": "fridges", "keep": "largest", "rect": [246, 428, 338, 547], "name": "Mini-lodówka kawaii", "category": "kitchen", "layer": "floor", "interaction": "fridge", "price": 240},
+    "fridge_kawaii_ajar": {"sheet": "fridges", "frameOf": "fridge_kawaii", "keep": "largest", "rect": [415, 428, 511, 547], "alignRect": [418, 431, 461, 544]},
+    "fridge_kawaii_open": {"sheet": "fridges", "frameOf": "fridge_kawaii", "keep": "largest", "rect": [590, 428, 735, 547], "alignRect": [593, 431, 636, 544]},
+    "fridge_kawaii_gabi": {"hairTone": [0.35, 1.08], "sheet": "fridges", "frameOf": "fridge_kawaii", "keep": "largest", "rect": [806, 420, 963, 548], "alignRect": [809, 423, 852, 545]},
+    "cat_bowl_eat_1": {"sheet": "cateat", "frameOf": "cat_bowl", "keep": "all", "rect": [51, 281, 497, 611], "anchorAt": [425.5, 607]},
+    "cat_bowl_eat_2": {"sheet": "cateat", "frameOf": "cat_bowl", "keep": "all", "rect": [542, 296, 997, 611], "anchorAt": [921.0, 607]},
+    "cat_bowl_eat_3": {"sheet": "cateat", "frameOf": "cat_bowl", "keep": "all", "rect": [1034, 374, 1466, 619], "anchorAt": [1390.0, 607]},
+    "cat_bowl_eat_4": {"erase": [[1528, 398, 1548, 446], [1606, 368, 1628, 412], [1600, 410, 1628, 438]], "sheet": "cateat", "frameOf": "cat_bowl", "keep": "all", "rect": [1527, 328, 1950, 611], "anchorAt": [1877.5, 607]},
+    "cat_bowl_eat_5": {"erase": [[160, 1104, 177, 1164], [238, 1092, 270, 1172]], "sheet": "cateat", "frameOf": "cat_bowl", "keep": "all", "rect": [167, 1046, 669, 1282], "anchorAt": [595.0, 1278]},
+    "cat_bowl_eat_6": {"sheet": "cateat", "frameOf": "cat_bowl", "keep": "all", "rect": [839, 1031, 1317, 1282], "anchorAt": [1239.0, 1278]},
+    "cat_bowl_eat_7": {"sheet": "cateat", "frameOf": "cat_bowl", "keep": "all", "rect": [1495, 1031, 1943, 1282], "anchorAt": [1866.5, 1278]}
   }
 }
