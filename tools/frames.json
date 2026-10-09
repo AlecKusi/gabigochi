@@ -72,7 +72,7 @@
     "karaoke": {"path": "assets/source/sheet-karaoke.jpg", "hairTone": [0.6, 1.1], "background": [206, 206, 211], "gridPeriod": 4.0, "holeTol": 15, "paletteColours": 168, "preview": "preview_karaoke", "scaleRef": "karaoke_5"},
     "ukulele": {"path": "assets/source/sheet-ukulele.jpg", "hairTone": [0.6, 1.1], "background": [208, 209, 214], "gridPeriod": 8.3, "holeTol": 15, "paletteColours": 168, "preview": "preview_ukulele", "scaleRef": "uke_1"},
     "drink": {"path": "assets/source/sheet-drink.jpg", "hairTone": [0.6, 1.1], "background": [206, 211, 217], "gridPeriod": 4.7, "holeTol": 15, "paletteColours": 168, "preview": "preview_drink", "scaleRef": "drink_1"},
-    "fridges": {"path": "assets/source/sheet-fridges.jpg", "background": [203, 203, 203], "sampleMode": "smooth", "gridPeriod": 2.48, "holeTol": 15, "holeTolAll": 15, "paletteColours": 184, "scale": 1.0, "itemPreview": "fridges_preview"},
+    "fridges": {"path": "assets/source/sheet-fridges.jpg", "background": [203, 203, 203], "sampleMode": "smooth", "bgTol": 20, "gridPeriod": 2.48, "holeTol": 15, "holeTolAll": 15, "paletteColours": 184, "scale": 1.0, "itemPreview": "fridges_preview"},
     "cateat": {"path": "assets/source/sheet-cateat.jpg", "outline": ["#9a8fb8"], "sampleMode": "smooth", "background": [205, 208, 215], "gridPeriod": 3.9, "holeTol": 15, "holeTolAll": 15, "paletteColours": 184, "scale": 0.228, "itemPreview": "cateat_preview"}
   },
   "body": {
@@ -513,10 +513,10 @@
     "fridge_retro_ajar": {"sheet": "fridges", "frameOf": "fridge_retro", "keep": "largest", "rect": [385, 84, 514, 232], "alignRect": [388, 87, 448, 229]},
     "fridge_retro_open": {"sheet": "fridges", "frameOf": "fridge_retro", "keep": "largest", "rect": [549, 84, 736, 231], "alignRect": [552, 87, 612, 228]},
     "fridge_retro_gabi": {"hairTone": [0.35, 1.08], "sheet": "fridges", "frameOf": "fridge_retro", "keep": "largest", "rect": [767, 84, 956, 243], "alignRect": [770, 87, 830, 240]},
-    "fridge_modern": {"sheet": "fridges", "keep": "largest", "rect": [218, 248, 344, 395], "name": "Lodówka dwudrzwiowa", "category": "kitchen", "layer": "floor", "interaction": "fridge", "price": 320},
+    "fridge_modern": {"holeTol": 0, "sheet": "fridges", "keep": "largest", "rect": [218, 248, 344, 395], "name": "Lodówka dwudrzwiowa", "category": "kitchen", "layer": "floor", "interaction": "fridge", "price": 320},
     "fridge_modern_ajar": {"sheet": "fridges", "frameOf": "fridge_modern", "keep": "largest", "rect": [385, 247, 517, 395], "alignRect": [388, 250, 448, 392]},
-    "fridge_modern_open": {"sheet": "fridges", "frameOf": "fridge_modern", "keep": "largest", "rect": [551, 249, 751, 395], "alignRect": [554, 252, 614, 392]},
-    "fridge_modern_gabi": {"hairTone": [0.35, 1.08], "sheet": "fridges", "frameOf": "fridge_modern", "keep": "largest", "rect": [755, 248, 978, 408], "alignRect": [758, 251, 818, 405]},
+    "fridge_modern_open": {"holeTol": 0, "sheet": "fridges", "frameOf": "fridge_modern", "keep": "largest", "rect": [551, 249, 751, 395], "alignRect": [554, 252, 614, 392]},
+    "fridge_modern_gabi": {"holeTol": 0, "hairTone": [0.35, 1.08], "sheet": "fridges", "frameOf": "fridge_modern", "keep": "largest", "rect": [755, 248, 978, 408], "alignRect": [758, 251, 818, 405]},
     "fridge_kawaii": {"sheet": "fridges", "keep": "largest", "rect": [246, 428, 338, 547], "name": "Mini-lodówka kawaii", "category": "kitchen", "layer": "floor", "interaction": "fridge", "price": 240},
     "fridge_kawaii_ajar": {"sheet": "fridges", "frameOf": "fridge_kawaii", "keep": "largest", "rect": [415, 428, 511, 547], "alignRect": [418, 431, 461, 544]},
     "fridge_kawaii_open": {"sheet": "fridges", "frameOf": "fridge_kawaii", "keep": "largest", "rect": [590, 428, 735, 547], "alignRect": [593, 431, 636, 544]},

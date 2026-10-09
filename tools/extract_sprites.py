@@ -141,6 +141,7 @@ def entry(spec, group):
         'flipX': spec.get('flipX', False),
         'noSeat': spec.get('noSeat', []),
         'sampleMode': sh.get('sampleMode', 'pixel'),
+        'bgTol': sh.get('bgTol', 45),
         'reduce': sh.get('reduce', 1),
         'hairTone': spec.get('hairTone', sh.get('hairTone')),
         'outline': sh.get('outline', []),
@@ -188,12 +189,15 @@ def best_offset(grad, period):
     return max(np.arange(0, period, 0.25), key=score)
 
 
-def sample(img, box, period, mode='pixel', bg=None):
+def sample(img, box, period, mode='pixel', bg=None, bg_tol=45):
     """Próbkuje siatkę pikseli o danym okresie: mediana środka każdej komórki.
 
     `mode` "smooth" — arkusz narysowany gładko (bez prawdziwej siatki): cała komórka, a kontur ma pierwszeństwo —
     gdy >= 30% pikseli komórki jest ciemnych (kontur, czarna koszulka), komórka dostaje medianę ciemnych pikseli,
     inaczej medianę jasnych; cienkie linie nie rwą się, wypełnienia nie mieszają się z konturem.
+
+    `bg_tol` (pole arkusza `bgTol`, domyślnie 45) — piksel bliżej tła niż ta suma różnic RGB liczy się jako tło;
+    arkusz z jednolitym tłem i bladymi przedmiotami (miętowa lodówka) potrzebuje mniejszego progu.
 
     Zwraca też środki komórek w pikselach arkusza: (xs, ys).
     """
@@ -219,7 +223,7 @@ def sample(img, box, period, mode='pixel', bg=None):
             if mode == 'smooth':
                 if bg is not None:
                     # wygładzone brzegi: kratka w większości z tła = tło; inaczej tło nie bierze udziału
-                    near_bg = np.abs(px - bg).sum(axis=1) < 45
+                    near_bg = np.abs(px - bg).sum(axis=1) < bg_tol
                     if near_bg.mean() >= 0.5:
                         out[j, i] = bg
                         continue
@@ -1678,7 +1682,7 @@ def collect():
             else:
                 box, margin, min_blob, hole_tol = tight_box(img, e['rect'], bg), period / 2, 12, e['holeTol']
             # Arkusz ma jedną siatkę pikseli dla całej postaci — próbkujemy ją wprost, bez przeskalowania.
-            cells, xs, ys = sample(img, box, period, e['sampleMode'], bg)
+            cells, xs, ys = sample(img, box, period, e['sampleMode'], bg, e['bgTol'])
             if e['reduce'] == 2:
                 cells, xs, ys = reduce2(cells, xs, ys, bg)
                 period *= 2

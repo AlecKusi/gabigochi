@@ -1624,7 +1624,7 @@
   },
   "fridge_retro_ajar": {
     "w": 40,
-    "h": 56,
+    "h": 57,
     "anchorX": 20.0,
     "foot": 56,
     "frameOf": "fridge_retro",
@@ -1650,8 +1650,8 @@
     "overlay": true
   },
   "fridge_modern": {
-    "w": 39,
-    "h": 56,
+    "w": 41,
+    "h": 57,
     "name": "Lodówka dwudrzwiowa",
     "category": "kitchen",
     "layer": "floor",
@@ -1668,9 +1668,9 @@
     "overlay": true
   },
   "fridge_modern_open": {
-    "w": 69,
+    "w": 70,
     "h": 56,
-    "anchorX": 19.5,
+    "anchorX": 20.5,
     "foot": 57,
     "frameOf": "fridge_modern",
     "state": "open",
@@ -1680,14 +1680,14 @@
     "w": 81,
     "h": 61,
     "anchorX": 19.5,
-    "foot": 56,
+    "foot": 57,
     "frameOf": "fridge_modern",
     "state": "gabi",
     "overlay": true
   },
   "fridge_kawaii": {
-    "w": 34,
-    "h": 45,
+    "w": 35,
+    "h": 46,
     "name": "Mini-lodówka kawaii",
     "category": "kitchen",
     "layer": "floor",
@@ -1697,7 +1697,7 @@
   "fridge_kawaii_ajar": {
     "w": 36,
     "h": 45,
-    "anchorX": 17.0,
+    "anchorX": 16.5,
     "foot": 45,
     "frameOf": "fridge_kawaii",
     "state": "ajar",
@@ -1705,18 +1705,18 @@
   },
   "fridge_kawaii_open": {
     "w": 56,
-    "h": 45,
-    "anchorX": 17.0,
-    "foot": 45,
+    "h": 46,
+    "anchorX": 16.5,
+    "foot": 46,
     "frameOf": "fridge_kawaii",
     "state": "open",
     "overlay": true
   },
   "fridge_kawaii_gabi": {
-    "w": 60,
-    "h": 49,
-    "anchorX": 17.0,
-    "foot": 48,
+    "w": 61,
+    "h": 50,
+    "anchorX": 16.5,
+    "foot": 49,
     "frameOf": "fridge_kawaii",
     "state": "gabi",
     "overlay": true
