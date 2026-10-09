@@ -4,7 +4,7 @@ import type { PlacedItem, RoomId, RoomState } from '../../core/types';
 import { findItem, itemFrames } from '../../home/catalog';
 import { GABI, drawOrder, itemBox } from '../../home/layout';
 import { DEFAULT_LOOKS, findLook } from '../../home/looks';
-import { CLOCK_FACE, WALL_CLOCK, handAngles } from '../../home/clock';
+import { CLOCK_FACE, WALL_CLOCK, gameClock, handAngles } from '../../home/clock';
 import { ROOM_PHASE_TINT, WINDOW_PHASE_TINT, type DayPhase } from '../../home/daytime';
 import { NIGHT_TINT, ROOM_H, ROOM_W, drawRoomBase } from '../../pet/room';
 import { deviceRect, drawSprite } from '../pixelStage';
@@ -120,7 +120,7 @@ export function createRoomRenderer(): RoomRenderer {
         ctx.fillRect(x, y, size * u, size * u);
       }
     };
-    const a = handAngles(new Date(f.now));
+    const a = handAngles(gameClock(f.now));
     const ink = f.night ? '#140e1e' : '#2a1f3d';
     hand(a.hour, CLOCK_FACE.hour, 2, ink);
     hand(a.minute, CLOCK_FACE.minute, 1, ink);

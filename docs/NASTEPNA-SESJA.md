@@ -138,3 +138,4 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
 - `hitItem`: obszar stuknięcia co najmniej 12×10 (mała miska).
 - Ekstraktor: obrys (`outline`) poszerza też współrzędne komórek (klatki stanów z obrysem).
 - Poprawka lodówek: blade partie (miętowa lodówka, stalowe uchwyty) były brane za tło — w trybie `smooth` próg tła jest teraz polem arkusza `bgTol` (domyślnie 45; lodówki 20), a lodówka dwudrzwiowa ma `holeTol: 0` (jasnoszare szczeliny drzwi zostają). Dziury sprawdzane automatycznie (przezroczyste piksele niepołączone z brzegiem) — zostały tylko prawdziwe prześwity (między stopą Gabi a drzwiami).
+- Podgląd pory dnia (tylko `npm run dev`): `http://localhost:5173/?godzina=23` (albo `?godzina=7:30`) — `setClockOverride`/`gameClock` w `src/home/clock.ts`: przesuwa tylko godzinę gry (okna, balkon, zegary, kwestie), potrzeby i zapis liczą się od prawdziwego czasu. Bez parametru — zegar telefonu.

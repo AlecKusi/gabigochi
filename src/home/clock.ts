@@ -23,6 +23,32 @@ export function handAngles(d: Date): { hour: number; minute: number; second: num
   return { hour: (h / 12) * turn, minute: (m / 60) * turn, second: (Math.floor(s) / 60) * turn };
 }
 
+/** Przesunięcie godziny gry względem telefonu (podgląd innej pory dnia; patrz `setClockOverride`). */
+let clockOffsetMs = 0;
+
+/**
+ * Podgląd innej pory dnia: godzina gry ustawiona na `hhmm` („23”, „7:30”) dzisiaj i dalej płynie normalnie;
+ * null — zegar telefonu. Zmienia tylko wygląd i kwestie (okna, balkon, zegary) — potrzeby liczą się dalej
+ * od prawdziwego czasu. Zwraca false dla złego zapisu (zegar bez zmian).
+ */
+export function setClockOverride(hhmm: string | null, now = Date.now()): boolean {
+  if (hhmm === null) {
+    clockOffsetMs = 0;
+    return true;
+  }
+  const m = /^(\d{1,2})(?::(\d{2}))?$/.exec(hhmm.trim());
+  if (!m || Number(m[1]) > 23 || Number(m[2] ?? 0) > 59) return false;
+  const d = new Date(now);
+  d.setHours(Number(m[1]), Number(m[2] ?? 0), 0, 0);
+  clockOffsetMs = d.getTime() - now;
+  return true;
+}
+
+/** Godzina gry: zegar telefonu (albo przestawiony do podglądu). */
+export function gameClock(now = Date.now()): Date {
+  return new Date(now + clockOffsetMs);
+}
+
 /** Ikonka pory dnia na pasku. */
 export const PHASE_ICON: Readonly<Record<DayPhase, 'sunrise' | 'sun' | 'sunset' | 'moon'>> = {
   morning: 'sunrise',

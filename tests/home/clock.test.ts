@@ -53,3 +53,20 @@ describe('zegar z porą dnia', () => {
     }
   });
 });
+
+describe('podgląd innej pory dnia', () => {
+  it('?godzina=23 — zegar gry na 23:00 dziś i płynie dalej; null wraca do telefonu; zły zapis bez zmian', async () => {
+    const { gameClock, setClockOverride } = await import('../../src/home/clock');
+    const now = new Date(2026, 9, 9, 16, 30).getTime();
+    expect(setClockOverride('23', now)).toBe(true);
+    expect(clockText(gameClock(now))).toBe('23:00');
+    expect(clockText(gameClock(now + 5 * 60_000))).toBe('23:05');
+    expect(clockNow(gameClock(now)).phase).toBe('night');
+    expect(setClockOverride('7:30', now)).toBe(true);
+    expect(clockNow(gameClock(now)).phase).toBe('morning');
+    expect(setClockOverride('25', now)).toBe(false);
+    expect(clockText(gameClock(now))).toBe('7:30');
+    setClockOverride(null);
+    expect(gameClock(now).getTime()).toBe(now);
+  });
+});

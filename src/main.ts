@@ -28,6 +28,7 @@ import { wardrobeScreen } from './ui/screens/wardrobe';
 import { headSpriteNames } from './wardrobe/catalog';
 import { createFigures } from './wardrobe/figures';
 import { itemUrl } from './ui/home/itemSprites';
+import { setClockOverride } from './home/clock';
 
 const SCREENS: Record<ScreenName, ScreenFactory> = {
   birthday: birthdayScreen,
@@ -91,6 +92,9 @@ async function boot(): Promise<void> {
       return;
     }
     void navigator.storage?.persist?.();
+    // podgląd innej pory dnia przy tworzeniu gry: ?godzina=23 albo ?godzina=7:30 (tylko wygląd, potrzeby bez zmian)
+    const hour = new URLSearchParams(location.search).get('godzina');
+    if (import.meta.env.DEV && hour) setClockOverride(hour);
 
     const now = Date.now();
     const loaded = loadState(localStorage, now);

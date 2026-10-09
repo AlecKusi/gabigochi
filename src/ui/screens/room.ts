@@ -40,7 +40,7 @@ import { needBar } from '../needBar';
 import { clampRoomX, createPetDrag } from '../petDrag';
 import { createPixelStage, deviceRect, drawSprite } from '../pixelStage';
 import { play } from '../sound';
-import { PHASE_ICON, clockNow } from '../../home/clock';
+import { PHASE_ICON, clockNow, gameClock } from '../../home/clock';
 import { PHASE_NAMES, dayPhase, type DayPhase } from '../../home/daytime';
 
 interface Heart {
@@ -68,10 +68,10 @@ const ON_TOP = ROOM_H * 2;
 const ITEM_TAP_SLOP = 12;
 /** Szansa, że pogawędka przy spragnionej roślinie będzie o kwiatkach. */
 const PLANT_NAG_CHANCE = 0.5;
-/** Nocą (wg zegara) Gabi przy oknie mówi o gwiazdach. */
 /** Kwestie przy zegarze ściennym wg pory dnia. */
 const CLOCK_LINES = { morning: 'clockMorning', day: 'clockDay', evening: 'clockEvening', night: 'clockNight' } as const;
 
+/** Nocą (wg zegara) Gabi przy oknie mówi o gwiazdach. */
 const isNightHour = (d: Date) => d.getHours() >= 21 || d.getHours() < 6;
 /** Poniżej tej energii stuknięcie kanapy to drzemka, a nie szydełko. */
 const NAP_ENERGY = 60;
@@ -199,7 +199,7 @@ export function roomScreen(app: App): Screen {
     {
       class: 'clock-pill px-box',
       onclick: () => {
-        const c = clockNow(new Date());
+        const c = clockNow(gameClock());
         play('tap');
         app.toast(`${PHASE_NAMES[c.phase]} · ${c.text}`);
       },
@@ -210,7 +210,7 @@ export function roomScreen(app: App): Screen {
   let shownClock = '';
   let shownPhase: DayPhase | null = null;
   function syncClock(): void {
-    const c = clockNow(new Date());
+    const c = clockNow(gameClock());
     if (c.text !== shownClock) {
       shownClock = c.text;
       clockTime.textContent = c.text;
@@ -503,10 +503,10 @@ export function roomScreen(app: App): Screen {
     const now = Date.now();
     if (key === 'calendar') return `Dziś Dzień ${dayNumber(store.get().createdAt, now)}!`;
     if (key === 'clock') {
-      const c = clockNow(new Date(now));
+      const c = clockNow(gameClock(now));
       return pick(content.lines[CLOCK_LINES[c.phase]]).split('{czas}').join(c.text);
     }
-    if (key === 'window') return pick(isNightHour(new Date(now)) ? content.lines.windowNight : content.lines.window);
+    if (key === 'window') return pick(isNightHour(gameClock(now)) ? content.lines.windowNight : content.lines.window);
     return withCat(pick(content.lines[key]));
   }
 
@@ -590,7 +590,7 @@ export function roomScreen(app: App): Screen {
     const steps = it && kind
       ? interactionSteps(kind, {
           hasRail: hasTowelRail(items),
-          night: isNightHour(new Date()),
+          night: isNightHour(gameClock()),
           variant: Math.random(),
           energy: store.get().needs.energy,
           itemStates: Object.keys(itemFrames(it.itemId)),
@@ -1185,7 +1185,7 @@ export function roomScreen(app: App): Screen {
       looks: room,
       items,
       night: s.sleeping,
-      phase: dayPhase(new Date()),
+      phase: dayPhase(gameClock()),
       now: Date.now(),
       t,
       hidden: hiddenItems(stage, inBed && !edit.active ? bed : null, act),
