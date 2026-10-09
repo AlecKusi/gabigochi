@@ -11,6 +11,19 @@ export const content = {
     'A teraz masz własną, małą Gabi w telefonie. Karm ją, baw się z nią i nie zapominaj gasić jej światła na noc!',
   ],
   signature: 'Z całego serca!',
+  /** Kwestie Gabi przy konkretnym jedzeniu (reszta — `lines.eat`). */
+  foodLines: {
+    strawberry: ['Słodkie truskaweczki!', 'Mniam, lato!'],
+    donut: ['Tłusty czwartek codziennie!', 'Z różą w środku!'],
+    icecream: ['Zimne, ale pyszne!', 'Brr… jeszcze łyżeczkę!'],
+    zapiekanka: ['Zapiekanka jak z budki!', 'Dużo keczupu!'],
+    pancakes: ['Naleśniki z dżemem!', 'Jeszcze jeden naleśnik?'],
+    pierogi: ['Pierożki jak u babci!', 'Ruskie najlepsze!'],
+    ramen: ['Siorb, siorb!', 'Itadakimasu!'],
+    sushi: ['Sushi! Wasabi pali!', 'Uwielbiam łososia!'],
+    pizza: ['Pizza zawsze wchodzi!'],
+    cake: ['Tort! Sto lat!'],
+  },
   lines: {
     greeting: ['Cześć!', 'Hej, tęskniłam!', 'O, jesteś!'],
     happy: ['Ale fajny dzień!', 'Lubię ten pokój.', 'Zagramy w coś?', 'Sto lat dla mnie!', 'Mam ochotę na KitKata…'],

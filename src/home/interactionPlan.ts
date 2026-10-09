@@ -297,8 +297,8 @@ export function toggleLamp(state: GameState, room: RoomId, uid: string): HomeOut
   };
 }
 
-/** Dania z kuchenki (do lodówki): częściej kanapka i pizza, rzadziej tort. */
-const DISHES: readonly FoodId[] = ['sandwich', 'sandwich', 'pizza', 'pizza', 'apple', 'cake'];
+/** Dania z kuchenki (do lodówki): najczęściej pierogi i naleśniki, czasem kanapka, pizza, zapiekanka, ramen, rzadko tort. */
+const DISHES: readonly FoodId[] = ['sandwich', 'pizza', 'pierogi', 'pierogi', 'pancakes', 'pancakes', 'zapiekanka', 'ramen', 'apple', 'cake'];
 
 /** Gotowanie: losowe danie trafia do lodówki. */
 export function cookDish(state: GameState, rng: () => number): { state: GameState; food: FoodId } {

@@ -703,7 +703,8 @@ export function roomScreen(app: App): Screen {
     brain = triggerBrain(brain, id === 'cola' ? 'drink' : 'eat', performance.now());
     // kotek obok prosi o kawałek
     cat = catReact(cat, 'beg', performance.now(), brain.x, Math.random);
-    say(pick(id === 'kitkat' ? content.lines.kitkat : id === 'cola' ? content.lines.drink : content.lines.eat), 2400);
+    const foodLines: Partial<Record<FoodId, readonly string[]>> = content.foodLines;
+    say(pick(id === 'kitkat' ? content.lines.kitkat : id === 'cola' ? content.lines.drink : (foodLines[id] ?? content.lines.eat)), 2400);
     play(id === 'cola' ? 'pop' : 'eat');
     if (id !== 'kitkat') return;
     const now = Date.now();
