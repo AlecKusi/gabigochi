@@ -6,7 +6,7 @@ import { GABI, drawOrder, itemBox } from '../../home/layout';
 import { DEFAULT_LOOKS, findLook } from '../../home/looks';
 import { CLOCK_FACE, WALL_CLOCK, gameClock, handAngles } from '../../home/clock';
 import { ROOM_PHASE_TINT, WINDOW_PHASE_TINT, type DayPhase } from '../../home/daytime';
-import { NIGHT_TINT, ROOM_H, ROOM_W, drawRoomBase } from '../../pet/room';
+import { NIGHT_TINT, ROOM_H, ROOM_W, drawBalconyBack, drawBalconyFront, drawBalconyLive, drawRoomBase } from '../../pet/room';
 import { deviceRect, drawSprite } from '../pixelStage';
 import { itemSource } from './itemSprites';
 import { WINDOW_NIGHT_TINT, isLitLamp, itemAnchor, itemFrameAnchor, itemTints, needsWater } from './scene';
@@ -63,6 +63,11 @@ export function createRoomRenderer(): RoomRenderer {
   base.width = ROOM_W;
   base.height = ROOM_H;
   const baseCtx = base.getContext('2d')!;
+  /** Balkon: podłoga z balustradą na wierzchu żywego nieba (okna, spadające gwiazdy). */
+  const front = document.createElement('canvas');
+  front.width = ROOM_W;
+  front.height = ROOM_H;
+  const frontCtx = front.getContext('2d')!;
   let baseKey = '';
 
   function drawBackground(bg: CanvasRenderingContext2D, f: RoomFrame): void {
@@ -73,13 +78,28 @@ export function createRoomRenderer(): RoomRenderer {
       const wall = findLook(f.looks.wallpaper) ?? findLook(DEFAULT_LOOKS[f.room].wallpaper)!;
       const floor = findLook(f.looks.floor) ?? findLook(DEFAULT_LOOKS[f.room].floor)!;
       baseCtx.clearRect(0, 0, ROOM_W, ROOM_H);
-      drawRoomBase(baseCtx, f.room, wall, floor, phase);
-      if (f.night) {
-        baseCtx.fillStyle = NIGHT_TINT;
-        baseCtx.fillRect(0, 0, ROOM_W, ROOM_H);
+      if (f.room === 'balcony') {
+        // balkon w warstwach: niebo z miastem (tu), co klatkę żywe niebo, na wierzchu podłoga z balustradą
+        drawBalconyBack(baseCtx, phase);
+        frontCtx.clearRect(0, 0, ROOM_W, ROOM_H);
+        drawBalconyFront(frontCtx, floor);
+      } else {
+        drawRoomBase(baseCtx, f.room, wall, floor, phase);
+        if (f.night) {
+          baseCtx.fillStyle = NIGHT_TINT;
+          baseCtx.fillRect(0, 0, ROOM_W, ROOM_H);
+        }
       }
     }
     bg.drawImage(base, 0, 0);
+    if (f.room === 'balcony') {
+      drawBalconyLive(bg, phase, gameClock(f.now).getTime(), f.t);
+      bg.drawImage(front, 0, 0);
+      if (f.night) {
+        bg.fillStyle = NIGHT_TINT;
+        bg.fillRect(0, 0, ROOM_W, ROOM_H);
+      }
+    }
   }
 
   function drawItem(ctx: CanvasRenderingContext2D, k: number, it: PlacedItem, f: RoomFrame): void {

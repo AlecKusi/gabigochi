@@ -3,6 +3,7 @@ import { artCanvas } from '../art/pixels';
 import type { RoomId } from '../core/types';
 import { drawFloor, drawWallpaper, type LookDef } from '../home/looks';
 import { SKY, type DayPhase } from '../home/daytime';
+import { METEOR_FLIGHT, litShare, meteorAt, skyHash as hash, starDimmed, windowLit } from '../home/balconySky';
 
 /** Wymiary pokoju w pikselach logicznych; canvas skalowany CSS-em. */
 export const ROOM_W = 128;
@@ -24,9 +25,10 @@ const BUNTING = ['#ff7fb0', '#ffd34d', '#5aa8f0', '#9b6ee0'];
  */
 export function drawRoomBase(ctx: CanvasRenderingContext2D, room: RoomId, wallpaper: LookDef, floor: LookDef, phase: DayPhase = 'day'): void {
   if (room === 'balcony') {
-    drawBalconyView(ctx, phase);
-    drawFloor(ctx, floor, FLOOR_Y, ROOM_W, ROOM_H - FLOOR_Y);
-    drawRailing(ctx);
+    // nieruchomy widok (okna wg pory, bez spadających gwiazd); w grze warstwy rysuje renderer pokoju
+    drawBalconyBack(ctx, phase);
+    drawBalconyLive(ctx, phase, null, 0);
+    drawBalconyFront(ctx, floor);
     return;
   }
   drawWallpaper(ctx, wallpaper, ROOM_W, FLOOR_Y);
@@ -55,20 +57,37 @@ function drawBunting(ctx: CanvasRenderingContext2D): void {
   }
 }
 
-/** Deterministyczny „los” do gwiazd i okien (to samo tło przy każdym rysowaniu). */
-function hash(n: number): number {
-  const x = Math.sin(n * 127.1) * 43758.5453;
-  return x - Math.floor(x);
-}
-
 function mixHex(a: string, b: string, t: number): string {
   const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
   const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
   return `rgb(${pa.map((v, i) => Math.round(v + (pb[i] - v) * t)).join(',')})`;
 }
 
-/** Widok z balkonu: niebo z pory dnia (pasy gradientu), słońce/księżyc, chmurki albo gwiazdy, miasto na horyzoncie. */
-function drawBalconyView(ctx: CanvasRenderingContext2D, phase: DayPhase): void {
+/** Gwiazdy nad balkonem (px logiczne) — co piąta migocze. */
+const STARS = Array.from({ length: 40 }, (_, i) => ({ x: Math.floor(hash(i) * ROOM_W), y: Math.floor(hash(i + 99) * 70) }));
+
+/** Miasto na horyzoncie: budynki i miejsca na okna (każde może świecić albo być ciemne). */
+const CITY = (() => {
+  const buildings: { x: number; w: number; h: number }[] = [];
+  const windows: { x: number; y: number }[] = [];
+  let x = 0;
+  for (let i = 0; x < ROOM_W; i++) {
+    const w = 8 + Math.floor(hash(i + 7) * 10);
+    const h = 18 + Math.floor(hash(i + 31) * 30);
+    buildings.push({ x, w, h });
+    for (let wy = FLOOR_Y - h + 3; wy < FLOOR_Y - 4; wy += 5) {
+      for (let wx = x + 2; wx < x + w - 3; wx += 3) if (hash(wx * 13 + wy) > 0.55) windows.push({ x: wx, y: wy });
+    }
+    x += w;
+  }
+  return { buildings, windows };
+})();
+
+/**
+ * Widok z balkonu bez tego, co żyje: niebo z pory dnia (pasy gradientu), słońce/księżyc, chmurki albo gwiazdy,
+ * daszek i sylwetki budynków (okna dorysowuje `drawBalconyLive`).
+ */
+export function drawBalconyBack(ctx: CanvasRenderingContext2D, phase: DayPhase): void {
   const [top, bottom] = SKY[phase];
   const bands = 12;
   for (let i = 0; i < bands; i++) {
@@ -76,10 +95,10 @@ function drawBalconyView(ctx: CanvasRenderingContext2D, phase: DayPhase): void {
     ctx.fillRect(0, Math.floor((FLOOR_Y * i) / bands), ROOM_W, Math.ceil(FLOOR_Y / bands) + 1);
   }
   if (phase === 'night') {
-    for (let i = 0; i < 40; i++) {
+    STARS.forEach((st, i) => {
       ctx.fillStyle = i % 7 === 0 ? '#ffe9a8' : '#ffffff';
-      ctx.fillRect(Math.floor(hash(i) * ROOM_W), Math.floor(hash(i + 99) * 70), 1, 1);
-    }
+      ctx.fillRect(st.x, st.y, 1, 1);
+    });
     // księżyc
     ctx.fillStyle = '#fff4c8';
     ctx.fillRect(98, 14, 10, 10);
@@ -113,22 +132,67 @@ function drawBalconyView(ctx: CanvasRenderingContext2D, phase: DayPhase): void {
     ctx.fillRect(x + 1, 8, 6, 1);
   }
   // miasto na horyzoncie
-  const city = phase === 'night' ? '#1f1b45' : phase === 'evening' ? '#5a3f78' : '#9aa7cf';
-  const win = phase === 'night' || phase === 'evening' ? '#ffd86a' : null;
-  let x = 0;
-  for (let i = 0; x < ROOM_W; i++) {
-    const w = 8 + Math.floor(hash(i + 7) * 10);
-    const h = 18 + Math.floor(hash(i + 31) * 30);
-    ctx.fillStyle = city;
-    ctx.fillRect(x, FLOOR_Y - h, w - 1, h);
-    if (win) {
-      ctx.fillStyle = win;
-      for (let wy = FLOOR_Y - h + 3; wy < FLOOR_Y - 4; wy += 5) {
-        for (let wx = x + 2; wx < x + w - 3; wx += 3) if (hash(wx * 13 + wy) > 0.55) ctx.fillRect(wx, wy, 1, 2);
-      }
-    }
-    x += w;
+  ctx.fillStyle = phase === 'night' ? '#1f1b45' : phase === 'evening' ? '#5a3f78' : '#9aa7cf';
+  for (const b of CITY.buildings) ctx.fillRect(b.x, FLOOR_Y - b.h, b.w - 1, b.h);
+}
+
+/**
+ * To, co żyje na niebie (rysowane co klatkę między widokiem a balustradą): okna w mieście wieczorem i nocą gasną
+ * i zapalają się (im później, tym mniej świeci), a nocą migoczą gwiazdy i przelatują spadające gwiazdy.
+ * `clockMs` — godzina gry (ms); null — nieruchomy widok: świecą wszystkie okna. `t` — zegar animacji (ms).
+ */
+export function drawBalconyLive(ctx: CanvasRenderingContext2D, phase: DayPhase, clockMs: number | null, t: number): void {
+  if (phase !== 'night' && phase !== 'evening') return;
+  const d = clockMs === null ? null : new Date(clockMs);
+  const share = d ? litShare(phase, d.getHours() + d.getMinutes() / 60) : 1;
+  ctx.fillStyle = '#ffd86a';
+  CITY.windows.forEach((w, i) => {
+    if (clockMs === null || windowLit(i, clockMs, share)) ctx.fillRect(w.x, w.y, 1, 2);
+  });
+  if (phase !== 'night' || clockMs === null) return;
+  // migotanie: co piąta gwiazda co chwilę przygasa
+  ctx.fillStyle = '#5d5796';
+  STARS.forEach((st, i) => {
+    if (i % 5 === 0 && starDimmed(i, t)) ctx.fillRect(st.x, st.y, 1, 1);
+  });
+  drawMeteor(ctx, t);
+}
+
+/** Ogon spadającej gwiazdy: od głowy (biel) przez kremowy do złotego, coraz bledszy. */
+const METEOR_TAIL = 12;
+
+/** Spadająca gwiazda: świecąca głowa i długi, gasnący ogon; pojawia się i znika płynnie. */
+function drawMeteor(ctx: CanvasRenderingContext2D, t: number): void {
+  const m = meteorAt(t);
+  if (!m) return;
+  const len = Math.hypot(METEOR_FLIGHT.dx, METEOR_FLIGHT.dy);
+  const ux = (m.dir * METEOR_FLIGHT.dx) / len;
+  const uy = METEOR_FLIGHT.dy / len;
+  // ogon rośnie na starcie, a pod koniec całość blednie
+  const fade = Math.min(1, (1 - m.p) * 3);
+  const tail = Math.max(2, Math.round(METEOR_TAIL * Math.min(1, m.p * 4)));
+  const hx = Math.round(m.x);
+  const hy = Math.round(m.y);
+  ctx.save();
+  for (let k = tail; k >= 1; k--) {
+    ctx.globalAlpha = fade * (0.95 - (0.8 * k) / tail);
+    ctx.fillStyle = k < 3 ? '#fffbe6' : k < 7 ? '#fff0b0' : '#ffd86a';
+    ctx.fillRect(Math.round(m.x - ux * k), Math.round(m.y - uy * k), 1, 1);
   }
+  // głowa z poświatą
+  ctx.globalAlpha = fade * 0.45;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(hx - 1, hy, 3, 1);
+  ctx.fillRect(hx, hy - 1, 1, 3);
+  ctx.globalAlpha = fade;
+  ctx.fillRect(hx, hy, 1, 1);
+  ctx.restore();
+}
+
+/** Przód balkonu (na wierzchu nieba): podłoga i balustrada. */
+export function drawBalconyFront(ctx: CanvasRenderingContext2D, floor: LookDef): void {
+  drawFloor(ctx, floor, FLOOR_Y, ROOM_W, ROOM_H - FLOOR_Y);
+  drawRailing(ctx);
 }
 
 /** Balustrada balkonu: poręcz i szczeble na tle miasta. */
