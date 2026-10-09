@@ -20,7 +20,7 @@ describe('pickLine', () => {
   });
   it('losowe teksty Gabi', () => {
     expect(content.lines.random).toContain('Jestem kierowniczka.');
-    expect(content.lines.random).toHaveLength(5);
+    expect(content.lines.random).toHaveLength(12);
     // przy potrzebach — bez losowych tekstów
     expect(content.lines.random).not.toContain(pickLine({ hunger: 10, mood: 90, energy: 90 }, first));
   });
