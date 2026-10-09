@@ -29,9 +29,11 @@ export type PoseAt = 'seat' | 'lie' | 'behind' | 'front' | 'under';
 export type InteractionLine =
   | 'water' | 'read' | 'play' | 'cute' | 'calendar' | 'window' | 'clock'
   | 'toilet' | 'shower' | 'showerDone' | 'bath' | 'bathRelax' | 'sink' | 'towel' | 'hairdryer' | 'nap' | 'coffee'
-  | 'cake' | 'kitkat' | 'tea' | 'relaxPhone' | 'tv' | 'cat' | 'fridge' | 'cook' | 'catfood';
+  | 'cake' | 'kitkat' | 'tea' | 'relaxPhone' | 'tv' | 'cat' | 'fridge' | 'cook' | 'catfood'
+  | 'mirror' | 'laundry' | 'scale';
 
-export type InteractionEffect = 'water' | 'hearts' | 'screen' | 'steam';
+/** Efekty kroku: `rain` — woda pod prysznicem, `bubbles` — piana nad wanną, `spin` — pranie w pralce. */
+export type InteractionEffect = 'water' | 'hearts' | 'screen' | 'steam' | 'rain' | 'bubbles' | 'spin';
 
 export interface InteractionStep {
   ms: number;
@@ -72,6 +74,9 @@ export function napMs(energy: number): number {
   const missing = Math.max(0, CONFIG.needs.max - energy);
   return Math.max(9000, Math.ceil((missing / CONFIG.needs.sleepEnergyGainPerHour) * 3_600_000));
 }
+
+/** Przedmiot bez klatki z Gabi (meble łazienkowe z nowych arkuszy) — wersja interakcji z efektami zamiast klatek. */
+const withoutGabiFrame = (ctx: PlanCtx): boolean => ctx.itemStates !== undefined && !ctx.itemStates.includes('gabi');
 
 const pickOf = <T>(ctx: PlanCtx, items: readonly T[]): T => items[Math.min(items.length - 1, Math.floor((ctx.variant ?? 0) * items.length))];
 const at = (frames: readonly string[], fps: number, where: PoseAt): GabiPose => ({ kind: 'frames', frames, fps, at: where });
@@ -187,6 +192,13 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
       // chwila przy wieszaku, potem ekran Szafy (w pokoju)
       return [{ ms: 500, item: null, gabi: IDLE }];
     case 'toilet':
+      // toaleta bez klatek stanów (z nowych arkuszy): Gabi przysiada na chwilę z telefonem, potem spłukuje
+      if (withoutGabiFrame(ctx)) {
+        return [
+          { ms: 2600, item: null, gabi: at(['sit_phone_1', 'sit_phone_2'], 1, 'seat') },
+          { ms: 1200, item: null, gabi: IDLE, line: 'toilet', effect: 'water' },
+        ];
+      }
       return [
         { ms: 700, item: 'open', gabi: IDLE },
         { ms: 2500, item: 'gabi', gabi: HIDDEN },
@@ -194,6 +206,14 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
         { ms: 400, item: null, gabi: IDLE },
       ];
     case 'shower':
+      // kabina bez klatek stanów: Gabi wchodzi (znika za szybą), leci woda i para, wychodzi w ręczniku
+      if (withoutGabiFrame(ctx)) {
+        return [
+          { ms: 700, item: null, gabi: IDLE, line: 'shower' },
+          { ms: 5500, item: null, gabi: HIDDEN, effect: 'rain' },
+          { ms: 2500, item: null, gabi: TURBAN, line: 'showerDone' },
+        ];
+      }
       return [
         { ms: 900, item: 'drip', gabi: IDLE, line: 'shower' },
         { ms: 700, item: 'on', gabi: IDLE },
@@ -201,6 +221,15 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
         { ms: 2500, item: null, gabi: TURBAN, line: 'showerDone' },
       ];
     case 'bath':
+      // wanna bez klatek stanów: Gabi wchodzi do wanny (pod pianą), bąbelki i para, potem ręcznik i suszarka
+      if (withoutGabiFrame(ctx)) {
+        return [
+          { ms: 1000, item: null, gabi: IDLE, line: 'bath' },
+          { ms: 7000, item: null, gabi: HIDDEN, line: 'bathRelax', effect: 'bubbles' },
+          { ms: 2500, item: null, gabi: TURBAN },
+          { ms: 3000, item: null, gabi: HAIRDRYER, line: 'hairdryer' },
+        ];
+      }
       return [
         { ms: 1500, item: 'fill', gabi: IDLE, line: 'bath' },
         { ms: 1200, item: 'bubbles', gabi: IDLE },
@@ -209,6 +238,13 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
         { ms: 3000, item: null, gabi: HAIRDRYER, line: 'hairdryer' },
       ];
     case 'sink': {
+      // umywalka bez klatek stanów: Gabi myje ręce (od tyłu), leci woda
+      if (withoutGabiFrame(ctx)) {
+        return [
+          { ms: 2600, item: null, gabi: at(['back_touch', 'back_idle'], 2, 'under'), line: 'sink', effect: 'water' },
+          { ms: 600, item: null, gabi: at(['back_idle'], 1, 'under') },
+        ];
+      }
       const steps: InteractionStep[] = [
         { ms: 800, item: 'on', gabi: IDLE, line: 'sink' },
         { ms: 3000, item: 'gabi', gabi: HIDDEN },
@@ -218,6 +254,25 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
     }
     case 'hairdryer':
       return [{ ms: 3500, item: null, gabi: HAIRDRYER, line: 'hairdryer' }];
+    case 'mirror':
+      // przegląda się w lustrze (od tyłu) i pozuje
+      return [
+        { ms: 1000, item: null, gabi: at(['back_idle'], 1, 'under') },
+        { ms: 1800, item: null, gabi: at(['back_hips'], 1, 'under'), line: 'mirror' },
+        { ms: 900, item: null, gabi: at(['back_wave', 'back_idle'], 2.5, 'under') },
+      ];
+    case 'laundry':
+      // nastawia pranie: obok pralki przykuca i wkłada ubrania, potem patrzy, jak bęben się kręci
+      return [
+        { ms: 1400, item: null, gabi: { kind: 'frames', frames: ['care_soil'], fps: 1, face: true } },
+        { ms: 3200, item: null, gabi: { kind: 'frames', frames: ['fun_talk'], fps: 1, face: true }, line: 'laundry', effect: 'spin' },
+      ];
+    case 'scale':
+      // staje na wadze i komentuje wynik
+      return [
+        { ms: 900, item: null, gabi: at(['idle_front'], 1, 'seat') },
+        { ms: 2400, item: null, gabi: at(['expr_think'], 1, 'seat'), line: 'scale' },
+      ];
     default:
       return null;
   }
@@ -264,7 +319,11 @@ export function interactionReward(kind: Interaction): { mood: number; energy: nu
       return { mood: 3, energy: 0 };
     case 'cook':
     case 'catfood':
+    case 'laundry':
       return { mood: 2, energy: 0 };
+    case 'mirror':
+    case 'scale':
+      return { mood: 1, energy: 0 };
     case 'nap':
       return { mood: 1, energy: 0 }; // energia rośnie w trakcie drzemki
     default:

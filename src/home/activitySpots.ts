@@ -20,7 +20,11 @@ export const SEATS: readonly string[] = [
   'balcony_folding_chair', 'balcony_metal_chair', 'rattan_armchair', 'egg_chair', 'outdoor_pouf',
 ];
 /** O ile (px logiczne) siedzisko jest wyżej niż stołek z klatek szydełkowania (hoker — nogi w powietrzu). */
-export const SEAT_LIFT: Readonly<Record<string, number>> = { bar_stool: 9, hanging_chair: 3, egg_chair: 3 };
+export const SEAT_LIFT: Readonly<Record<string, number>> = {
+  bar_stool: 9, hanging_chair: 3, egg_chair: 3,
+  // łazienka: toaleta (nowa) wyżej niż stołek, Gabi stoi na wadze
+  toilet_white: 4, bath_scale: 5,
+};
 
 /** Gdzie wolno zająć się danym zajęciem. */
 export type SpotRule =

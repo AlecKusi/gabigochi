@@ -210,3 +210,19 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   okładki książek, obrys dymka, cienie włosów), klatki z błędami ≥ 200: 14 → 3 (`study_1`, `study_3` — książka;
   `dance_3` — linie ruchu w masce spodni).
 - Do zrobienia dalej: linie ruchu w tańcu, sukienki w pozach siedzących/leżących (kształt spódnicy).
+
+## Łazienka z dwóch arkuszy (2026-10-09)
+- `sheet-bath1.jpg`, `sheet-bath2.jpg` (okres 6,25), 26 przedmiotów w kategorii „bathroom” (skale osobno na wpis):
+  wanny (na nóżkach, zabudowana, narożna), prysznice (narożny, kabina), toaleta kompakt, bidet, umywalki (z szafką,
+  wisząca), lustra (okrągłe, szafka z lustrem), pralka, waga, słupek, szafka wisząca, regał bambusowy, kosz na pranie,
+  grzejnik drabinkowy, półka pod prysznic, wieszak na ręczniki, bojler, suszarka na pranie, kosz na śmieci, dywanik,
+  zestaw WC, kubek z mydelniczką.
+- Nowe przedmioty nie mają klatek stanów („gabi”), więc `interactionSteps` ma dla nich wersje ogólne
+  (`withoutGabiFrame` — tylko gdy `itemStates` podane i bez „gabi”): toaleta — siad z telefonem (`SEAT_LIFT` 4) i
+  spłukanie; prysznic — Gabi znika, efekt `rain` + para, potem turban; wanna — Gabi znika, efekt `bubbles` + para,
+  turban, suszarka; umywalka — mycie rąk od tyłu z wodą. Nowe interakcje: `mirror` (pozowanie od tyłu), `laundry`
+  (Gabi obok pralki, efekt `spin`), `scale` (stoi na wadze, `SEAT_LIFT` 5, myśli). Kwestie w `lines.mirror/laundry/scale`.
+- Ekstraktor: `shadowBarrier` (zalewanie cienia staje na ciemnym konturze — nóżki suszarki), `dropSpecks` (okruchy).
+- Arkusze animacji, które byłyby ładniejsze od efektów ogólnych (opcjonalne): Gabi w pianie w wannie (popiersie),
+  sylwetka za szybą prysznica, mycie zębów przodem, czesanie przed lustrem, wkładanie prania, wieszanie prania
+  na suszarce, wchodzenie na wagę (zdziwiona mina).

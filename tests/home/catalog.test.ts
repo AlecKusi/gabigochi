@@ -74,14 +74,42 @@ describe('katalog przedmiotów', () => {
       towel_rail: ['wall', 'none', 50],
       towel_hanging: ['wall', 'none', 30],
       hairdryer_shelf: ['wall', 'hairdryer', 70],
+      // z arkuszy łazienkowych (2026-10-09): wanny, prysznice, toaleta, umywalki, lustra, pralka, waga…
+      clawfoot_tub: ['floor', 'bath', 380],
+      glass_shower: ['floor', 'shower', 320],
+      builtin_tub: ['floor', 'bath', 360],
+      bath_tall_cabinet: ['floor', 'none', 180],
+      bath_wall_cabinet: ['wall', 'none', 110],
+      sink_cabinet: ['floor', 'sink', 200],
+      wall_sink: ['wall', 'sink', 120],
+      toilet_white: ['floor', 'toilet', 140],
+      bidet: ['floor', 'none', 110],
+      bamboo_shelf: ['floor', 'none', 120],
+      washing_machine: ['floor', 'laundry', 260],
+      laundry_basket: ['floor', 'none', 50],
+      towel_warmer: ['wall', 'none', 130],
+      round_mirror: ['wall', 'mirror', 90],
+      shower_cabin: ['floor', 'shower', 340],
+      corner_tub: ['floor', 'bath', 400],
+      mirror_cabinet: ['wall', 'mirror', 150],
+      shower_caddy: ['wall', 'none', 40],
+      towel_rack: ['wall', 'none', 60],
+      water_heater: ['wall', 'none', 90],
+      clothes_dryer: ['floor', 'none', 80],
+      bath_scale: ['floor', 'scale', 60],
+      trash_can: ['floor', 'none', 30],
+      bath_rug: ['rug', 'none', 60],
+      toilet_set: ['floor', 'none', 35],
+      bath_accessories: ['floor', 'none', 30],
     };
     expect(CATALOG.filter((d) => d.category === 'bathroom').map((d) => d.id).sort()).toEqual(Object.keys(want).sort());
     for (const [id, [layer, interaction, price]] of Object.entries(want)) {
       expect(itemById(id), id).toMatchObject({ category: 'bathroom', layer, interaction, price });
     }
     for (const i of ['toilet', 'shower', 'bath', 'sink', 'hairdryer'] as const) expect(INTERACTIONS).toContain(i);
-    // jedna skala arkusza łazienki: Gabi przy toalecie ma wysokość jak w pokoju (56 px)
-    const scales = new Set(CATALOG.filter((d) => d.category === 'bathroom').map((d) => d.scale));
+    // jedna skala pierwszego arkusza łazienki: Gabi przy toalecie ma wysokość jak w pokoju (56 px)
+    const first = ['toilet', 'sink', 'shower', 'bathtub', 'towel_rail', 'towel_hanging', 'hairdryer_shelf'];
+    const scales = new Set(CATALOG.filter((d) => first.includes(d.id)).map((d) => d.scale));
     expect(scales.size).toBe(1);
     expect([...scales][0]).toBeCloseTo(56 / 36, 3);
   });

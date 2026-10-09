@@ -24,6 +24,9 @@ Retusz (po kwantyzacji do palety, w komórkach natywnych; kształty jak w `erase
 `shadow` — obszary cienia na podłodze narysowanego w arkuszu: znika szara plama wokół butów (`remove_shadow`).
 `shadowHsv` — [odcień od, odcień do, nasycenie max, jasność od, jasność do] (wpis albo arkusz): w obszarach `shadow`
          znikają też wszystkie komórki w kolorach cienia, nawet otoczone konturem (cień między nogami mebla).
+`shadowBarrier` — jasność (wpis): zalewanie cienia zatrzymuje się na pikselach ciemniejszych niż to (domyślnie
+         SHADOW_BARRIER_VAL) — dla mebli z szarymi nogami w kolorze bliskim cieniowi (suszarka).
+`dropSpecks` — liczba (wpis albo arkusz): po retuszu znikają kształty mniejsze niż tyle komórek (okruchy cienia).
 Podgląd przed/po: tools/out/bag_before_after.png.
 
 Paleta (k-means wszystkich klatek) jest zamrożona w tools/palette.json — usunięcie albo dodanie klatki nie
@@ -151,6 +154,8 @@ def entry(spec, group):
         'seatMode': spec.get('seatMode', sh.get('seatMode', 'colour')),
         'onlyLargest': spec.get('onlyLargest', sh.get('onlyLargest', False)),
         'shadowHsv': spec.get('shadowHsv', sh.get('shadowHsv')),
+        'dropSpecks': spec.get('dropSpecks', sh.get('dropSpecks', 0)),
+        'shadowBarrier': spec.get('shadowBarrier'),
         **{k: spec.get(k, []) for k in LIST_KEYS},
     }
 
@@ -631,7 +636,7 @@ def retouch(idx, mask, xs, ys, e, palette, sources):
                and idx[y + dy, x + dx] not in outline for dy, dx in NEIGH4):
             idx[y, x] = darkest
             mask[y, x] = False
-    barrier = {i for i, (_, _, v) in enumerate(palette_hsv(palette)) if v < SHADOW_BARRIER_VAL}
+    barrier = {i for i, (_, _, v) in enumerate(palette_hsv(palette)) if v < (e['shadowBarrier'] or SHADOW_BARRIER_VAL)}
     region = erase_mask(xs, ys, e['shadow'])
     remove_shadow(idx, mask, region, barrier)
     if e['shadowHsv']:
@@ -1757,6 +1762,15 @@ def main():
             arr = np.array(im)
             arr[~shape] = 0
             im = Image.fromarray(arr, 'RGBA').crop((int(x0), int(y0), int(x1) + 1, int(y1) + 1))
+            images[name] = (group, e, im)
+        if e['dropSpecks']:
+            # okruchy po zdjętym cieniu (resztki konturu cienia): kształty mniejsze niż `dropSpecks` komórek znikają
+            arr = np.array(im)
+            for comp in components(arr[:, :, 3] > 0, NEIGH8):
+                if len(comp) < e['dropSpecks']:
+                    for p in comp:
+                        arr[p] = 0
+            im = Image.fromarray(arr, 'RGBA')
             images[name] = (group, e, im)
         if e['noSeat']:
             xs, ys = coords[name]

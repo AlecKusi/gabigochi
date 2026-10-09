@@ -1881,6 +1881,266 @@
     "interaction": "cook",
     "price": 160
   },
+  "clawfoot_tub": {
+    "w": 43,
+    "h": 38,
+    "scale": 1.1,
+    "name": "Wanna na nóżkach",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "bath",
+    "price": 380
+  },
+  "glass_shower": {
+    "w": 33,
+    "h": 41,
+    "scale": 1.5,
+    "name": "Prysznic narożny",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "shower",
+    "price": 320
+  },
+  "builtin_tub": {
+    "w": 51,
+    "h": 39,
+    "scale": 1.1,
+    "name": "Wanna zabudowana",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "bath",
+    "price": 360
+  },
+  "bath_tall_cabinet": {
+    "w": 29,
+    "h": 46,
+    "scale": 1.2,
+    "name": "Słupek łazienkowy",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 180
+  },
+  "bath_wall_cabinet": {
+    "w": 22,
+    "h": 37,
+    "scale": 0.9,
+    "name": "Szafka wisząca",
+    "category": "bathroom",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 110
+  },
+  "sink_cabinet": {
+    "w": 30,
+    "h": 39,
+    "scale": 0.75,
+    "name": "Umywalka z szafką",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "sink",
+    "price": 200
+  },
+  "wall_sink": {
+    "w": 29,
+    "h": 27,
+    "scale": 0.9,
+    "name": "Umywalka wisząca",
+    "category": "bathroom",
+    "layer": "wall",
+    "interaction": "sink",
+    "price": 120
+  },
+  "toilet_white": {
+    "w": 26,
+    "h": 37,
+    "scale": 0.9,
+    "name": "Toaleta kompakt",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "toilet",
+    "price": 140
+  },
+  "bidet": {
+    "w": 25,
+    "h": 28,
+    "scale": 0.9,
+    "name": "Bidet",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 110
+  },
+  "bamboo_shelf": {
+    "w": 27,
+    "h": 43,
+    "scale": 0.9,
+    "name": "Regał z bambusa",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 120
+  },
+  "washing_machine": {
+    "w": 30,
+    "h": 40,
+    "scale": 0.75,
+    "name": "Pralka",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "laundry",
+    "price": 260
+  },
+  "laundry_basket": {
+    "w": 26,
+    "h": 34,
+    "scale": 0.7,
+    "name": "Kosz na pranie",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 50
+  },
+  "towel_warmer": {
+    "w": 21,
+    "h": 38,
+    "scale": 0.9,
+    "name": "Grzejnik drabinkowy",
+    "category": "bathroom",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 130
+  },
+  "round_mirror": {
+    "w": 30,
+    "h": 33,
+    "scale": 0.8,
+    "name": "Lustro okrągłe",
+    "category": "bathroom",
+    "layer": "wall",
+    "interaction": "mirror",
+    "price": 90
+  },
+  "shower_cabin": {
+    "w": 34,
+    "h": 42,
+    "scale": 1.5,
+    "name": "Kabina prysznicowa",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "shower",
+    "price": 340
+  },
+  "corner_tub": {
+    "w": 54,
+    "h": 36,
+    "scale": 1.1,
+    "name": "Wanna narożna",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "bath",
+    "price": 400
+  },
+  "mirror_cabinet": {
+    "w": 34,
+    "h": 44,
+    "scale": 0.8,
+    "name": "Szafka z lustrem",
+    "category": "bathroom",
+    "layer": "wall",
+    "interaction": "mirror",
+    "price": 150
+  },
+  "shower_caddy": {
+    "w": 25,
+    "h": 41,
+    "scale": 0.7,
+    "name": "Półka pod prysznic",
+    "category": "bathroom",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 40
+  },
+  "towel_rack": {
+    "w": 39,
+    "h": 41,
+    "scale": 0.8,
+    "name": "Wieszak na ręczniki",
+    "category": "bathroom",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 60
+  },
+  "water_heater": {
+    "w": 28,
+    "h": 49,
+    "scale": 0.9,
+    "name": "Bojler",
+    "category": "bathroom",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 90
+  },
+  "clothes_dryer": {
+    "w": 56,
+    "h": 50,
+    "scale": 0.75,
+    "name": "Suszarka na pranie",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 80
+  },
+  "bath_scale": {
+    "w": 34,
+    "h": 21,
+    "scale": 0.6,
+    "name": "Waga łazienkowa",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "scale",
+    "price": 60
+  },
+  "trash_can": {
+    "w": 23,
+    "h": 30,
+    "scale": 0.6,
+    "name": "Kosz na śmieci",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 30
+  },
+  "bath_rug": {
+    "w": 53,
+    "h": 30,
+    "scale": 0.8,
+    "name": "Dywanik łazienkowy",
+    "category": "bathroom",
+    "layer": "rug",
+    "interaction": "none",
+    "price": 60
+  },
+  "toilet_set": {
+    "w": 33,
+    "h": 33,
+    "scale": 0.6,
+    "name": "Zestaw WC",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 35
+  },
+  "bath_accessories": {
+    "w": 32,
+    "h": 27,
+    "scale": 0.6,
+    "name": "Kubek i mydelniczka",
+    "category": "bathroom",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 30
+  },
   "fridge_retro": {
     "w": 40,
     "h": 56,

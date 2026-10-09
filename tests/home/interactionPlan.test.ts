@@ -160,3 +160,29 @@ describe('lodówki z arkusza: drzwi się otwierają', () => {
     expect(steps[0].item).toBeNull();
   });
 });
+
+describe('łazienka z nowych arkuszy (bez klatek z Gabi)', () => {
+  const plain = { hasRail: false, itemStates: [] as string[] };
+  it('prysznic: Gabi znika w kabinie, leci woda, wychodzi w ręczniku; wanna: piana; bez klatek przedmiotu', () => {
+    const shower = interactionSteps('shower', plain)!;
+    expect(shower.some((s) => s.effect === 'rain' && s.gabi.kind === 'hidden')).toBe(true);
+    expect(shower.at(-1)!.gabi).toMatchObject({ kind: 'bust', bust: 'gabi_turban' });
+    const bath = interactionSteps('bath', plain)!;
+    expect(bath.some((s) => s.effect === 'bubbles')).toBe(true);
+    for (const s of [...shower, ...bath]) expect(s.item).toBeNull();
+  });
+  it('toaleta: siedzi z telefonem; umywalka: myje ręce od tyłu z wodą', () => {
+    expect(interactionSteps('toilet', plain)![0].gabi).toMatchObject({ at: 'seat' });
+    const sink = interactionSteps('sink', plain)!;
+    expect(sink[0]).toMatchObject({ effect: 'water', gabi: { at: 'under' } });
+    // stara umywalka z klatkami — jak dawniej
+    expect(interactionSteps('sink', { hasRail: false, itemStates: ['on', 'gabi'] })![1].item).toBe('gabi');
+  });
+  it('lustro, pranie, waga: kwestie i nagrody', () => {
+    expect(interactionSteps('mirror', plain)!.some((s) => s.line === 'mirror')).toBe(true);
+    expect(interactionSteps('laundry', plain)!.some((s) => s.effect === 'spin' && s.line === 'laundry')).toBe(true);
+    expect(interactionSteps('scale', plain)!.every((s) => s.gabi.kind === 'frames' && s.gabi.at === 'seat')).toBe(true);
+    expect(interactionReward('laundry')).toMatchObject({ mood: 2 });
+    expect(interactionReward('mirror')).toMatchObject({ mood: 1 });
+  });
+});

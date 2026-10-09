@@ -159,6 +159,62 @@ function drawSteam(fx: CanvasRenderingContext2D, b: { x: number; y: number; w: n
   }
 }
 
+/** Woda pod prysznicem: krople spadające w górnych 3/4 kabiny. */
+function drawShowerRain(fx: CanvasRenderingContext2D, b: { x: number; y: number; w: number; h: number }, t: number): void {
+  // strugi z deszczownicy: ciemniejszy błękit z jasnym czubkiem — widoczne na jasnej szybie kabiny
+  const cols = Math.max(5, Math.round(b.w / 4));
+  const fall = b.h * 0.7;
+  fx.save();
+  for (let i = 0; i < cols; i++) {
+    for (let k = 0; k < 3; k++) {
+      const p = ((t / 480 + i * 0.37 + k / 3) % 1 + 1) % 1;
+      const x = Math.round(b.x + 4 + ((i + 0.5) * (b.w - 8)) / cols);
+      const y = Math.round(b.y + b.h * 0.14 + p * fall);
+      fx.globalAlpha = 0.9;
+      fx.fillStyle = '#3f86d6';
+      fx.fillRect(x, y, 1, 3);
+      fx.fillStyle = '#e8f6ff';
+      fx.fillRect(x, y + 3, 1, 1);
+    }
+  }
+  fx.restore();
+}
+
+/** Piana nad wanną: białe bąbelki unoszące się nad brzegiem i pękające. */
+function drawBathBubbles(fx: CanvasRenderingContext2D, b: { x: number; y: number; w: number; h: number }, t: number): void {
+  fx.save();
+  for (let i = 0; i < 9; i++) {
+    const p = ((t / 1600 + i / 9) % 1 + 1) % 1;
+    const x = Math.round(b.x + 4 + ((i * 37) % 100) / 100 * (b.w - 8) + Math.sin(t / 400 + i) * 1.5);
+    const y = Math.round(b.y + b.h * 0.35 - p * 12);
+    const r = i % 3 === 0 ? 3 : 2;
+    fx.globalAlpha = 0.95 * (1 - p);
+    // bąbelek: błękitny obrys (widoczny na białej wannie), białe wnętrze z odblaskiem
+    fx.fillStyle = '#6fb0e6';
+    fx.fillRect(x, y, r + 1, r + 1);
+    fx.fillStyle = '#ffffff';
+    fx.fillRect(x + 1, y + 1, r - 1, r - 1);
+    fx.fillStyle = '#e0f2ff';
+    fx.fillRect(x + 1, y + 1, 1, 1);
+  }
+  fx.restore();
+}
+
+/** Pralka w ruchu: piana krążąca w bębnie (okienko mniej więcej na środku pralki). */
+function drawSpin(fx: CanvasRenderingContext2D, b: { x: number; y: number; w: number; h: number }, t: number): void {
+  const cx = b.x + b.w * 0.58;
+  const cy = b.y + b.h * 0.6;
+  const r = Math.max(3, Math.min(b.w, b.h) * 0.2);
+  fx.save();
+  for (let i = 0; i < 5; i++) {
+    const a = t / 160 + (i * Math.PI * 2) / 5;
+    fx.globalAlpha = 0.85;
+    fx.fillStyle = i % 2 ? '#ffffff' : '#bfe4ff';
+    fx.fillRect(Math.round(cx + Math.cos(a) * r * 0.7), Math.round(cy + Math.sin(a) * r * 0.7), 1, 1);
+  }
+  fx.restore();
+}
+
 /** Miejsca do spania kota: wysokość siedziska nad linią dolną mebla (legowiska nisko, kanapy i fotele wyżej). */
 const CAT_BED_LIFT: Readonly<Record<string, number>> = {
   cat_bed_round: 2, cat_cave: 2, bean_bag: 6, pouf: 6, pouf_frog: 6,
@@ -663,6 +719,8 @@ export function roomScreen(app: App): Screen {
     if (st.entered?.effect === 'hearts') addHearts(5);
     if (st.entered?.effect === 'water') play('water');
     if (st.entered?.effect === 'steam') play('cook');
+    if (st.entered?.effect === 'rain' || st.entered?.effect === 'spin') play('water');
+    if (st.entered?.effect === 'bubbles') play('pop');
     if (st.finished) finishInteraction(st.finished, t);
   }
 
@@ -1213,6 +1271,16 @@ export function roomScreen(app: App): Screen {
     if (iv?.step.effect === 'water') {
       const plant = items.find((i) => i.uid === iv.run.uid);
       if (plant) drawWaterDrops(fx, itemBox(plant), iv.inStepMs);
+    }
+    if (iv && (iv.step.effect === 'rain' || iv.step.effect === 'bubbles' || iv.step.effect === 'spin')) {
+      const it = items.find((i) => i.uid === iv.run.uid);
+      if (it) {
+        const box = itemBox(it);
+        if (iv.step.effect === 'rain') drawShowerRain(fx, box, t);
+        else if (iv.step.effect === 'bubbles') drawBathBubbles(fx, box, t);
+        else drawSpin(fx, box, t);
+        if (iv.step.effect !== 'spin') drawSteam(fx, { ...box, x: box.x + box.w / 2 - 7 }, t);
+      }
     }
     drawHearts(dt);
     px.compose((ctx, k) => renderer.drawItems(ctx, k, f));
