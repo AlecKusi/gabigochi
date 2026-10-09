@@ -3,7 +3,7 @@ import { artCanvas } from '../art/pixels';
 import type { RoomId } from '../core/types';
 import { drawFloor, drawWallpaper, type LookDef } from '../home/looks';
 import { SKY, type DayPhase } from '../home/daytime';
-import { METEOR_FLIGHT, litShare, meteorAt, skyHash as hash, starDimmed, windowLit } from '../home/balconySky';
+import { CLOUDS, METEOR_FLIGHT, birdsAt, cloudX, litShare, meteorAt, skyHash as hash, starDimmed, windowLit } from '../home/balconySky';
 
 /** Wymiary pokoju w pikselach logicznych; canvas skalowany CSS-em. */
 export const ROOM_W = 128;
@@ -84,8 +84,8 @@ const CITY = (() => {
 })();
 
 /**
- * Widok z balkonu bez tego, co żyje: niebo z pory dnia (pasy gradientu), słońce/księżyc, chmurki albo gwiazdy,
- * daszek i sylwetki budynków (okna dorysowuje `drawBalconyLive`).
+ * Widok z balkonu bez tego, co żyje: niebo z pory dnia (pasy gradientu), słońce/księżyc albo gwiazdy, daszek
+ * i sylwetki budynków (chmurki, ptaki i okna dorysowuje `drawBalconyLive`).
  */
 export function drawBalconyBack(ctx: CanvasRenderingContext2D, phase: DayPhase): void {
   const [top, bottom] = SKY[phase];
@@ -112,12 +112,6 @@ export function drawBalconyBack(ctx: CanvasRenderingContext2D, phase: DayPhase):
     ctx.fillRect(sun.x - 5, sun.y - 3, 10, 6);
     ctx.fillRect(sun.x - 3, sun.y - 5, 6, 10);
     ctx.fillRect(sun.x - 4, sun.y - 4, 8, 8);
-    // chmurki
-    ctx.fillStyle = phase === 'evening' ? '#ffb9a0' : '#ffffff';
-    for (const [x, y] of [[14, 22], [56, 12], [70, 36]] as const) {
-      ctx.fillRect(x, y, 16, 4);
-      ctx.fillRect(x + 4, y - 3, 8, 3);
-    }
   }
   // daszek nad balkonem (na nim wiszą lampki)
   ctx.fillStyle = '#5a3a8a';
@@ -137,25 +131,63 @@ export function drawBalconyBack(ctx: CanvasRenderingContext2D, phase: DayPhase):
 }
 
 /**
- * To, co żyje na niebie (rysowane co klatkę między widokiem a balustradą): okna w mieście wieczorem i nocą gasną
- * i zapalają się (im później, tym mniej świeci), a nocą migoczą gwiazdy i przelatują spadające gwiazdy.
- * `clockMs` — godzina gry (ms); null — nieruchomy widok: świecą wszystkie okna. `t` — zegar animacji (ms).
+ * To, co żyje na niebie (rysowane co klatkę między widokiem a balustradą): za dnia dryfują chmurki i przelatują
+ * klucze ptaków; okna w mieście wieczorem i nocą gasną i zapalają się (im później, tym mniej świeci), a nocą
+ * migoczą gwiazdy i przelatują spadające gwiazdy.
+ * `clockMs` — godzina gry (ms); null — nieruchomy widok: chmurki na miejscach startowych, świecą wszystkie okna.
+ * `t` — zegar animacji (ms).
  */
 export function drawBalconyLive(ctx: CanvasRenderingContext2D, phase: DayPhase, clockMs: number | null, t: number): void {
-  if (phase !== 'night' && phase !== 'evening') return;
-  const d = clockMs === null ? null : new Date(clockMs);
-  const share = d ? litShare(phase, d.getHours() + d.getMinutes() / 60) : 1;
-  ctx.fillStyle = '#ffd86a';
-  CITY.windows.forEach((w, i) => {
-    if (clockMs === null || windowLit(i, clockMs, share)) ctx.fillRect(w.x, w.y, 1, 2);
-  });
-  if (phase !== 'night' || clockMs === null) return;
+  const still = clockMs === null;
+  if (phase !== 'night') drawClouds(ctx, phase, still ? 0 : t);
+  if (phase === 'night' || phase === 'evening') {
+    const d = still ? null : new Date(clockMs);
+    const share = d ? litShare(phase, d.getHours() + d.getMinutes() / 60) : 1;
+    ctx.fillStyle = '#ffd86a';
+    CITY.windows.forEach((w, i) => {
+      if (still || windowLit(i, clockMs, share)) ctx.fillRect(w.x, w.y, 1, 2);
+    });
+  }
+  if (still) return;
+  if (phase !== 'night') {
+    drawBirds(ctx, phase, t);
+    return;
+  }
   // migotanie: co piąta gwiazda co chwilę przygasa
   ctx.fillStyle = '#5d5796';
   STARS.forEach((st, i) => {
     if (i % 5 === 0 && starDimmed(i, t)) ctx.fillRect(st.x, st.y, 1, 1);
   });
   drawMeteor(ctx, t);
+}
+
+/** Chmurki dryfujące w prawo (za krawędzią wracają z lewej); wieczorem różowe od zachodu. */
+function drawClouds(ctx: CanvasRenderingContext2D, phase: DayPhase, t: number): void {
+  ctx.fillStyle = phase === 'evening' ? '#ffb9a0' : '#ffffff';
+  CLOUDS.forEach((c, i) => {
+    const x = Math.round(cloudX(i, t, ROOM_W));
+    const top = Math.round(c.w * 0.25);
+    ctx.fillRect(x, c.y, c.w, 4);
+    ctx.fillRect(x + top, c.y - 3, c.w - 2 * top, 3);
+  });
+}
+
+/** Ptaki: ciemne sylwetki „v” (skrzydła w górze) i „^” (w dole), machają na zmianę. */
+function drawBirds(ctx: CanvasRenderingContext2D, phase: DayPhase, t: number): void {
+  ctx.fillStyle = phase === 'evening' ? '#3a2350' : '#3d3358';
+  for (const b of birdsAt(t, ROOM_W)) {
+    const x = Math.round(b.x);
+    const y = Math.round(b.y);
+    if (b.wings === 0) {
+      ctx.fillRect(x - 2, y - 1, 1, 1);
+      ctx.fillRect(x + 2, y - 1, 1, 1);
+      ctx.fillRect(x - 1, y, 3, 1);
+    } else {
+      ctx.fillRect(x - 1, y - 1, 3, 1);
+      ctx.fillRect(x - 2, y, 1, 1);
+      ctx.fillRect(x + 2, y, 1, 1);
+    }
+  }
 }
 
 /** Ogon spadającej gwiazdy: od głowy (biel) przez kremowy do złotego, coraz bledszy. */

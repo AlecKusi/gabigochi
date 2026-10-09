@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { METEOR_MS, METEOR_SLOT_MS, litShare, meteorAt, starDimmed, windowLit } from '../../src/home/balconySky';
+import { BIRDS_MS, CLOUDS, METEOR_MS, METEOR_SLOT_MS, birdsAt, cloudX, litShare, meteorAt, starDimmed, windowLit } from '../../src/home/balconySky';
 
 const at = (h: number, m = 0) => new Date(2026, 9, 9, h, m).getTime();
 
@@ -52,5 +52,46 @@ describe('życie nieba nad balkonem', () => {
     const dim = Array.from({ length: 1000 }, (_, k) => starDimmed(5, k * 20)).filter(Boolean).length;
     expect(dim).toBeGreaterThan(50);
     expect(dim).toBeLessThan(250);
+  });
+
+  it('chmurki w dzień dryfują w prawo i wracają zza lewej krawędzi; na starcie stoją tam, gdzie dawniej', () => {
+    CLOUDS.forEach((c, i) => {
+      expect(cloudX(i, 0)).toBeCloseTo(c.x);
+      expect(cloudX(i, 10_000)).toBeCloseTo(c.x + c.speed * 10);
+      for (let t = 0; t < 600_000; t += 997) {
+        const x = cloudX(i, t);
+        expect(x).toBeGreaterThanOrEqual(-20 - c.w);
+        expect(x).toBeLessThan(128 + 0.001);
+      }
+    });
+  });
+
+  it('ptaki: klucze 1–4 ptaków co kilkanaście sekund, przelot przez cały pokój po niebie, machają skrzydłami', () => {
+    let flocks = 0;
+    const sizes = new Set<number>();
+    for (let t = 0; t < 20 * 60_000; t += 100) {
+      const b = birdsAt(t);
+      if (b.length === 0) continue;
+      if (birdsAt(t - 100).length === 0) {
+        flocks++;
+        sizes.add(b.length);
+      }
+      for (const bird of b) {
+        expect(bird.y).toBeGreaterThanOrEqual(10);
+        expect(bird.y).toBeLessThanOrEqual(56);
+      }
+    }
+    expect(flocks).toBeGreaterThan(40);
+    expect(flocks).toBeLessThan(110);
+    expect([...sizes].every((n) => n >= 1 && n <= 4)).toBe(true);
+    expect(sizes.size).toBeGreaterThan(2);
+    // jeden klucz: wlatuje zza krawędzi, wylatuje za drugą, skrzydła zmieniają klatki
+    let t0 = 0;
+    while (birdsAt(t0).length === 0) t0 += 50;
+    const first = birdsAt(t0)[0];
+    const last = birdsAt(t0 + BIRDS_MS - 60)[0];
+    expect(Math.abs(last.x - first.x)).toBeGreaterThan(150);
+    const wings = new Set(Array.from({ length: 20 }, (_, k) => birdsAt(t0 + k * 100)[0]?.wings));
+    expect(wings.has(0) && wings.has(1)).toBe(true);
   });
 });
