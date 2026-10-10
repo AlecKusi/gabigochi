@@ -10,10 +10,9 @@ Gałąź `etap-1` — **działająca wersja** (520 testów, typy i build przecho
 - zajęcia: nauka, praktyka, telefon, szydełko, muzyka, karaoke, taniec, ukulele; cola z animacją picia;
 - pora dnia (okna, poświata, zegarek na pasku), żywe niebo nad balkonem (chmurki i ptaki w dzień, gasnące okna,
   spadające i migoczące gwiazdy nocą); podgląd innej godziny: `?godzina=23` (tylko `npm run dev`);
-- dźwięki 8-bit z wyłącznikiem; 11 minigier z przyciskiem „i”; losowe teksty Gabi (12); sen/drzemka: pełna energia w 10 min.
+- życzenia od użytkownika (2026-10-10, `content.wishes`); dźwięki 8-bit z wyłącznikiem; 11 minigier z przyciskiem „i”; losowe teksty Gabi (12); sen/drzemka: pełna energia w 10 min.
 
 ## Do decyzji użytkownika
-- treść życzeń w `src/content.ts` (wciąż szkic);
 - zgoda na publiczny link (GitHub Pages; workflow gotowy w `.github/workflows/deploy.yml`, gałąź `main`).
 
 ## Pomysły na nowe minigry (lista dla użytkownika, 2026-10-09)

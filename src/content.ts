@@ -6,9 +6,8 @@ export const content = {
   age: 26,
   wishesTitle: 'Sto lat, Gabi!',
   wishes: [
-    'Wszystkiego najlepszego z okazji 26. urodzin!',
-    'Niech ten rok będzie pełen radości, przygód i ulubionych KitKatów.',
-    'A teraz masz własną, małą Gabi w telefonie. Karm ją, baw się z nią i nie zapominaj gasić jej światła na noc!',
+    'Sto lat.. Sto lat.. a jednak 26!',
+    'Wszystkiego najlepszego z okazji podatku dochodowego, kolejnej osiemnastki <3',
   ],
   signature: 'Z całego serca!',
   /** Kwestie Gabi przy konkretnym jedzeniu (reszta — `lines.eat`). */
