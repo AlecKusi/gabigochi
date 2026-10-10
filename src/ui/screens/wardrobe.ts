@@ -7,6 +7,7 @@ import { buyCloth, isDefaultOutfit, isOwned, takeOff, takeOffAll, wear } from '.
 import { h, icon } from '../dom';
 import { createPixelStage, deviceRect, drawSprite } from '../pixelStage';
 import { itemUrl } from '../home/itemSprites';
+import { newMarks } from '../newMarks';
 import { screenHeader } from '../screenHeader';
 import { play } from '../sound';
 
@@ -118,11 +119,22 @@ export function wardrobeScreen(app: App): Screen {
   });
 
   // --- zakładki i kafelki ---
+  const marks = newMarks();
   const tabs = h(
     'div',
     { class: 'tabs', role: 'tablist' },
     ...CLOTH_SLOTS.map((id) =>
-      h('button', { class: 'tab', role: 'tab', 'aria-selected': 'false', 'data-slot': id, onclick: () => { slot = id; trying = null; render(); } }, CLOTH_SLOT_NAMES[id]),
+      h(
+        'button',
+        {
+          class: marks.any(clothesBySlot(id).map((c) => c.id)) ? 'tab has-new' : 'tab',
+          role: 'tab',
+          'aria-selected': 'false',
+          'data-slot': id,
+          onclick: () => { slot = id; trying = null; render(); },
+        },
+        CLOTH_SLOT_NAMES[id],
+      ),
     ),
   );
   const body = h('div', { class: 'shop-body wardrobe-list' });
@@ -201,6 +213,7 @@ export function wardrobeScreen(app: App): Screen {
     return h(
       'div',
       { class: `shop-card px-box cloth-card${worn ? ' worn' : ''}${trying?.id === def.id ? ' trying' : ''}` },
+      marks.badge(def.id),
       thumbBox,
       h('strong', {}, def.name),
       btn,
@@ -230,6 +243,7 @@ export function wardrobeScreen(app: App): Screen {
       destroyed = true;
       stage.dispose();
       header.destroy();
+      marks.done();
     },
   };
 }

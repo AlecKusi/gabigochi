@@ -4,6 +4,10 @@ export const content = {
   shortName: 'Gabi',
   appName: 'Gabigochi',
   age: 26,
+  /** Urodziny Gabi (co roku: prezent w monetach, konfetti i urodzinowe teksty); `year` — rok urodzenia. */
+  birthday: { day: 12, month: 10, year: 2000 },
+  /** Okno urodzinowego prezentu (`{wiek}` — ile lat kończy). */
+  birthdayGift: 'Dziś kończysz {wiek} lat! Wszystkiego najlepszego — prezent od Gabigochi:',
   wishesTitle: 'Sto lat, Gabi!',
   wishes: [
     'Sto lat.. Sto lat.. a jednak 26!',
@@ -25,6 +29,8 @@ export const content = {
   },
   lines: {
     greeting: ['Cześć!', 'Hej, tęskniłam!', 'O, jesteś!'],
+    /** W dniu urodzin — zamiast części zwykłych tekstów (`{wiek}` — ile lat kończy). */
+    birthdayToday: ['Dziś moje urodziny!', 'Sto lat, sto lat!', 'Kto ma dziś urodziny? Ja!', '{wiek} lat i ani dnia starsza!', 'Gdzie mój tort?'],
     happy: ['Ale fajny dzień!', 'Lubię ten pokój.', 'Zagramy w coś?', 'Sto lat dla mnie!', 'Mam ochotę na KitKata…'],
     hungry: ['Zjadłabym coś…', 'Burczy mi w brzuchu!', 'Może KitKat?'],
     sleepy: ['Ziew… jestem śpiąca.', 'Zgasisz światło?'],

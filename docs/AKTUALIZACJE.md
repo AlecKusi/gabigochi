@@ -15,7 +15,9 @@ i „Wczytaj kopię”). Przed wczytaniem kopii obecny zapis trafia do `gabigoch
 
 ## Wydanie aktualizacji — krok po kroku
 1. Dopisz wpis **na górze** `RELEASES` w `src/core/changelog.ts`: numer o 1 wyższy, data, 2–5 krótkich zdań dla
-   Gabi (np. „Nowa minigra: Skaczący kotek”).
+   Gabi (np. „Nowa minigra: Skaczący kotek”) i `items`, czyli id nowych mebli, tapet i podłóg, ubrań oraz jedzenia.
+   Dostaną one znaczek „NOWE” w sklepie i szafie, a ich kategorie kropkę. Znaczek znika, gdy Gabi obejrzy daną
+   kategorię. Test sprawdza, czy każde id istnieje.
 2. `npx vitest run` — w tym `tests/core/saveCompat.test.ts` (zapis z 2026-10-10 musi się wczytać bez strat).
 3. `npx tsc --noEmit -p .` i `npm run build`.
 4. Wdrożenie (dopiero za zgodą właściciela).

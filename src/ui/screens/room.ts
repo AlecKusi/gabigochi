@@ -8,6 +8,8 @@ import { feed, finishActivity, petCharacter, setSleeping } from '../../core/econ
 import { moodLevel } from '../../core/needs';
 import { dayNumber } from '../../core/time';
 import type { GameState, PlacedItem, RoomId } from '../../core/types';
+import { ROUTINE_CHANCE, pickRoutine } from '../../home/routines';
+import { isBirthday, withAge } from '../../core/birthday';
 import { INSIDE_SPOTS, SEATS, SOFAS, activityAllowedIn, activityAvailability, availabilityHint, pickActivityHere, seatAnchor, seatNear, spotAnchor, type Spot } from '../../home/activitySpots';
 import { GABI_BED, findItem, itemById, itemFrames, type Interaction } from '../../home/catalog';
 import { isDefaultOutfit } from '../../wardrobe/outfit';
@@ -926,10 +928,19 @@ export function roomScreen(app: App): Screen {
     }
     const idle = brain.action === 'idle' || brain.action === 'walk';
     if (!activity.current && !edit.active && !pending && !interaction.current && t >= activity.nextAt && status === null && idle) {
-      // Samo z siebie tylko to, co da się zrobić w tym pokoju (do mebla Gabi najpierw podchodzi).
-      const id = pickActivityHere(store.get(), viewRoom, ACTIVITY_IDS, Math.random);
-      if (id) requestActivity(id, t);
-      else activity.postpone(t);
+      // Samo z siebie: czasem nawyk z przedmiotem (rano kawa, wieczorem zęby, prysznic…), inaczej zajęcie
+      // możliwe w tym pokoju (do mebla Gabi najpierw podchodzi).
+      const routine = Math.random() < ROUTINE_CHANCE
+        ? pickRoutine(store.get(), store.get().rooms[viewRoom].items, gameClock().getHours(), Date.now(), Math.random)
+        : null;
+      if (routine) {
+        activity.postpone(t);
+        useItem(routine, t);
+      } else {
+        const id = pickActivityHere(store.get(), viewRoom, ACTIVITY_IDS, Math.random);
+        if (id) requestActivity(id, t);
+        else activity.postpone(t);
+      }
     }
   }
 
@@ -1355,6 +1366,8 @@ export function roomScreen(app: App): Screen {
         if (s.cat.hunger < CONFIG.cat.hungryBelow && Math.random() < 0.5) {
           say(withCat(pick(content.lines.catHungry)));
           play('meow');
+        } else if (isBirthday(Date.now()) && Math.random() < 0.5) {
+          say(withAge(pick(content.lines.birthdayToday), Date.now()));
         } else say(pickLine(s.needs));
       } else {
         // codzienna mina: ziewanie, nuda, zamyślenie, pomysł, przeciąganie, śmiech

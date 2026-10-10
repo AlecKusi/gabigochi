@@ -273,3 +273,15 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   (wybór pola, cyfra, notatka, gumka, powtórka, zamknięta linia/blok), szyfrokrzyżówka (klawisz, gumka,
   podpowiedź, powtórzona litera, wygrana), świeczki (zapalenie, finał), łapanie (KitKat), kot w pudełkach
   (wychylenie, pudło); nowy rekord — fanfara, „Odbierz” — monety.
+
+## Nowości w sklepie, nawyki Gabi, urodziny (2026-10-10)
+- Znaczek „NOWE”: pole `items` we wpisach `RELEASES` → po aktualizacji lista w `gabigochi.newItems`
+  (`src/core/newItems.ts`), znaczki na kartach sklepu (meble, tapety, jedzenie) i szafy, kropki na zakładkach
+  i kategoriach (`src/ui/newMarks.ts`); obejrzane znikają po wyjściu z ekranu. Pierwsza wersja nie ma `items`.
+- Nawyki (`src/home/routines.ts`, `ROUTINES`): przy samodzielnym zajęciu (co 1–2 min) z szansą 40% Gabi sama
+  używa sprzętu z pokoju o jego porze — kawa 6–11, zęby 6–10 i 20–24, lustro, prysznic, kąpiel wieczorem, pranie
+  10–18, zmywanie; przy jednym meblu nie częściej niż przerwa nagrody (godzina).
+- Urodziny 12 października (`content.birthday`, rok 2000 → wiek z daty): raz w roku 1000 monet
+  (`CONFIG.coins.birthdayGift`, pole zapisu `lastBirthdayGift` — rok), okno z życzeniami, fanfara i konfetti
+  (`src/ui/birthdayGift.ts`, sprawdzane przy starcie i co 10 s, gdy nie ma ekranu powitalnego, minigry ani okna);
+  przez cały dzień połowa luźnych tekstów to `lines.birthdayToday`.

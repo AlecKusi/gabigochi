@@ -12,7 +12,7 @@ export const CONFIG = {
     boredBelow: 25,
   },
   startNeeds: { hunger: 80, mood: 90, energy: 90 },
-  coins: { start: 150, dailyBonus: 20 },
+  coins: { start: 150, dailyBonus: 20, birthdayGift: 1000 },
   pet: { moodGain: 2, cooldownMs: 30_000 },
   games: { energyCost: 5, tiredBelow: 10 },
   /** Kotek: spadek najedzenia i sympatii na godzinę, ile daje karmienie i głaskanie. */

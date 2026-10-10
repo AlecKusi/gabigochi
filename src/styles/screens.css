@@ -177,6 +177,14 @@ img.px.avatar.crisp { image-rendering: pixelated; image-rendering: crisp-edges; 
 .records ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .records li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }
 .backup-card { padding: 14px 16px; display: grid; gap: 8px; }
+/* Nowości z aktualizacji: znaczek na karcie i kropka na kategorii / zakładce */
+.shop-card { position: relative; }
+.new-badge { position: absolute; top: 4px; left: 4px; z-index: 1; padding: 2px 5px; font-size: 11px; font-weight: 700; color: #fff; background: #ff5c8a; box-shadow: 0 0 0 2px var(--ink); transform: rotate(-8deg); pointer-events: none; }
+.badge.new { background: #ff5c8a; }
+.has-new::after { content: ''; display: inline-block; width: 7px; height: 7px; margin-left: 6px; vertical-align: 2px; background: #ff5c8a; box-shadow: 0 0 0 1px var(--ink); }
+/* Urodziny: wiek i prezent */
+.birthday-gift { text-align: center; }
+.birthday-gift .gift-age { font-size: 44px; font-weight: 700; line-height: 1; color: #ffd34d; text-shadow: 2px 2px 0 var(--ink); margin: 4px 0; }
 .backup-card h2 { font-size: 18px; }
 .backup-card p { font-size: 14px; line-height: 1.35; color: var(--text-soft); }
 .backup-actions { display: flex; flex-wrap: wrap; gap: 8px; }

@@ -8,6 +8,7 @@ import { DEFAULT_SHOP_CATEGORY, countsLabel, itemCounts, shopItems, shopLooks, t
 import { h, icon } from '../dom';
 import { itemUrl } from '../home/itemSprites';
 import { lookSwatch } from '../home/lookSwatch';
+import { newMarks } from '../newMarks';
 import { screenHeader } from '../screenHeader';
 import { play } from '../sound';
 
@@ -22,10 +23,15 @@ export function shopScreen(app: App): Screen {
   const body = h('div', { class: 'shop-body' });
   let tab: Tab = 'food';
   let category: ShopCategory = DEFAULT_SHOP_CATEGORY;
+  const marks = newMarks();
+  const categoryIds = (c: ShopCategory): string[] => (shopLooks(c) ?? shopItems(c)).map((x) => x.id);
 
   const tabButton = (label: string, id: Tab) =>
     h('button', { class: 'tab', role: 'tab', 'aria-selected': 'false', 'data-tab': id, onclick: () => { tab = id; render(); } }, label);
   const tabs = h('div', { class: 'tabs', role: 'tablist' }, tabButton('Jedzenie', 'food'), tabButton('Meble', 'home'));
+  // kropka na zakładce z nowościami z ostatniej aktualizacji
+  tabs.querySelector('[data-tab="food"]')?.classList.toggle('has-new', marks.any(FOODS.map((f) => f.id)));
+  tabs.querySelector('[data-tab="home"]')?.classList.toggle('has-new', SHOP_CATEGORIES.some((c) => marks.any(categoryIds(c.id))));
 
   function foodRow(food: FoodDef): HTMLElement {
     const state = app.store.get();
@@ -60,7 +66,7 @@ export function shopScreen(app: App): Screen {
       h(
         'div',
         { class: 'shop-info' },
-        h('strong', {}, food.name, fav ? h('span', { class: 'badge' }, 'ulubiony') : null),
+        h('strong', {}, food.name, fav ? h('span', { class: 'badge' }, 'ulubiony') : null, marks.badge(food.id, 'badge new')),
         h('small', {}, effects),
         h('small', {}, price === 0 ? 'Prezent dnia!' : `W lodówce: ${owned}`),
       ),
@@ -98,6 +104,7 @@ export function shopScreen(app: App): Screen {
     return h(
       'div',
       { class: 'shop-card px-box' },
+      marks.badge(def.id),
       h(
         'div',
         { class: 'shop-thumb' },
@@ -129,7 +136,6 @@ export function shopScreen(app: App): Screen {
         if (!res.ok) return failBuy(buy, res.reason);
         app.store.update(() => res.state);
         play('buy');
-      play('buy');
         app.toast(`${look.name} — ustaw w trybie Urządzaj`);
         app.celebrate();
         render(true);
@@ -139,6 +145,7 @@ export function shopScreen(app: App): Screen {
     return h(
       'div',
       { class: 'shop-card px-box' },
+      marks.badge(look.id),
       thumb,
       h('strong', {}, look.name),
       h('small', {}, owned ? 'Zmień w trybie Urządzaj' : look.kind === 'wallpaper' ? 'Tapeta' : 'Podłoga'),
@@ -153,7 +160,7 @@ export function shopScreen(app: App): Screen {
       h(
         'button',
         {
-          class: 'chip',
+          class: marks.any(categoryIds(c.id)) ? 'chip has-new' : 'chip',
           role: 'tab',
           'aria-selected': 'false',
           'data-cat': c.id,
@@ -194,5 +201,11 @@ export function shopScreen(app: App): Screen {
   render();
   // Po wejściu wierszy wyłącz animację, żeby kolejne renderowania (zakupy) jej nie powtarzały.
   setTimeout(() => body.classList.add('settled'), 600);
-  return { el: h('div', { class: 'screen shop' }, header.el, tabs, body), destroy: header.destroy };
+  return {
+    el: h('div', { class: 'screen shop' }, header.el, tabs, body),
+    destroy() {
+      header.destroy();
+      marks.done();
+    },
+  };
 }

@@ -6,6 +6,8 @@ export interface Release {
   /** Data wydania (RRRR-MM-DD). */
   date: string;
   changes: readonly string[];
+  /** Rzeczy dodane w tej wersji (id przedmiotów, tapet i podłóg, ubrań, jedzenia) — znaczek „NOWE” w sklepie i szafie. */
+  items?: readonly string[];
 }
 
 /**

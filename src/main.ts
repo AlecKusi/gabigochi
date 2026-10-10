@@ -7,10 +7,12 @@ import './styles/screens.css';
 import './styles/games.css';
 import { registerSW } from 'virtual:pwa-register';
 import { createApp, type App, type ScreenFactory, type ScreenName } from './app';
+import { claimBirthdayGift } from './core/birthday';
 import { markSeen, readSeenVersion, unseenReleases } from './core/changelog';
 import { CONFIG } from './core/config';
 import { claimDailyBonus } from './core/economy';
 import { applyElapsed } from './core/needs';
+import { addNew, releaseItems } from './core/newItems';
 import { NewerSaveError, loadState, saveState } from './core/save';
 import { Store } from './core/store';
 import { allActivityFrames } from './pet/activities';
@@ -21,6 +23,7 @@ import { h } from './ui/dom';
 import { mountInstall } from './ui/install';
 import { unlockAudio } from './ui/sound';
 import { showWhatsNew } from './ui/whatsNew';
+import { showBirthdayGift } from './ui/birthdayGift';
 import { birthdayScreen } from './ui/screens/birthday';
 import { gamesScreen } from './ui/screens/games';
 import { profileScreen } from './ui/screens/profile';
@@ -131,6 +134,7 @@ async function boot(): Promise<void> {
     if (pendingUpdate) app.toast('Jest nowa wersja! Uruchom aplikację ponownie.');
     // po aktualizacji: co nowego od wersji, którą gracz ostatnio widział (pierwsze uruchomienie — nic)
     const news = unseenReleases(readSeenVersion(localStorage));
+    addNew(localStorage, releaseItems(news));
     markSeen(localStorage);
     if (news.length > 0 && store.get().seenBirthday) showWhatsNew(app.root, news);
 
@@ -139,6 +143,15 @@ async function boot(): Promise<void> {
     else if (bonus.granted) app.toast(`Codzienny bonus: +${CONFIG.coins.dailyBonus} monet!`);
 
     const running = app;
+    /** Urodziny Gabi: prezent i życzenia — gdy jest już w grze (nie na ekranie powitalnym, nie w minigrze ani w oknie). */
+    const birthday = () => {
+      if (!store.get().seenBirthday || running.root.querySelector('.game-shell, .overlay')) return;
+      const r = claimBirthdayGift(store.get(), Date.now());
+      if (!r.granted) return;
+      store.update(() => r.state);
+      showBirthdayGift(running, Date.now());
+    };
+    birthday();
     const tick = () => {
       const t = Date.now();
       let granted = false;
@@ -148,6 +161,7 @@ async function boot(): Promise<void> {
         return r.state;
       });
       if (granted) running.toast(`Codzienny bonus: +${CONFIG.coins.dailyBonus} monet!`);
+      birthday();
     };
     setInterval(tick, 10_000);
 

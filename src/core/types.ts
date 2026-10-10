@@ -50,6 +50,8 @@ export interface GameState {
   sleeping: boolean;
   lastDailyBonus: string;
   lastFreeKitkat: string | null;
+  /** Rok, w którym Gabi dostała już urodzinowy prezent (brak — jeszcze nigdy). */
+  lastBirthdayGift?: number;
   lastPetAt: number;
   seenBirthday: boolean;
   records: Record<string, number>;
