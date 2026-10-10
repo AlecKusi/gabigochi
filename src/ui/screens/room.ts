@@ -8,7 +8,7 @@ import { feed, finishActivity, petCharacter, setSleeping } from '../../core/econ
 import { moodLevel } from '../../core/needs';
 import { dayNumber } from '../../core/time';
 import type { GameState, PlacedItem, RoomId } from '../../core/types';
-import { SEATS, SOFAS, activityAllowedIn, activityAvailability, availabilityHint, pickActivityHere, seatAnchor, seatNear, spotAnchor, type Spot } from '../../home/activitySpots';
+import { INSIDE_SPOTS, SEATS, SOFAS, activityAllowedIn, activityAvailability, availabilityHint, pickActivityHere, seatAnchor, seatNear, spotAnchor, type Spot } from '../../home/activitySpots';
 import { GABI_BED, findItem, itemById, itemFrames, type Interaction } from '../../home/catalog';
 import { isDefaultOutfit } from '../../wardrobe/outfit';
 import { cookDish, interactionSteps, rewardInteraction, toggleLamp, type GabiPose, type InteractionLine } from '../../home/interactionPlan';
@@ -31,7 +31,7 @@ import { h, icon } from '../dom';
 import { openFridge } from '../fridge';
 import { createEditMode } from '../home/editMode';
 import { BUSTS, drawBust } from '../home/bustPose';
-import { createInteractionPlayer, drawWaterDrops, hasTowelRail, poseFrame, stageChanges, type InteractionRun, type InteractionView, type StageChanges } from '../home/interactions';
+import { createInteractionPlayer, drawWaterDrops, hasTowelRail, loopFrame, poseFrame, stageChanges, type InteractionRun, type InteractionView, type StageChanges } from '../home/interactions';
 import { itemSource, preloadItems } from '../home/itemSprites';
 import { createRoomNav, slideStage } from '../home/roomNav';
 import { createRoomRenderer, type GabiLayer, type RoomFrame } from '../home/roomRenderer';
@@ -426,8 +426,9 @@ export function roomScreen(app: App): Screen {
     const t = performance.now();
     const v = activity.view(t, brain.x);
     if (v?.cur.centered) return hitsScene(v.cur, x, y);
-    // Gabi narysowana w klatce przedmiotu (pod prysznicem…) — dotyk trafia w przedmiot
-    if (interaction.view(t)?.step.gabi.kind === 'hidden') return false;
+    // Gabi narysowana w klatce przedmiotu (pod prysznicem…) albo w nim (w wannie) — dotyk trafia w przedmiot
+    const g = interaction.view(t)?.step.gabi;
+    if (g?.kind === 'hidden' || (g?.kind === 'frames' && g.at === 'inside')) return false;
     return Math.abs(x - brain.x) <= HIT_HALF_W && y >= HEAD_Y && y <= FEET_Y;
   }
 
@@ -955,7 +956,7 @@ export function roomScreen(app: App): Screen {
     const at = posePlace(pose, iv);
     return {
       orderY: at.orderY,
-      alpha,
+      alpha: alpha * (at.alpha ?? 1),
       draw: (ctx, k) => {
         if (at.shadow) drawShadowAt(ctx, k, at.x, at.feetY, 0);
         if (pose.kind === 'frames') {
@@ -965,10 +966,11 @@ export function roomScreen(app: App): Screen {
           return;
         }
         // nogi bez ozdoby głowy — ozdobę (jeśli pasuje) ma popiersie
+        const name = loopFrame(pose.busts, pose.fps, iv.inStepMs);
         const body = app.figures.get('idle_front', { hat: false });
-        const bust = app.figures.get(pose.bust);
+        const bust = app.figures.get(name);
         if (body && bust) {
-          drawBust(ctx, k, { body: body.img, bust: bust.img }, { body: body.meta, bust: bust.meta }, BUSTS[pose.bust], x, FEET_Y);
+          drawBust(ctx, k, { body: body.img, bust: bust.img }, { body: body.meta, bust: bust.meta }, BUSTS[name], at.x, at.feetY);
         }
       },
     };
@@ -976,14 +978,15 @@ export function roomScreen(app: App): Screen {
 
   /**
    * Gdzie narysować pozę interakcji względem przedmiotu (`GabiPose.at`): na siedzisku, na leżąco na kanapie,
-   * za stołem (stół rysowany po Gabi zasłania nogi), przed telewizorem, pod oknem; `face` — zwrócona do przedmiotu.
+   * za stołem (stół rysowany po Gabi zasłania nogi), przed telewizorem, pod oknem, w wannie / za szybą kabiny
+   * (`alpha` — krycie za szybą); `face` — zwrócona do przedmiotu.
    */
-  function posePlace(pose: GabiPose, iv: InteractionView): { x: number; feetY: number; orderY: number; flip: boolean; shadow: boolean } {
+  function posePlace(pose: GabiPose, iv: InteractionView): { x: number; feetY: number; orderY: number; flip: boolean; shadow: boolean; alpha?: number } {
     const x = brain.x;
     const plain = { x, feetY: FEET_Y, orderY: FEET_Y, flip: false, shadow: true };
     if (iv.run.uid === CAT_UID) return { ...plain, flip: pose.kind === 'frames' && pose.face === true && cat.x < x };
     const item = store.get().rooms[viewRoom].items.find((i) => i.uid === iv.run.uid);
-    if (!item || pose.kind !== 'frames') return plain;
+    if (!item || pose.kind === 'hidden') return plain;
     switch (pose.at) {
       case 'seat': {
         const a = seatAnchor(item);
@@ -998,9 +1001,13 @@ export function roomScreen(app: App): Screen {
         return { x: clampRoomX(item.x), feetY: y, orderY: y, flip: false, shadow: true };
       }
       case 'under':
-        return { x: clampRoomX(item.x), feetY: FEET_Y, orderY: FEET_Y, flip: false, shadow: true };
+        return { ...plain, x: clampRoomX(item.x) };
+      case 'inside': {
+        const s = INSIDE_SPOTS[item.itemId] ?? { dx: 0, lift: 0 };
+        return { x: item.x + (item.flip ? -s.dx : s.dx) + (s.headDx ?? 0), feetY: item.y - s.lift, orderY: item.y + 1, flip: false, shadow: false, alpha: s.glass };
+      }
       default:
-        return { ...plain, flip: pose.face === true && item.x < x };
+        return { ...plain, flip: pose.kind === 'frames' && pose.face === true && item.x < x };
     }
   }
 

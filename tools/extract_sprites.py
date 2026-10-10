@@ -27,6 +27,9 @@ Retusz (po kwantyzacji do palety, w komórkach natywnych; kształty jak w `erase
 `shadowBarrier` — jasność (wpis): zalewanie cienia zatrzymuje się na pikselach ciemniejszych niż to (domyślnie
          SHADOW_BARRIER_VAL) — dla mebli z szarymi nogami w kolorze bliskim cieniowi (suszarka).
 `dropSpecks` — liczba (wpis albo arkusz): po retuszu znikają kształty mniejsze niż tyle komórek (okruchy cienia).
+`bgHsv` — [odcień od, odcień do, nasycenie od, do, jasność od, do] (wpis): klatka narysowana na własnym tle
+         (gradient, deszcz za szybą prysznica) — komórki w tym zakresie barw spójne z brzegiem prostokąta też są
+         tłem, a zamknięte nimi dziury od `bgHsvHole` komórek (domyślnie 30) też.
 Podgląd przed/po: tools/out/bag_before_after.png.
 
 Paleta (k-means wszystkich klatek) jest zamrożona w tools/palette.json — usunięcie albo dodanie klatki nie
@@ -156,6 +159,8 @@ def entry(spec, group):
         'shadowHsv': spec.get('shadowHsv', sh.get('shadowHsv')),
         'dropSpecks': spec.get('dropSpecks', sh.get('dropSpecks', 0)),
         'shadowBarrier': spec.get('shadowBarrier'),
+        'bgHsv': spec.get('bgHsv'),
+        'bgHsvHole': spec.get('bgHsvHole', 30),
         **{k: spec.get(k, []) for k in LIST_KEYS},
     }
 
@@ -415,21 +420,40 @@ def erase_mask(xs, ys, shapes):
     return mask
 
 
-def background_mask(cells, bg, min_blob=12, hole_tol=None, halo=None):
+def in_hsv(cells, box):
+    """Komórki (RGB 0–255) w zakresie [odcień od, do, nasycenie od, do, jasność od, do] (odcień w stopniach)."""
+    c = cells / 255.0
+    mx, mn = c.max(axis=2), c.min(axis=2)
+    d = np.maximum(mx - mn, 1e-6)
+    r, g, b = c[..., 0], c[..., 1], c[..., 2]
+    hue = np.where(mx == r, ((g - b) / d) % 6, np.where(mx == g, (b - r) / d + 2, (r - g) / d + 4)) * 60
+    sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
+    h0, h1, s0, s1, v0, v1 = box
+    return (hue >= h0) & (hue <= h1) & (sat >= s0) & (sat <= s1) & (mx >= v0) & (mx <= v1)
+
+
+def background_mask(cells, bg, min_blob=12, hole_tol=None, halo=None, hsv=None, hsv_hole=30):
     """Tło: komórki bliskie tłu spójne z brzegiem albo dziury >= 6 komórek.
 
     `hole_tol`: dziura (nie przy brzegu) jest tłem tylko, gdy jej średnia różnica od tła < hole_tol —
     jasne refleksy włosów i koszuli nocnej są blisko tła, ale wyraźnie mniej jednolite niż prawdziwe tło.
     `halo`: rozmyty arkusz ma wokół konturu jasną obwódkę (mieszanka tła i konturu) — dwa pierścienie komórek
     stykających się z tłem, o różnicy od tła < halo, też stają się tłem (wnętrze za ciemnym konturem zostaje).
+    `hsv`: własne tło klatki (patrz `bgHsv`) — komórki w tym zakresie barw też są tłem, gdy łączą się z brzegiem
+    albo tworzą dziurę od `hsv_hole` komórek.
     """
     diff = np.abs(cells - bg).sum(axis=2)
     near = diff < 30
+    painted = in_hsv(cells, hsv) & ~near if hsv else np.zeros_like(near)
+    near = near | painted
     h, w = near.shape
     mask = np.zeros((h, w), bool)
     for comp in components(near, NEIGH4):
         touches_edge = any(y in (0, h - 1) or x in (0, w - 1) for y, x in comp)
-        is_hole = len(comp) >= 6 and (hole_tol is None or np.mean([diff[p] for p in comp]) < hole_tol)
+        if hsv and any(painted[p] for p in comp):
+            is_hole = len(comp) >= hsv_hole
+        else:
+            is_hole = len(comp) >= 6 and (hole_tol is None or np.mean([diff[p] for p in comp]) < hole_tol)
         if touches_edge or is_hole:
             for p in comp:
                 mask[p] = True
@@ -1709,7 +1733,7 @@ def collect():
                 cells = hair_tone(cells, *e['hairTone'])
             erased = erase_mask(xs, ys, e['erase'])
             cells[erased] = bg
-            mask = (background_mask(cells, bg, min_blob, hole_tol, e['halo'])
+            mask = (background_mask(cells, bg, min_blob, hole_tol, e['halo'], e['bgHsv'], e['bgHsvHole'])
                     | outside_box(xs, ys, box, margin) | erased)
             if group == 'items' and e['keep'] != 'all':
                 # Przedmiot to jeden kształt — odpryski sąsiadów i podpisów w jego ramce znikają.

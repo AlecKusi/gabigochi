@@ -1,3 +1,4 @@
+import type { BustName } from '../../home/interactionPlan';
 import type { FrameMeta } from '../../sprites/loader';
 
 /**
@@ -5,6 +6,7 @@ import type { FrameMeta } from '../../sprites/loader';
  * z `idle_front`: dół klatki stojącej Gabi od wiersza `cut` (pas koszulki) w dół, a nad nim popiersie w skali
  * postaci, z dolną krawędzią w tym samym wierszu i z czubkiem głowy w osi postaci. Suszarka trzyma prawą rękę
  * w górze — opuszczoną prawą dłoń z `idle_front` (wiersze `cut`…`armRows`, kolumny od `armClipX`) wycinamy.
+ * Mycie zębów i czesanie (osobny arkusz, drobniejsze piksele) mają własną skalę (`ownScale`).
  */
 export interface BustCfg {
   /** Wiersz `idle_front` (px natywne), od którego rysujemy nogi; na nim stoi dolna krawędź popiersia. */
@@ -12,13 +14,21 @@ export interface BustCfg {
   /** Do tego wiersza nogi są przycięte do kolumn [0, armClipX) — bez drugiej prawej dłoni. */
   armRows?: number;
   armClipX?: number;
+  /** Popiersie w swojej skali (`FrameMeta.scale`), a nie w skali nóg — arkusz z innym rozmiarem piksela. */
+  ownScale?: boolean;
 }
 
-export type BustName = 'gabi_turban' | 'gabi_hairdryer';
+const MIRROR: BustCfg = { cut: 33, ownScale: true };
 
 export const BUSTS: Readonly<Record<BustName, BustCfg>> = {
   gabi_turban: { cut: 33 },
   gabi_hairdryer: { cut: 33, armRows: 39, armClipX: 18 },
+  brush_1: MIRROR,
+  brush_2: MIRROR,
+  brush_3: MIRROR,
+  comb_1: MIRROR,
+  comb_2: MIRROR,
+  comb_3: MIRROR,
 };
 
 /** Kawałek do narysowania: obrazek, prostokąt źródłowy (px natywne) i docelowy (px urządzenia). */
@@ -50,10 +60,11 @@ export function bustPieces(body: FrameMeta, bust: FrameMeta, cfg: BustCfg, k: nu
   } else {
     pieces.push(legs(cfg.cut, body.h, body.w));
   }
-  const bw = Math.round(bust.w * s * k);
-  const bh = Math.round(bust.h * s * k);
+  const bs = cfg.ownScale ? bust.scale : s;
+  const bw = Math.round(bust.w * bs * k);
+  const bh = Math.round(bust.h * bs * k);
   const bottom = rowY(cfg.cut);
-  pieces.push({ img: 'bust', sx: 0, sy: 0, sw: bust.w, sh: bust.h, dx: Math.round(x * k) - Math.round(bust.anchorX * s * k), dy: bottom - bh, dw: bw, dh: bh });
+  pieces.push({ img: 'bust', sx: 0, sy: 0, sw: bust.w, sh: bust.h, dx: Math.round(x * k) - Math.round(bust.anchorX * bs * k), dy: bottom - bh, dw: bw, dh: bh });
   return pieces;
 }
 

@@ -10,27 +10,34 @@ import { canReward, markReward } from './rewards';
  * (klatka z `itemFrames` zamiast zwykłego sprite'a), poza Gabi, kwestia i efekt na starcie kroku.
  */
 
+/**
+ * Popiersia (kończą się w pasie koszulki) rysowane na nogach z `idle_front` — turban i suszarka z arkusza łazienki,
+ * mycie zębów i czesanie z arkusza przed lustrem (patrz `ui/home/bustPose`).
+ */
+export type BustName = 'gabi_turban' | 'gabi_hairdryer' | 'brush_1' | 'brush_2' | 'brush_3' | 'comb_1' | 'comb_2' | 'comb_3';
+
 /** Jak narysować Gabi w kroku. */
 export type GabiPose =
   /** Gabi jest częścią klatki przedmiotu (np. pod prysznicem) — postaci nie rysujemy. */
   | { kind: 'hidden' }
   /** Klatki postaci (pętla) w miejscu Gabi albo względem przedmiotu (`at`), zwrócone do niego (`face`). */
   | { kind: 'frames'; frames: readonly string[]; fps: number; at?: PoseAt; face?: boolean }
-  /** Popiersie z arkusza łazienki złożone z nogami z `idle_front`. */
-  | { kind: 'bust'; bust: 'gabi_turban' | 'gabi_hairdryer' };
+  /** Popiersie (pętla klatek) złożone z nogami z `idle_front`; `at: 'under'` — pod przedmiotem (umywalka, lustro). */
+  | { kind: 'bust'; busts: readonly BustName[]; fps: number; at?: 'under' };
 
 /**
  * Gdzie stoi poza względem przedmiotu: `seat` — siedzi na meblu, `lie` — leży na kanapie, `behind` — siedzi za
- * stołem (stół zasłania nogi), `front` — przed telewizorem (widok od tyłu), `under` — pod oknem (widok od tyłu).
+ * stołem (stół zasłania nogi), `front` — przed telewizorem (widok od tyłu), `under` — pod oknem (widok od tyłu),
+ * `inside` — w wannie (w pianie) albo za szybą kabiny prysznica (miejsce z `INSIDE_SPOTS`).
  */
-export type PoseAt = 'seat' | 'lie' | 'behind' | 'front' | 'under';
+export type PoseAt = 'seat' | 'lie' | 'behind' | 'front' | 'under' | 'inside';
 
 /** Klucze kwestii (`content.lines`) wypowiadanych w interakcjach; `calendar`, `window` i `clock` są składane w pokoju. */
 export type InteractionLine =
   | 'water' | 'read' | 'play' | 'cute' | 'calendar' | 'window' | 'clock'
   | 'toilet' | 'shower' | 'showerDone' | 'bath' | 'bathRelax' | 'sink' | 'towel' | 'hairdryer' | 'nap' | 'coffee'
   | 'cake' | 'kitkat' | 'tea' | 'relaxPhone' | 'tv' | 'cat' | 'fridge' | 'cook' | 'catfood'
-  | 'mirror' | 'laundry' | 'scale';
+  | 'mirror' | 'laundry' | 'scale' | 'teeth' | 'duck' | 'showerSing';
 
 /** Efekty kroku: `rain` — woda pod prysznicem, `bubbles` — piana nad wanną, `spin` — pranie w pralce. */
 export type InteractionEffect = 'water' | 'hearts' | 'screen' | 'steam' | 'rain' | 'bubbles' | 'spin';
@@ -48,8 +55,8 @@ export interface InteractionStep {
 
 const IDLE: GabiPose = { kind: 'frames', frames: ['idle_front'], fps: 1 };
 const HIDDEN: GabiPose = { kind: 'hidden' };
-const TURBAN: GabiPose = { kind: 'bust', bust: 'gabi_turban' };
-const HAIRDRYER: GabiPose = { kind: 'bust', bust: 'gabi_hairdryer' };
+const TURBAN: GabiPose = { kind: 'bust', busts: ['gabi_turban'], fps: 1 };
+const HAIRDRYER: GabiPose = { kind: 'bust', busts: ['gabi_hairdryer'], fps: 1 };
 
 /** Przedmiot z wieszakiem na ręcznik — tam Gabi wyciera ręce po myciu. */
 export const TOWEL_RAIL = 'towel_rail';
@@ -80,6 +87,7 @@ const withoutGabiFrame = (ctx: PlanCtx): boolean => ctx.itemStates !== undefined
 
 const pickOf = <T>(ctx: PlanCtx, items: readonly T[]): T => items[Math.min(items.length - 1, Math.floor((ctx.variant ?? 0) * items.length))];
 const at = (frames: readonly string[], fps: number, where: PoseAt): GabiPose => ({ kind: 'frames', frames, fps, at: where });
+const bustUnder = (busts: readonly BustName[], fps: number): GabiPose => ({ kind: 'bust', busts, fps, at: 'under' });
 
 /**
  * Kroki interakcji; null dla przedmiotów bez interakcji i dla tych, które zaczynają zajęcie
@@ -206,11 +214,13 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
         { ms: 400, item: null, gabi: IDLE },
       ];
     case 'shower':
-      // kabina bez klatek stanów: Gabi wchodzi (znika za szybą), leci woda i para, wychodzi w ręczniku
+      // kabina bez klatek stanów: Gabi za szybą (w pianie) — myje włosy, śpiewa, macha; wychodzi w ręczniku
       if (withoutGabiFrame(ctx)) {
         return [
           { ms: 700, item: null, gabi: IDLE, line: 'shower' },
-          { ms: 5500, item: null, gabi: HIDDEN, effect: 'rain' },
+          { ms: 1900, item: null, gabi: at(['gabi_shower_1'], 1, 'inside'), effect: 'rain' },
+          { ms: 2000, item: null, gabi: at(['gabi_shower_2'], 1, 'inside'), line: 'showerSing', effect: 'rain' },
+          { ms: 1600, item: null, gabi: at(['gabi_shower_3'], 1, 'inside'), effect: 'rain' },
           { ms: 2500, item: null, gabi: TURBAN, line: 'showerDone' },
         ];
       }
@@ -221,11 +231,13 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
         { ms: 2500, item: null, gabi: TURBAN, line: 'showerDone' },
       ];
     case 'bath':
-      // wanna bez klatek stanów: Gabi wchodzi do wanny (pod pianą), bąbelki i para, potem ręcznik i suszarka
+      // wanna bez klatek stanów: Gabi w pianie — relaks, chlapanie, kaczuszka; potem ręcznik i suszarka
       if (withoutGabiFrame(ctx)) {
         return [
           { ms: 1000, item: null, gabi: IDLE, line: 'bath' },
-          { ms: 7000, item: null, gabi: HIDDEN, line: 'bathRelax', effect: 'bubbles' },
+          { ms: 2800, item: null, gabi: at(['gabi_foam_1'], 1, 'inside'), line: 'bathRelax', effect: 'bubbles' },
+          { ms: 1800, item: null, gabi: at(['gabi_foam_2'], 1, 'inside'), effect: 'bubbles' },
+          { ms: 2400, item: null, gabi: at(['gabi_foam_3'], 1, 'inside'), line: 'duck', effect: 'bubbles' },
           { ms: 2500, item: null, gabi: TURBAN },
           { ms: 3000, item: null, gabi: HAIRDRYER, line: 'hairdryer' },
         ];
@@ -238,11 +250,12 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
         { ms: 3000, item: null, gabi: HAIRDRYER, line: 'hairdryer' },
       ];
     case 'sink': {
-      // umywalka bez klatek stanów: Gabi myje ręce (od tyłu), leci woda
+      // umywalka bez klatek stanów: Gabi myje zęby (przodem — patrzymy jak lustro), na koniec płucze usta
       if (withoutGabiFrame(ctx)) {
         return [
-          { ms: 2600, item: null, gabi: at(['back_touch', 'back_idle'], 2, 'under'), line: 'sink', effect: 'water' },
-          { ms: 600, item: null, gabi: at(['back_idle'], 1, 'under') },
+          { ms: 900, item: null, gabi: bustUnder(['brush_1'], 1) },
+          { ms: 2600, item: null, gabi: bustUnder(['brush_2', 'brush_1'], 3), line: 'teeth' },
+          { ms: 1400, item: null, gabi: bustUnder(['brush_3'], 1), effect: 'water' },
         ];
       }
       const steps: InteractionStep[] = [
@@ -255,17 +268,17 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
     case 'hairdryer':
       return [{ ms: 3500, item: null, gabi: HAIRDRYER, line: 'hairdryer' }];
     case 'mirror':
-      // przegląda się w lustrze (od tyłu) i pozuje
+      // czesze się przed lustrem (przodem — patrzymy jak lustro): potargane włosy, szczotka, gładka fryzura
       return [
-        { ms: 1000, item: null, gabi: at(['back_idle'], 1, 'under') },
-        { ms: 1800, item: null, gabi: at(['back_hips'], 1, 'under'), line: 'mirror' },
-        { ms: 900, item: null, gabi: at(['back_wave', 'back_idle'], 2.5, 'under') },
+        { ms: 900, item: null, gabi: bustUnder(['comb_1'], 1) },
+        { ms: 2400, item: null, gabi: bustUnder(['comb_2', 'comb_1'], 2.5) },
+        { ms: 1800, item: null, gabi: bustUnder(['comb_3'], 1), line: 'mirror' },
       ];
     case 'laundry':
-      // nastawia pranie: obok pralki przykuca i wkłada ubrania, potem patrzy, jak bęben się kręci
+      // nastawia pranie: obok pralki przykuca i wkłada ubrania ze sterty, potem patrzy, jak bęben się kręci
       return [
-        { ms: 1400, item: null, gabi: { kind: 'frames', frames: ['care_soil'], fps: 1, face: true } },
-        { ms: 3200, item: null, gabi: { kind: 'frames', frames: ['fun_talk'], fps: 1, face: true }, line: 'laundry', effect: 'spin' },
+        { ms: 2800, item: null, gabi: { kind: 'frames', frames: ['laundry_1', 'laundry_2'], fps: 1.4, face: true } },
+        { ms: 3200, item: null, gabi: { kind: 'frames', frames: ['laundry_3'], fps: 1, face: true }, line: 'laundry', effect: 'spin' },
       ];
     case 'scale':
       // staje na wadze i komentuje wynik

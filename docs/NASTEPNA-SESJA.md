@@ -223,6 +223,17 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   turban, suszarka; umywalka — mycie rąk od tyłu z wodą. Nowe interakcje: `mirror` (pozowanie od tyłu), `laundry`
   (Gabi obok pralki, efekt `spin`), `scale` (stoi na wadze, `SEAT_LIFT` 5, myśli). Kwestie w `lines.mirror/laundry/scale`.
 - Ekstraktor: `shadowBarrier` (zalewanie cienia staje na ciemnym konturze — nóżki suszarki), `dropSpecks` (okruchy).
-- Arkusze animacji, które byłyby ładniejsze od efektów ogólnych (opcjonalne): Gabi w pianie w wannie (popiersie),
-  sylwetka za szybą prysznica, mycie zębów przodem, czesanie przed lustrem, wkładanie prania, wieszanie prania
-  na suszarce, wchodzenie na wagę (zdziwiona mina).
+- Arkusze animacji jeszcze do zrobienia (opcjonalne): wieszanie prania na suszarce, wchodzenie na wagę.
+
+## Animacje łazienkowe z czterech arkuszy (2026-10-10)
+- `sheet-teeth-comb.jpg` (okres 7,8, `bodyScale` 0,465): popiersia `brush_1..3` (mycie zębów) i `comb_1..3`
+  (czesanie, `noHat`) — na nogach z `idle_front` (`BUSTS`, `ownScale`: popiersie w swojej skali). Pozy `bust` mają
+  teraz listę klatek (`busts`, `fps`) i `at: 'under'`. Umywalki z arkuszy: mycie zębów przodem; lustra: czesanie.
+- `sheet-laundry.jpg` (okres 7,8, skala 0,48): `laundry_1..3` — kuca obok pralki (zwrócona do niej), wkłada pranie.
+- `sheet-bath-foam.jpg` (okres 10, skala 0,61): `gabi_foam_1..3` — Gabi w pianie (relaks, chlapanie, kaczuszka),
+  klatki ucięte poziomo w pianie; poza `at: 'inside'` stawia dół klatki na przednim brzegu wanny (`INSIDE_SPOTS`:
+  `dx` niecki odbijane z wanną, `headDx` głowy od środka piany, `lift`).
+- `sheet-shower-glass.jpg` (okres 10, skala 0,41): `gabi_shower_1..3` — za szybą (rozmyta, śpiew, machanie); tło
+  panelu (gradient i deszcz) zdjęte nową opcją ekstraktora `bgHsv` (zakres barw tła zalewany od brzegu,
+  `bgHsvHole` — zamknięte dziury); w kabinie z kryciem `glass` 0,8 i deszczem na wierzchu.
+- Kwestie: `teeth`, `duck`, `showerSing`. Piana i prysznic są wykluczone z masek szafy (bez ubrania i ozdoby głowy).

@@ -28,9 +28,9 @@
     "sheetClasses": {
       "sitting": { "shirt": { "hue": [230, 335], "sat": [0.1, 0.6], "val": [0.1, 0.24] }, "printDark": { "hue": [340, 60], "sat": [0.2, 1.0], "val": [0.1, 0.35] } }
     },
-    "exclude": ["nurse_*", "bed_*"],
-    "topOnly": ["study_*", "gabi_hairdryer", "gabi_turban"],
-    "noHat": ["gabi_turban"],
+    "exclude": ["nurse_*", "bed_*", "gabi_foam_*", "gabi_shower_*"],
+    "topOnly": ["study_*", "gabi_hairdryer", "gabi_turban", "brush_*", "comb_*"],
+    "noHat": ["gabi_turban", "comb_*"],
     "headIgnore": { "angry": [[19, 0, 26, 8]] },
     "headSilhouette": ["angry"],
     "portraits": ["portrait_a", "portrait_b"]
@@ -77,6 +77,10 @@
     "balcony2": {"path": "assets/source/sheet-balcony2.jpg", "shadowHsv": [205, 262, 0.17, 0.42, 0.8], "background": [213, 213, 216], "gridPeriod": 6.25, "holeTol": 15, "holeTolAll": 15, "paletteColours": 184, "scale": 0.75, "itemPreview": "balcony2_preview"},
     "bath1": {"path": "assets/source/sheet-bath1.jpg", "background": [213, 214, 218], "gridPeriod": 6.25, "holeTol": 0, "holeTolAll": 0, "paletteColours": 184, "itemPreview": "bath1_preview"},
     "bath2": {"path": "assets/source/sheet-bath2.jpg", "background": [213, 214, 218], "gridPeriod": 6.25, "holeTol": 0, "holeTolAll": 0, "paletteColours": 184, "itemPreview": "bath2_preview"},
+    "teethcomb": {"path": "assets/source/sheet-teeth-comb.jpg", "hairTone": [0.6, 1.1], "background": [208, 209, 213], "gridPeriod": 7.8, "holeTol": 15, "paletteColours": 184, "preview": "preview_bath_anim", "bodyScale": 0.465},
+    "laundry": {"path": "assets/source/sheet-laundry.jpg", "hairTone": [0.6, 1.1], "background": [209, 210, 214], "gridPeriod": 7.8, "holeTol": 15, "paletteColours": 184, "preview": "preview_bath_anim", "bodyScale": 0.48},
+    "bathfoam": {"path": "assets/source/sheet-bath-foam.jpg", "hairTone": [0.6, 1.1], "background": [206, 207, 212], "gridPeriod": 10.0, "holeTol": 0, "holeTolAll": 0, "paletteColours": 184, "preview": "preview_bath_anim", "bodyScale": 0.61},
+    "showerglass": {"path": "assets/source/sheet-shower-glass.jpg", "hairTone": [0.6, 1.1], "background": [206, 205, 210], "gridPeriod": 10.0, "holeTol": 0, "paletteColours": 184, "preview": "preview_bath_anim", "bodyScale": 0.41},
     "cateat": {"path": "assets/source/sheet-cateat.jpg", "outline": ["#9a8fb8"], "sampleMode": "smooth", "background": [205, 208, 215], "gridPeriod": 3.9, "holeTol": 15, "holeTolAll": 15, "paletteColours": 184, "scale": 0.228, "itemPreview": "cateat_preview"}
   },
   "body": {
@@ -290,7 +294,22 @@
     "drink_4": {"onlyLargest": true, "sheet": "drink", "rect": [979, 105, 1144, 453]},
     "drink_5": {"onlyLargest": true, "sheet": "drink", "rect": [374, 518, 540, 874]},
     "drink_6": {"onlyLargest": true, "sheet": "drink", "rect": [679, 518, 821, 874]},
-    "drink_7": {"onlyLargest": true, "sheet": "drink", "rect": [984, 518, 1172, 874]}
+    "drink_7": {"onlyLargest": true, "sheet": "drink", "rect": [984, 518, 1172, 874]},
+    "brush_1": {"onlyLargest": true, "sheet": "teethcomb", "rect": [120, 148, 568, 700]},
+    "brush_2": {"onlyLargest": true, "sheet": "teethcomb", "rect": [752, 148, 1180, 700]},
+    "brush_3": {"onlyLargest": true, "sheet": "teethcomb", "rect": [1480, 148, 1896, 700]},
+    "comb_1": {"onlyLargest": true, "sheet": "teethcomb", "rect": [116, 900, 520, 1468]},
+    "comb_2": {"onlyLargest": true, "sheet": "teethcomb", "rect": [768, 876, 1256, 1468]},
+    "comb_3": {"onlyLargest": true, "sheet": "teethcomb", "rect": [1464, 908, 1836, 1468]},
+    "laundry_1": {"onlyLargest": true, "sheet": "laundry", "rect": [150, 300, 682, 1082]},
+    "laundry_2": {"onlyLargest": true, "sheet": "laundry", "rect": [782, 308, 1406, 1074]},
+    "laundry_3": {"onlyLargest": true, "sheet": "laundry", "rect": [1498, 300, 1866, 1074]},
+    "gabi_foam_1": {"keep": "all", "sheet": "bathfoam", "rect": [44, 300, 664, 790]},
+    "gabi_foam_2": {"keep": "all", "sheet": "bathfoam", "rect": [696, 300, 1336, 790]},
+    "gabi_foam_3": {"keep": "all", "sheet": "bathfoam", "rect": [1338, 300, 1956, 790]},
+    "gabi_shower_1": {"onlyLargest": true, "sheet": "showerglass", "rect": [50, 192, 660, 1324], "bgHsv": [180, 235, 0.04, 0.5, 0.25, 0.9]},
+    "gabi_shower_2": {"onlyLargest": true, "sheet": "showerglass", "rect": [690, 192, 1310, 1324], "bgHsv": [180, 235, 0.04, 0.5, 0.25, 0.9]},
+    "gabi_shower_3": {"onlyLargest": true, "sheet": "showerglass", "rect": [1340, 192, 1950, 1324], "bgHsv": [180, 240, 0.075, 0.5, 0.25, 0.95]}
   },
   "portraits": {
     "portrait_a": [507, 40, 753, 290],

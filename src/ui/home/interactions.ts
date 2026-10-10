@@ -76,10 +76,14 @@ export function createInteractionPlayer(): InteractionPlayer {
   };
 }
 
+/** Element pętli `fps` klatek na sekundę w chwili `ms` od początku kroku. */
+export function loopFrame<T>(frames: readonly T[], fps: number, ms: number): T {
+  return frames[Math.floor((Math.max(0, ms) / 1000) * fps) % frames.length];
+}
+
 /** Klatka pozy z listy klatek w chwili `ms` od początku kroku. */
 export function poseFrame(pose: Extract<GabiPose, { kind: 'frames' }>, ms: number): string {
-  const n = pose.frames.length;
-  return pose.frames[Math.floor((Math.max(0, ms) / 1000) * pose.fps) % n];
+  return loopFrame(pose.frames, pose.fps, ms);
 }
 
 /** Co narysować inaczej w pokoju w tym kroku. */

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createState } from '../../src/core/state';
 import type { GameState } from '../../src/core/types';
-import { INTERACTIONS, itemFrames } from '../../src/home/catalog';
+import { INSIDE_SPOTS } from '../../src/home/activitySpots';
+import { CATALOG, INTERACTIONS, itemFrames } from '../../src/home/catalog';
 import { cookDish, interactionReward, interactionSteps, napMs, rewardInteraction, stepAt, toggleLamp, totalMs } from '../../src/home/interactionPlan';
 import framesMeta from '../../src/sprites/frames.generated.json';
 
@@ -33,14 +34,13 @@ describe('kroki interakcji', () => {
     expect(itemFrames('towel_rail').gabi).toBeDefined();
   });
 
-  it('klatki stanów przedmiotów i pozy postaci istnieją', () => {
+  it('klatki stanów przedmiotów i pozy postaci istnieją (też w wersjach bez klatek z Gabi)', () => {
     for (const k of INTERACTIONS) {
-      const steps = interactionSteps(k, { hasRail: true });
-      if (!steps) continue;
+      const steps = [...(interactionSteps(k, { hasRail: true }) ?? []), ...(interactionSteps(k, { hasRail: false, itemStates: [] }) ?? [])];
       for (const s of steps) {
         if (s.item) expect(itemFrames(ITEM_OF[k])[s.item], `${k}:${s.item}`).toBeDefined();
         if (s.gabi.kind === 'frames') for (const f of s.gabi.frames) expect(framesMeta.body, f).toContain(f);
-        if (s.gabi.kind === 'bust') expect(framesMeta.body).toContain(s.gabi.bust);
+        if (s.gabi.kind === 'bust') for (const b of s.gabi.busts) expect(framesMeta.body, b).toContain(b);
       }
     }
   });
@@ -163,24 +163,42 @@ describe('lodówki z arkusza: drzwi się otwierają', () => {
 
 describe('łazienka z nowych arkuszy (bez klatek z Gabi)', () => {
   const plain = { hasRail: false, itemStates: [] as string[] };
-  it('prysznic: Gabi znika w kabinie, leci woda, wychodzi w ręczniku; wanna: piana; bez klatek przedmiotu', () => {
+  it('prysznic: Gabi za szybą w kabinie, leci woda, wychodzi w ręczniku; wanna: w pianie; bez klatek przedmiotu', () => {
     const shower = interactionSteps('shower', plain)!;
-    expect(shower.some((s) => s.effect === 'rain' && s.gabi.kind === 'hidden')).toBe(true);
-    expect(shower.at(-1)!.gabi).toMatchObject({ kind: 'bust', bust: 'gabi_turban' });
+    const inShower = shower.filter((s) => s.gabi.kind === 'frames' && s.gabi.at === 'inside');
+    expect(inShower.map((s) => (s.gabi.kind === 'frames' ? s.gabi.frames[0] : ''))).toEqual(['gabi_shower_1', 'gabi_shower_2', 'gabi_shower_3']);
+    expect(inShower.every((s) => s.effect === 'rain')).toBe(true);
+    expect(shower.at(-1)!.gabi).toMatchObject({ kind: 'bust', busts: ['gabi_turban'] });
     const bath = interactionSteps('bath', plain)!;
-    expect(bath.some((s) => s.effect === 'bubbles')).toBe(true);
+    const inBath = bath.filter((s) => s.gabi.kind === 'frames' && s.gabi.at === 'inside');
+    expect(inBath).toHaveLength(3);
+    expect(inBath.every((s) => s.effect === 'bubbles')).toBe(true);
+    expect(bath.some((s) => s.line === 'duck')).toBe(true);
     for (const s of [...shower, ...bath]) expect(s.item).toBeNull();
   });
-  it('toaleta: siedzi z telefonem; umywalka: myje ręce od tyłu z wodą', () => {
+  it('wanny i kabiny z arkuszy mają miejsce dla Gabi w środku', () => {
+    for (const d of CATALOG.filter((x) => x.interaction === 'bath' || x.interaction === 'shower')) {
+      if (itemFrames(d.id).gabi) continue;
+      expect(INSIDE_SPOTS[d.id], d.id).toBeDefined();
+    }
+    for (const id of Object.keys(INSIDE_SPOTS)) expect(CATALOG.some((d) => d.id === id), id).toBe(true);
+  });
+  it('toaleta: siedzi z telefonem; umywalka: myje zęby przodem (popiersie pod umywalką), płucze usta z wodą', () => {
     expect(interactionSteps('toilet', plain)![0].gabi).toMatchObject({ at: 'seat' });
     const sink = interactionSteps('sink', plain)!;
-    expect(sink[0]).toMatchObject({ effect: 'water', gabi: { at: 'under' } });
+    expect(sink.every((s) => s.gabi.kind === 'bust' && s.gabi.at === 'under')).toBe(true);
+    expect(sink.some((s) => s.line === 'teeth')).toBe(true);
+    expect(sink.at(-1)).toMatchObject({ effect: 'water', gabi: { busts: ['brush_3'] } });
     // stara umywalka z klatkami — jak dawniej
     expect(interactionSteps('sink', { hasRail: false, itemStates: ['on', 'gabi'] })![1].item).toBe('gabi');
   });
   it('lustro, pranie, waga: kwestie i nagrody', () => {
-    expect(interactionSteps('mirror', plain)!.some((s) => s.line === 'mirror')).toBe(true);
-    expect(interactionSteps('laundry', plain)!.some((s) => s.effect === 'spin' && s.line === 'laundry')).toBe(true);
+    const mirror = interactionSteps('mirror', plain)!;
+    expect(mirror.some((s) => s.line === 'mirror')).toBe(true);
+    expect(mirror.every((s) => s.gabi.kind === 'bust' && s.gabi.busts.every((b) => b.startsWith('comb_')))).toBe(true);
+    const laundry = interactionSteps('laundry', plain)!;
+    expect(laundry.some((s) => s.effect === 'spin' && s.line === 'laundry')).toBe(true);
+    expect(laundry.every((s) => s.gabi.kind === 'frames' && s.gabi.face === true && s.gabi.frames.every((f) => f.startsWith('laundry_')))).toBe(true);
     expect(interactionSteps('scale', plain)!.every((s) => s.gabi.kind === 'frames' && s.gabi.at === 'seat')).toBe(true);
     expect(interactionReward('laundry')).toMatchObject({ mood: 2 });
     expect(interactionReward('mirror')).toMatchObject({ mood: 1 });

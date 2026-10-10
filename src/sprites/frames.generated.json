@@ -229,6 +229,45 @@
       "scale": 0.8889,
       "mask": false
     },
+    "brush_1": {
+      "w": 56,
+      "h": 71,
+      "anchorX": 28.5,
+      "foot": 71,
+      "scale": 0.465,
+      "mask": true,
+      "head": {
+        "x": 28.5,
+        "y": 0,
+        "w": 34
+      }
+    },
+    "brush_2": {
+      "w": 53,
+      "h": 71,
+      "anchorX": 31.0,
+      "foot": 71,
+      "scale": 0.465,
+      "mask": true,
+      "head": {
+        "x": 31.5,
+        "y": 0,
+        "w": 36
+      }
+    },
+    "brush_3": {
+      "w": 52,
+      "h": 71,
+      "anchorX": 21.0,
+      "foot": 71,
+      "scale": 0.465,
+      "mask": true,
+      "head": {
+        "x": 20.5,
+        "y": 0,
+        "w": 34
+      }
+    },
     "care_mist": {
       "w": 57,
       "h": 124,
@@ -396,6 +435,48 @@
         "y": 0,
         "w": 36
       }
+    },
+    "comb_1": {
+      "w": 52,
+      "h": 71,
+      "anchorX": 29.04,
+      "foot": 71,
+      "scale": 0.465,
+      "mask": true,
+      "head": {
+        "x": 32.5,
+        "y": 0,
+        "w": 38
+      },
+      "noHat": true
+    },
+    "comb_2": {
+      "w": 61,
+      "h": 74,
+      "anchorX": 35.47,
+      "foot": 74,
+      "scale": 0.465,
+      "mask": true,
+      "head": {
+        "x": 31.5,
+        "y": 4,
+        "w": 30
+      },
+      "noHat": true
+    },
+    "comb_3": {
+      "w": 46,
+      "h": 70,
+      "anchorX": 23.5,
+      "foot": 70,
+      "scale": 0.465,
+      "mask": true,
+      "head": {
+        "x": 22.5,
+        "y": 0,
+        "w": 38
+      },
+      "noHat": true
     },
     "console_1": {
       "w": 25,
@@ -915,6 +996,30 @@
         "w": 18
       }
     },
+    "gabi_foam_1": {
+      "w": 61,
+      "h": 47,
+      "anchorX": 40.78,
+      "foot": 47,
+      "scale": 0.61,
+      "mask": false
+    },
+    "gabi_foam_2": {
+      "w": 63,
+      "h": 41,
+      "anchorX": 37.47,
+      "foot": 41,
+      "scale": 0.61,
+      "mask": false
+    },
+    "gabi_foam_3": {
+      "w": 61,
+      "h": 40,
+      "anchorX": 39.7,
+      "foot": 40,
+      "scale": 0.61,
+      "mask": false
+    },
     "gabi_hairdryer": {
       "w": 43,
       "h": 32,
@@ -927,6 +1032,30 @@
         "y": 0,
         "w": 22
       }
+    },
+    "gabi_shower_1": {
+      "w": 59,
+      "h": 97,
+      "anchorX": 31.31,
+      "foot": 97,
+      "scale": 0.41,
+      "mask": false
+    },
+    "gabi_shower_2": {
+      "w": 53,
+      "h": 92,
+      "anchorX": 21.88,
+      "foot": 92,
+      "scale": 0.41,
+      "mask": false
+    },
+    "gabi_shower_3": {
+      "w": 60,
+      "h": 93,
+      "anchorX": 24.73,
+      "foot": 93,
+      "scale": 0.41,
+      "mask": false
     },
     "gabi_turban": {
       "w": 17,
@@ -1108,6 +1237,48 @@
         "x": 15.0,
         "y": 0,
         "w": 22
+      }
+    },
+    "laundry_1": {
+      "w": 66,
+      "h": 98,
+      "anchorX": 25.85,
+      "foot": 98,
+      "scale": 0.48,
+      "mask": true,
+      "knee": 74,
+      "head": {
+        "x": 25.5,
+        "y": 0,
+        "w": 36
+      }
+    },
+    "laundry_2": {
+      "w": 78,
+      "h": 96,
+      "anchorX": 30.25,
+      "foot": 96,
+      "scale": 0.48,
+      "mask": true,
+      "knee": 70,
+      "head": {
+        "x": 29.5,
+        "y": 0,
+        "w": 36
+      }
+    },
+    "laundry_3": {
+      "w": 45,
+      "h": 97,
+      "anchorX": 25.35,
+      "foot": 97,
+      "scale": 0.48,
+      "mask": true,
+      "knee": 75,
+      "head": {
+        "x": 25.5,
+        "y": 0,
+        "w": 36
       }
     },
     "lie_phone_1": {
@@ -2341,6 +2512,9 @@
     "bed_3",
     "bed_4",
     "bed_4z",
+    "brush_1",
+    "brush_2",
+    "brush_3",
     "care_mist",
     "care_smell",
     "care_soil",
@@ -2353,6 +2527,9 @@
     "cat_pet_2",
     "cat_pet_3",
     "cat_pet_4",
+    "comb_1",
+    "comb_2",
+    "comb_3",
     "console_1",
     "console_2",
     "console_3",
@@ -2390,7 +2567,13 @@
     "fun_eat",
     "fun_talk",
     "fun_wave",
+    "gabi_foam_1",
+    "gabi_foam_2",
+    "gabi_foam_3",
     "gabi_hairdryer",
+    "gabi_shower_1",
+    "gabi_shower_2",
+    "gabi_shower_3",
     "gabi_turban",
     "happy",
     "hunger_1",
@@ -2404,6 +2587,9 @@
     "karaoke_3",
     "karaoke_4",
     "karaoke_5",
+    "laundry_1",
+    "laundry_2",
+    "laundry_3",
     "lie_phone_1",
     "lie_phone_2",
     "lie_read_1",
