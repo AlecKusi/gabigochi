@@ -1,19 +1,27 @@
-# Gdzie skończyliśmy (2026-10-09)
+# Gdzie skończyliśmy (2026-10-10)
 
 ## Stan
-Gałąź `etap-1` — **działająca wersja** (520 testów, typy i build przechodzą; nic nie jest opublikowane).
-- 6 pokoi (salon, sypialnia, pracownia, łazienka, kuchnia, balkon), urządzanie, sklep (14 potraw, meble, okna, ozdoby,
-  rośliny, gaming, hobby, łazienka, kuchnia, balkon, tapety, podłogi);
+Gra jest **opublikowana**: https://aleckusi.github.io/gabigochi/ (repozytorium https://github.com/AlecKusi/gabigochi,
+wdrożenie z `main` przez GitHub Actions). Praca na `etap-1` (578 testów, typy i build przechodzą).
+- 6 pokoi (salon, sypialnia, pracownia, łazienka, kuchnia, balkon), urządzanie, sklep (14 potraw, meble — w tym
+  26 łazienkowych i 30 kuchennych, okna, ozdoby, rośliny, gaming, hobby, balkon, tapety, podłogi) ze znaczkiem „NOWE”
+  po aktualizacjach;
 - Szafa: 50 ubrań i ozdób, stroje przemalowywane na wszystkich animacjach (sukienki w kształcie A), przymiarka;
-- interakcje z meblami: siedzenie/relaks/drzemka, stół, okno i TV od tyłu, podlewanie, lodówki z otwieraniem (3 modele),
-  gotowanie, zegar ścienny; łazienka; kot jako postać (imię, głód, sympatia, je z miski w klatkach, śpi na meblach);
+- interakcje z meblami: siedzenie/relaks/drzemka, stół, okno i TV od tyłu, podlewanie, lodówki z otwieraniem,
+  gotowanie, parzenie kawy, zmywanie, zegar ścienny; łazienka (wanny z Gabi w pianie, prysznic za szybą, mycie zębów,
+  czesanie, pranie, waga, toaleta); nawyki — Gabi sama robi kawę rano, myje zęby, bierze prysznic…;
+- kot jako postać (imię, głód, sympatia, je z miski, śpi na meblach);
 - zajęcia: nauka, praktyka, telefon, szydełko, muzyka, karaoke, taniec, ukulele; cola z animacją picia;
-- pora dnia (okna, poświata, zegarek na pasku), żywe niebo nad balkonem (chmurki i ptaki w dzień, gasnące okna,
-  spadające i migoczące gwiazdy nocą); podgląd innej godziny: `?godzina=23` (tylko `npm run dev`);
-- życzenia od użytkownika (2026-10-10, `content.wishes`); dźwięki 8-bit z wyłącznikiem; 11 minigier z przyciskiem „i”; losowe teksty Gabi (12); sen/drzemka: pełna energia w 10 min.
+- pora dnia (okna, poświata, zegarek), żywe niebo nad balkonem; podgląd innej godziny: `?godzina=23` (tylko dev);
+- życzenia od użytkownika; urodziny 12.10 co roku (1000 monet, konfetti, teksty); samouczek przy pierwszym wejściu;
+- dźwięki 8-bit (kroki wg podłogi, czynności, wszystkie minigry) z wyłącznikiem; 11 minigier z przyciskiem „i”;
+- aktualizacje bez utraty zapisu: „Co nowego?”, kopia zapisu w pliku (Profil), test zgodności zapisu
+  (`docs/AKTUALIZACJE.md`).
 
-## Do decyzji użytkownika
-- zgoda na publiczny link (GitHub Pages; workflow gotowy w `.github/workflows/deploy.yml`, gałąź `main`).
+## Do zrobienia po stronie użytkownika
+- instalacja na iPhonie Gabi i przejście `docs/checklista-iphone.md` (nie testowane jeszcze na prawdziwym iPhonie);
+- przed wręczeniem: usunąć ikonę i dodać ponownie (czysty zapis).
+- Każde kolejne wypchnięcie na GitHub trafia do Gabi — najpierw potwierdzić z użytkownikiem.
 
 ## Pomysły na nowe minigry (lista dla użytkownika, 2026-10-09)
 Obecne: łapanie jedzenia, świeczki, cegiełki, szyfrokrzyżówka, memory, sudoku, a od 2026-10-09 także
