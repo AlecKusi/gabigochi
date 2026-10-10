@@ -1,5 +1,6 @@
 import type { IconName } from '../art/icons';
 import { h, icon } from '../ui/dom';
+import { play } from '../ui/sound';
 import { createMemory, flipCard, isComplete, memoryScore, resolveMismatch } from './memoryLogic';
 import { memoryReward } from './rewards';
 import type { MiniGame } from './types';
@@ -56,10 +57,13 @@ export const memoryGame: MiniGame = {
         const before = s;
         s = flipCard(s, i);
         if (s === before) return;
+        const matched = (st: typeof s) => st.cards.filter((c) => c.matched).length;
+        play(matched(s) > matched(before) ? 'match' : 'flip');
         sync();
         if (s.locked) {
           later(() => {
             s = resolveMismatch(s);
+            play('nope');
             sync();
           }, 750);
         } else if (isComplete(s)) {

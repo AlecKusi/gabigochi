@@ -1,6 +1,7 @@
 import '../styles/crypto.css';
 import { confetti } from '../ui/confetti';
 import { h } from '../ui/dom';
+import { play } from '../ui/sound';
 import {
   ALPHABET,
   MAX_HINTS,
@@ -177,6 +178,7 @@ function playBoard(env: GameEnv, initial: CryptoState): Promise<number> {
 
     function select(i: number): void {
       if (finished) return;
+      if (i !== selected) play('tick');
       selected = i;
       message = s.revealed[selNum() - 1] ? 'Ta litera jest już odkryta.' : '';
       render();
@@ -217,6 +219,7 @@ function playBoard(env: GameEnv, initial: CryptoState): Promise<number> {
       const next = applyGuess(s, n, letter);
       if (next === s) {
         if (letter && s.guesses[n - 1] !== letter) {
+          play('nope');
           message = `Litera ${letter} jest już odkryta gdzie indziej.`;
           keyEls.get(letter)?.classList.add('shake');
           later(() => keyEls.get(letter)?.classList.remove('shake'), 320);
@@ -225,6 +228,7 @@ function playBoard(env: GameEnv, initial: CryptoState): Promise<number> {
         return;
       }
       message = '';
+      play(letter ? 'type' : 'erase');
       if (letter) advance();
       commit(next);
     }
@@ -234,6 +238,7 @@ function playBoard(env: GameEnv, initial: CryptoState): Promise<number> {
       const next = hint(s, Math.random, selNum() || undefined);
       if (next === s) return;
       message = `Podpowiedź: −10 monet (zostało ${MAX_HINTS - next.hints}).`;
+      play('sparkle');
       commit(next);
     }
 
@@ -245,6 +250,7 @@ function playBoard(env: GameEnv, initial: CryptoState): Promise<number> {
       render();
       root.classList.add('solved');
       confetti(env.body);
+      play('match');
       later(() => resolve(cryptoScore(s.hints)), 1600);
     }
 

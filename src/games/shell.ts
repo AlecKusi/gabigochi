@@ -89,11 +89,11 @@ export function runGame(game: MiniGame, app: App, onResult: (result: GameResult)
               h('h2', {}, isRecord ? 'Nowy rekord!' : 'Koniec gry!'),
               h('p', { class: 'end-score' }, `Wynik: ${score}`),
               h('p', { class: 'end-reward' }, icon('coin', 3), `+${reward.coins}`, icon('heart', 2), `+${reward.moodBoost}`),
-              h('button', { class: 'px-btn big', onclick: () => finish(result) }, 'Odbierz'),
+              h('button', { class: 'px-btn big', onclick: () => { play('coin'); finish(result); } }, 'Odbierz'),
             ),
           ),
         );
-        play(score > 0 ? 'win' : 'lose');
+        play(isRecord && score > 0 ? 'record' : score > 0 ? 'win' : 'lose');
         if (isRecord || reward.coins >= 30) app.celebrate();
       })
       .catch(() => {

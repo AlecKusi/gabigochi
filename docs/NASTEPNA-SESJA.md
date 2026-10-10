@@ -261,3 +261,15 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   `gabigochi.save_backup`, kopia z nowszej wersji odrzucona.
 - `tests/core/saveCompat.test.ts` + zamrożony `tests/fixtures/save-v2-2026-10-10.json` (wszystkie przedmioty,
   ubrania, wyglądy, jedzenie, rekordy) — każda przyszła wersja musi go wczytać bez strat.
+
+## Więcej dźwięków (2026-10-10)
+- `src/ui/sound.ts`: ~25 nowych efektów (syntezowanych, bez plików) + `MIN_GAP` (najmniejszy odstęp powtórzeń —
+  dziesiątki kulek w cegiełkach nie trzeszczą) + `step(surface)`.
+- Kroki Gabi przy postawieniu stopy (klatki `walk_a1`, `walk_a3`), brzmienie wg podłogi pokoju (deski, płytki,
+  dywan) albo dywanu pod stopami; lądowanie po upuszczeniu; lampka (klik), spłukiwanie, ekspres (bulgotanie).
+- Klatki póz z dźwiękiem (`POSE_SFX` w `room.ts`): szczoteczka, szczotka do włosów, pranie, chlapanie w wannie,
+  kaczuszka, śpiew pod prysznicem.
+- Minigry: cegiełki (strzał, odbicie, rozbity klocek, bonus, runda), memory (karta, para, „nie”), sudoku
+  (wybór pola, cyfra, notatka, gumka, powtórka, zamknięta linia/blok), szyfrokrzyżówka (klawisz, gumka,
+  podpowiedź, powtórzona litera, wygrana), świeczki (zapalenie, finał), łapanie (KitKat), kot w pudełkach
+  (wychylenie, pudło); nowy rekord — fanfara, „Odbierz” — monety.

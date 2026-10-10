@@ -59,6 +59,7 @@ export const catBoxesGame: MiniGame = {
       const r = tapBox(s, i);
       s = r.state;
       for (const ev of r.events) {
+        if (ev.type === 'miss') play('thud');
         if (ev.type !== 'hit') continue;
         const { cx, top } = boxAt(i);
         const good = ev.points > 0;
@@ -141,6 +142,7 @@ export const catBoxesGame: MiniGame = {
     await runLoop(env.signal, (dt) => {
       const r = stepBoxes(s, dt, Math.random);
       s = r.state;
+      if (r.events.some((ev) => ev.type === 'pop' && ev.kind !== 'cucumber')) play('peek');
       flash = Math.max(0, flash - dt);
       drawRoom();
       drawFronts();

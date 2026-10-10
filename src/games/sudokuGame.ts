@@ -1,6 +1,7 @@
 import '../styles/sudoku.css';
 import { confetti } from '../ui/confetti';
 import { h, icon } from '../ui/dom';
+import { play } from '../ui/sound';
 import {
   DIFFICULTIES,
   DIFFICULTY_LABEL,
@@ -227,25 +228,36 @@ function playBoard(env: GameEnv, start: SudokuSave): Promise<number> {
     // ── Akcje ──
     function select(i: number): void {
       if (locked()) return;
+      if (i !== selected) play('tick');
       selected = i;
       render();
     }
 
     function input(v: number): void {
       if (locked() || selected < 0) return;
-      if (pencil) commit(toggleNote(board, selected, v));
-      else commit(placeDigit(board, selected, v));
+      if (pencil) {
+        const next = toggleNote(board, selected, v);
+        if (next !== board) play('tick');
+        commit(next);
+        return;
+      }
+      const next = placeDigit(board, selected, v);
+      if (next !== board) play(digitSound(next.cells, selected));
+      commit(next);
     }
 
     function erase(): void {
       if (locked() || selected < 0) return;
-      commit(eraseCell(board, selected));
+      const next = eraseCell(board, selected);
+      if (next !== board) play('erase');
+      commit(next);
     }
 
     function undo(): void {
       if (locked()) return;
       const prev = history.pop();
       if (!prev) return;
+      play('tick');
       board = prev;
       writeSave(snapshot());
       render();
@@ -296,6 +308,7 @@ function playBoard(env: GameEnv, start: SudokuSave): Promise<number> {
       hud();
       grid.classList.add('won');
       confetti(env.body);
+      play('sparkle');
       finishTimer = window.setTimeout(() => resolve(DIFFICULTY_SCORE[difficulty]), 1600);
     }
 
@@ -335,6 +348,22 @@ function playBoard(env: GameEnv, start: SudokuSave): Promise<number> {
     hud();
     render();
   });
+}
+
+/**
+ * Dźwięk wpisania w pole `i`: wyczyszczone pole — gumka, powtórka w wierszu/kolumnie/bloku — „nie”,
+ * zamknięty wiersz, kolumna albo blok (pełny, bez powtórzeń) — dzwoneczek, inaczej zwykłe wpisanie.
+ */
+function digitSound(cells: readonly number[], i: number): 'erase' | 'nope' | 'line' | 'place' {
+  if (cells[i] === 0) return 'erase';
+  const bad = conflicts([...cells]);
+  if (bad.has(i)) return 'nope';
+  const groups = [(j: number) => rowOf(j) === rowOf(i), (j: number) => colOf(j) === colOf(i), (j: number) => boxOf(j) === boxOf(i)];
+  const closed = groups.some((inGroup) => {
+    for (let j = 0; j < 81; j++) if (inGroup(j) && (cells[j] === 0 || bad.has(j))) return false;
+    return true;
+  });
+  return closed ? 'line' : 'place';
 }
 
 export const sudokuGame: MiniGame = {

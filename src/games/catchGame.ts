@@ -57,7 +57,8 @@ export const catchGame: MiniGame = {
         flash = 300;
         play('bad');
       }
-      if (events.some((e) => e.type === 'caught')) play('catch');
+      if (events.some((e) => e.type === 'caught' && e.kind === 'kitkat')) play('sparkle');
+      else if (events.some((e) => e.type === 'caught')) play('catch');
       flash = Math.max(0, flash - dt);
       if (s.moving !== 0) walkT += dt;
       draw();

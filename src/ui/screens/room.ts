@@ -13,6 +13,7 @@ import { GABI_BED, findItem, itemById, itemFrames, type Interaction } from '../.
 import { isDefaultOutfit } from '../../wardrobe/outfit';
 import { cookDish, interactionSteps, rewardInteraction, toggleLamp, type GabiPose, type InteractionLine } from '../../home/interactionPlan';
 import { ROOMS, hitItem, itemBox } from '../../home/layout';
+import { findLook } from '../../home/looks';
 import { shouldNagPlants, water } from '../../home/plants';
 import { ACTIVITIES, ACTIVITY_IDS, type ActivityId } from '../../pet/activities';
 import { animationName, createBrain, pickEmote, stepBrain, triggerBrain, wakeBrain, type Brain } from '../../pet/brain';
@@ -39,7 +40,7 @@ import { approachX, entryWalk, findBed, itemAnchor, itemFrameAnchor, neighborRoo
 import { needBar } from '../needBar';
 import { clampRoomX, createPetDrag } from '../petDrag';
 import { createPixelStage, deviceRect, drawSprite } from '../pixelStage';
-import { play } from '../sound';
+import { play, step, type Sfx, type StepSurface } from '../sound';
 import { PHASE_ICON, clockNow, gameClock } from '../../home/clock';
 import { PHASE_NAMES, dayPhase, type DayPhase } from '../../home/daytime';
 
@@ -158,6 +159,16 @@ function drawSteam(fx: CanvasRenderingContext2D, b: { x: number; y: number; w: n
     fx.restore();
   }
 }
+
+/** Dźwięki klatek póz interakcji (gra raz, gdy klatka się pojawia — przy pętli dwóch klatek co obrót). */
+const POSE_SFX: Readonly<Record<string, Sfx>> = {
+  brush_2: 'scrub',
+  comb_2: 'swish',
+  laundry_2: 'cloth',
+  gabi_foam_2: 'splash',
+  gabi_foam_3: 'squeak',
+  gabi_shower_2: 'sing',
+};
 
 /** Woda pod prysznicem: krople spadające w górnych 3/4 kabiny. */
 function drawShowerRain(fx: CanvasRenderingContext2D, b: { x: number; y: number; w: number; h: number }, t: number): void {
@@ -368,6 +379,9 @@ export function roomScreen(app: App): Screen {
   let brain: Brain = createBrain(performance.now());
   let lastAnim = '';
   let animStart = 0;
+  /** Ostatnia klatka chodu (krok przy postawieniu stopy) i pozy interakcji (dźwięk raz na pojawienie się klatki). */
+  let lastWalkFrame = '';
+  let lastPoseFrame = '';
   let squashUntil = 0;
   let jumpStart = -1;
   let speechTimer = 0;
@@ -659,6 +673,7 @@ export function roomScreen(app: App): Screen {
       : null;
     if (!it || !kind || !steps) return;
     brain = { ...brain, action: 'idle', targetX: brain.x, facing: it.x < brain.x ? 'left' : 'right' };
+    if (kind === 'lamp') play('click');
     if (kind === 'lamp') store.update((s) => {
       const r = toggleLamp(s, viewRoom, it.uid);
       return r.ok ? r.state : s;
@@ -719,8 +734,10 @@ export function roomScreen(app: App): Screen {
     const st = interaction.step(t);
     if (st.entered?.line) say(interactionLine(st.entered.line), Math.min(3200, Math.max(1800, st.entered.ms)));
     if (st.entered?.effect === 'hearts') addHearts(5);
-    if (st.entered?.effect === 'water') play('water');
-    if (st.entered?.effect === 'steam') play('cook');
+    const kind = interaction.current?.kind;
+    if (st.entered?.effect === 'water') play(kind === 'toilet' ? 'flush' : 'water');
+    if (st.entered?.item === 'flush') play('flush');
+    if (st.entered?.effect === 'steam') play(kind === 'brew' ? 'brew' : 'cook');
     if (st.entered?.effect === 'rain' || st.entered?.effect === 'spin') play('water');
     if (st.entered?.effect === 'bubbles') play('pop');
     if (st.finished) finishInteraction(st.finished, t);
@@ -855,6 +872,7 @@ export function roomScreen(app: App): Screen {
       if (emotion === 'happy') jump(now);
       else brain = triggerBrain(brain, 'scared', now);
       say(pick(emotion === 'scared' ? content.lines.scared : content.lines.landHappy), 2400);
+      play('land');
     },
   });
 
@@ -954,6 +972,7 @@ export function roomScreen(app: App): Screen {
     }
     const pose = iv.step.gabi;
     if (pose.kind === 'hidden') return null;
+    poseSound(pose.kind === 'frames' ? poseFrame(pose, iv.inStepMs) : loopFrame(pose.busts, pose.fps, iv.inStepMs));
     const at = posePlace(pose, iv);
     return {
       orderY: at.orderY,
@@ -975,6 +994,27 @@ export function roomScreen(app: App): Screen {
         }
       },
     };
+  }
+
+  /** Dźwięk klatki pozy (szorowanie zębów, chlapanie, kaczuszka…) — raz, gdy klatka się pojawia. */
+  function poseSound(name: string): void {
+    if (name === lastPoseFrame) return;
+    lastPoseFrame = name;
+    const sfx = POSE_SFX[name];
+    if (sfx) play(sfx);
+  }
+
+  /** Podłoga pod stopami Gabi: dywan, na którym stoi, albo wzór podłogi pokoju. */
+  function surfaceAt(x: number): StepSurface {
+    const room = store.get().rooms[viewRoom];
+    const onRug = room.items.some((it) => {
+      if (findItem(it.itemId)?.layer !== 'rug') return false;
+      const b = itemBox(it);
+      return x >= b.x && x <= b.x + b.w && FEET_Y >= b.y && FEET_Y <= b.y + b.h + 2;
+    });
+    if (onRug) return 'soft';
+    const pattern = findLook(room.floor)?.pattern;
+    return pattern === 'tiles' ? 'tile' : pattern === 'carpet' ? 'soft' : 'wood';
   }
 
   /**
@@ -1186,6 +1226,7 @@ export function roomScreen(app: App): Screen {
       gabi = interactionLayer(iv, stage, alpha);
     } else if (act) {
       lastAnim = '';
+      lastPoseFrame = '';
       gabi = {
         // na siedzisku (podniesiona, np. hoker) — kolejność od linii mebla, żeby była przed nim
         orderY: seatOrderY(act.cur.feetY),
@@ -1205,6 +1246,10 @@ export function roomScreen(app: App): Screen {
       const anim = resolveAnimation(ANIMATIONS, name);
       const frameName = frameAt(anim, t - animStart);
       const fig = app.figures.get(frameName);
+      lastPoseFrame = '';
+      // kroki: przy postawieniu stopy (klatki 1 i 3 chodu), brzmienie zależne od podłogi
+      if (name === 'walk' && frameName !== lastWalkFrame && (frameName === 'walk_a1' || frameName === 'walk_a3')) step(surfaceAt(brain.x));
+      lastWalkFrame = name === 'walk' ? frameName : '';
       let x = brain.x;
       let feetY = FEET_Y;
       if (held) ({ x, feetY } = drag.place(fig?.meta));

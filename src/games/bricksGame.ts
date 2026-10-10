@@ -1,5 +1,6 @@
 import '../styles/bricks.css';
 import { h } from '../ui/dom';
+import { play } from '../ui/sound';
 import { makeCanvas, runLoop } from './canvas';
 import {
   BRICKS,
@@ -113,6 +114,7 @@ export const bricksGame: MiniGame = {
       stopAim();
       if (a === null || s.phase !== 'aim' || env.signal.aborted) return;
       fire(s, a);
+      play('whoosh');
       setSpeed(1);
       acc = 0;
     });
@@ -141,16 +143,21 @@ export const bricksGame: MiniGame = {
 
     const handle = (events: BricksEvent[]) => {
       for (const e of events) {
-        if (e.type === 'hit') flash.set(e.brick, 80);
-        else if (e.type === 'break') {
+        if (e.type === 'hit') {
+          flash.set(e.brick, 80);
+          play('blip');
+        } else if (e.type === 'break') {
           flash.delete(e.brick);
           burst(e.brick);
+          play('brick');
         } else if (e.type === 'bonus') {
           const c = bonusCenter(e.bonus);
           floats.push({ x: c.x, y: c.y, life: 0.7 });
+          play('coin');
         } else if (e.type === 'turn') {
           slide = 1;
           setSpeed(1);
+          play('tick');
         }
       }
     };

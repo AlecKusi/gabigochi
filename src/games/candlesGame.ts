@@ -144,7 +144,11 @@ export const candlesGame: MiniGame = {
 
     await runLoop(env.signal, (dt) => {
       clock += dt;
+      const before = s;
       s = stepCandles(s, dt, Math.random);
+      // nowa zapalona świeczka; finał — wielki tort
+      if (s.phase === 'finale' && before.phase === 'main') play('sparkle');
+      else if (s.phase === 'main' && s.lit.some((v, i) => v !== null && before.lit[i] === null)) play('flick');
       drawCake();
       drawPuffs(dt);
       if (s.phase === 'main') {
