@@ -237,3 +237,18 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   panelu (gradient i deszcz) zdjęte nową opcją ekstraktora `bgHsv` (zakres barw tła zalewany od brzegu,
   `bgHsvHole` — zamknięte dziury); w kabinie z kryciem `glass` 0,8 i deszczem na wierzchu.
 - Kwestie: `teeth`, `duck`, `showerSing`. Piana i prysznic są wykluczone z masek szafy (bez ubrania i ozdoby głowy).
+
+## Meble kuchenne z dwóch arkuszy (2026-10-10)
+- `sheet-kitchen2.jpg`, `sheet-kitchen3.jpg` (oryginały 2400×1792, okres 7,5; skale na wpis wg prawdziwych
+  rozmiarów: blaty ~32 px, lodówka 54, wysoka szafka 60), 30 przedmiotów w kategorii „kitchen”.
+- Podłoga: kuchenka gazowa, płyta indukcyjna z piekarnikiem (gotowanie), lodówka z zamrażarką, zmywarka, szafka
+  narożna, szafka ze zlewem, szafka z szufladami, wysoka szafka, stół z krzesłami (kawa przy stole), hoker
+  (siedzisko, `SEAT_LIFT` 9), stolik na kółkach, kredens, wyspa, regał na wino, kosz.
+- Ściana (drobne AGD stawiane na blatach — warstwa ścienna rysuje się pod meblami, więc stoją przy ścianie):
+  mikrofalówka, toster, blender, mikser (gotowanie), ekspres i czajnik (nowa interakcja `brew`: od tyłu, para,
+  potem serduszka; +2 energii), okap, szafka z witryną, półki, stojak na przyprawy, chlebak, noże, ociekacz,
+  ręcznik papierowy, zioła (podlewanie).
+- Nowa interakcja `dishes` (zlew, zmywarka): zmywanie od tyłu z wodą. Cienie pod stołem, hokerem i stolikiem —
+  `shadowHsv` (cień ma odcień 210–240°, metal krzeseł ~180°).
+- Dojście do przedmiotu liczy plan z klatkami stanów przedmiotu (`itemStates`) — do umywalki z arkusza Gabi idzie
+  na środek (popiersie pod umywalką), nie obok.

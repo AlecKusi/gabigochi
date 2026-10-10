@@ -619,12 +619,13 @@ export function roomScreen(app: App): Screen {
       walkTo(approachX(it, brain.x), { kind: 'activity', id: 'music', spot: null });
       return;
     }
-    const plan = interactionSteps(kind, { hasRail: false });
+    const plan = interactionSteps(kind, { hasRail: false, itemStates: Object.keys(itemFrames(it.itemId)) });
     if (!plan) return;
     stopActivity(t);
     cancelErrands();
-    // Poza na/przy meblu (kanapa, stół, TV, okno) — Gabi idzie na środek mebla, inaczej staje obok.
-    const onItem = plan[0].gabi.kind === 'frames' && plan[0].gabi.at !== undefined;
+    // Poza na/przy meblu (kanapa, stół, TV, okno, umywalka) — Gabi idzie na środek mebla, inaczej staje obok.
+    const first = plan[0].gabi;
+    const onItem = (first.kind === 'frames' || first.kind === 'bust') && first.at !== undefined;
     walkTo(onItem ? clampRoomX(it.x) : approachX(it, brain.x), { kind: 'item', uid: it.uid, use: kind });
   }
 

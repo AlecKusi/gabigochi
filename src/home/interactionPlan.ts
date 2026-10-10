@@ -37,7 +37,7 @@ export type InteractionLine =
   | 'water' | 'read' | 'play' | 'cute' | 'calendar' | 'window' | 'clock'
   | 'toilet' | 'shower' | 'showerDone' | 'bath' | 'bathRelax' | 'sink' | 'towel' | 'hairdryer' | 'nap' | 'coffee'
   | 'cake' | 'kitkat' | 'tea' | 'relaxPhone' | 'tv' | 'cat' | 'fridge' | 'cook' | 'catfood'
-  | 'mirror' | 'laundry' | 'scale' | 'teeth' | 'duck' | 'showerSing';
+  | 'mirror' | 'laundry' | 'scale' | 'teeth' | 'duck' | 'showerSing' | 'brew' | 'dishes';
 
 /** Efekty kroku: `rain` — woda pod prysznicem, `bubbles` — piana nad wanną, `spin` — pranie w pralce. */
 export type InteractionEffect = 'water' | 'hearts' | 'screen' | 'steam' | 'rain' | 'bubbles' | 'spin';
@@ -280,6 +280,18 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
         { ms: 2800, item: null, gabi: { kind: 'frames', frames: ['laundry_1', 'laundry_2'], fps: 1.4, face: true } },
         { ms: 3200, item: null, gabi: { kind: 'frames', frames: ['laundry_3'], fps: 1, face: true }, line: 'laundry', effect: 'spin' },
       ];
+    case 'brew':
+      // ekspres albo czajnik (od tyłu): parzy kawę lub herbatę, para; potem zadowolona
+      return [
+        { ms: 2600, item: null, gabi: at(['back_touch', 'back_idle'], 1, 'under'), line: 'brew', effect: 'steam' },
+        { ms: 1500, item: null, gabi: { kind: 'frames', frames: ['expr_love'], fps: 1 }, effect: 'hearts' },
+      ];
+    case 'dishes':
+      // zlew albo zmywarka (od tyłu): zmywa naczynia, leci woda
+      return [
+        { ms: 2800, item: null, gabi: at(['back_touch', 'back_idle'], 2, 'under'), line: 'dishes', effect: 'water' },
+        { ms: 700, item: null, gabi: at(['back_hips'], 1, 'under') },
+      ];
     case 'scale':
       // staje na wadze i komentuje wynik
       return [
@@ -336,7 +348,10 @@ export function interactionReward(kind: Interaction): { mood: number; energy: nu
       return { mood: 2, energy: 0 };
     case 'mirror':
     case 'scale':
+    case 'dishes':
       return { mood: 1, energy: 0 };
+    case 'brew':
+      return { mood: 1, energy: 2 };
     case 'nap':
       return { mood: 1, energy: 0 }; // energia rośnie w trakcie drzemki
     default:

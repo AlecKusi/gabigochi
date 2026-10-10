@@ -114,6 +114,32 @@ describe('katalog przedmiotów', () => {
     expect([...scales][0]).toBeCloseTo(56 / 36, 3);
   });
 
+  it('kuchnia z dwóch arkuszy (2026-10-10): AGD, szafki, stoły i drobiazgi na blat (warstwa ścienna)', () => {
+    const want: Record<string, [string, string]> = {
+      gas_stove: ['floor', 'cook'], induction_hob: ['floor', 'cook'], fridge_silver: ['floor', 'fridge'],
+      microwave: ['wall', 'cook'], dishwasher: ['floor', 'dishes'], corner_cabinet: ['floor', 'none'],
+      kitchen_sink: ['floor', 'dishes'], kitchen_drawers: ['floor', 'none'], glass_wall_cabinet: ['wall', 'none'],
+      tall_pantry: ['floor', 'none'], kitchen_table: ['floor', 'coffee'], kitchen_stool: ['floor', 'none'],
+      range_hood: ['wall', 'none'], spice_rack: ['wall', 'none'], kitchen_cart: ['floor', 'none'],
+      coffee_maker: ['wall', 'brew'], toaster: ['wall', 'cook'], electric_kettle: ['wall', 'brew'],
+      blender: ['wall', 'cook'], stand_mixer: ['wall', 'cook'], kitchen_sideboard: ['floor', 'none'],
+      kitchen_island: ['floor', 'none'], wine_rack: ['floor', 'none'], kitchen_shelves: ['wall', 'none'],
+      breadbox: ['wall', 'none'], kitchen_trash: ['floor', 'none'], knife_block: ['wall', 'none'],
+      dish_drainer: ['wall', 'none'], paper_towel: ['wall', 'none'], potted_herbs: ['wall', 'water'],
+    };
+    for (const [id, [layer, interaction]] of Object.entries(want)) {
+      expect(itemById(id), id).toMatchObject({ category: 'kitchen', layer, interaction });
+    }
+    // drobne AGD mniejsze od głowy Gabi razy dwa, lodówka prawie jak Gabi, blaty ok. połowy jej wzrostu
+    for (const id of ['toaster', 'electric_kettle', 'coffee_maker', 'knife_block']) expect(itemSize(itemById(id)).h, id).toBeLessThan(20);
+    expect(itemSize(itemById('fridge_silver')).h).toBeGreaterThan(50);
+    for (const id of ['gas_stove', 'kitchen_drawers', 'dishwasher']) {
+      const h = itemSize(itemById(id)).h;
+      expect(h, id).toBeGreaterThan(28);
+      expect(h, id).toBeLessThan(38);
+    }
+  });
+
   it('itemFrames: klatki stanów z items.generated.json, poza sklepem', () => {
     expect(itemFrames('toilet')).toEqual({ open: 'toilet_open', flush: 'toilet_flush', gabi: 'toilet_gabi' });
     expect(itemFrames('shower')).toEqual({ drip: 'shower_drip', on: 'shower_on', gabi: 'shower_gabi' });

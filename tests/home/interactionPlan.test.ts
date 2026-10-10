@@ -192,6 +192,14 @@ describe('łazienka z nowych arkuszy (bez klatek z Gabi)', () => {
     // stara umywalka z klatkami — jak dawniej
     expect(interactionSteps('sink', { hasRail: false, itemStates: ['on', 'gabi'] })![1].item).toBe('gabi');
   });
+  it('kuchnia: parzenie kawy (para, energia) i zmywanie (woda) przy przedmiocie, od tyłu', () => {
+    const brew = interactionSteps('brew', plain)!;
+    expect(brew[0]).toMatchObject({ line: 'brew', effect: 'steam', gabi: { at: 'under' } });
+    const dishes = interactionSteps('dishes', plain)!;
+    expect(dishes[0]).toMatchObject({ line: 'dishes', effect: 'water', gabi: { at: 'under' } });
+    expect(interactionReward('brew')).toMatchObject({ energy: 2 });
+    expect(interactionReward('dishes')).toMatchObject({ mood: 1 });
+  });
   it('lustro, pranie, waga: kwestie i nagrody', () => {
     const mirror = interactionSteps('mirror', plain)!;
     expect(mirror.some((s) => s.line === 'mirror')).toBe(true);

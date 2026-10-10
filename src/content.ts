@@ -82,6 +82,8 @@ export const content = {
     teeth: ['Szoruję ząbki!', 'Dwie minuty, nie mniej!', 'Uśmiech jak z reklamy!'],
     duck: ['Kwa, kwa!', 'Moja gumowa kaczuszka!'],
     showerSing: ['La la la!', 'Koncert pod prysznicem!', 'Dan dan danana!'],
+    brew: ['Kawusia się parzy!', 'Pachnie kawą!', 'Herbatka dla mnie!'],
+    dishes: ['Zmywam naczynia!', 'Czyściutkie talerze!', 'Lśni jak nowe!'],
     towel: ['Wycieram rączki.', 'Mięciutki ręcznik!'],
     hairdryer: ['Bzzz… suszę włosy!', 'Fryzura gotowa!'],
     nap: ['Tylko pięć minutek…', 'Zzz… mięciutko…', 'Krótka drzemka!'],

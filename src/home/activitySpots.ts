@@ -18,8 +18,9 @@ export const SEATS: readonly string[] = [
   'chair_wooden', 'chair_upholstered', 'bar_stool', 'pouf_frog', 'office_chair_black', 'chair_gothic',
   // balkon
   'balcony_folding_chair', 'balcony_metal_chair', 'rattan_armchair', 'egg_chair', 'outdoor_pouf',
+  // kuchnia
+  'kitchen_stool',
 ];
-/** O ile (px logiczne) siedzisko jest wyżej niż stołek z klatek szydełkowania (hoker — nogi w powietrzu). */
 /**
  * Gabi w środku przedmiotu (`PoseAt` 'inside'), px logiczne: `dx` — środek wnętrza (niecki) od środka przedmiotu
  * (odbity z przedmiotem), `headDx` — głowa od środka piany w klatkach (klatki się nie odbijają), `lift` — linia
@@ -34,8 +35,9 @@ export const INSIDE_SPOTS: Readonly<Record<string, { dx: number; headDx?: number
   shower_cabin: { dx: 0, lift: 5, glass: 0.8 },
 };
 
+/** O ile (px logiczne) siedzisko jest wyżej niż stołek z klatek szydełkowania (hoker — nogi w powietrzu). */
 export const SEAT_LIFT: Readonly<Record<string, number>> = {
-  bar_stool: 9, hanging_chair: 3, egg_chair: 3,
+  bar_stool: 9, kitchen_stool: 9, hanging_chair: 3, egg_chair: 3,
   // łazienka: toaleta (nowa) wyżej niż stołek, Gabi stoi na wadze
   toilet_white: 4, bath_scale: 5,
 };

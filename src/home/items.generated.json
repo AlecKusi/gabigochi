@@ -2141,6 +2141,306 @@
     "interaction": "none",
     "price": 30
   },
+  "gas_stove": {
+    "w": 32,
+    "h": 42,
+    "scale": 0.77,
+    "name": "Kuchenka gazowa",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "cook",
+    "price": 220
+  },
+  "induction_hob": {
+    "w": 39,
+    "h": 40,
+    "scale": 0.8,
+    "name": "Płyta indukcyjna z piekarnikiem",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "cook",
+    "price": 260
+  },
+  "fridge_silver": {
+    "w": 28,
+    "h": 45,
+    "scale": 1.2,
+    "name": "Lodówka z zamrażarką",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "fridge",
+    "price": 280
+  },
+  "microwave": {
+    "w": 34,
+    "h": 31,
+    "scale": 0.52,
+    "name": "Mikrofalówka",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "cook",
+    "price": 120
+  },
+  "dishwasher": {
+    "w": 34,
+    "h": 41,
+    "scale": 0.78,
+    "name": "Zmywarka",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "dishes",
+    "price": 240
+  },
+  "corner_cabinet": {
+    "w": 43,
+    "h": 35,
+    "scale": 0.88,
+    "name": "Szafka narożna",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 150
+  },
+  "kitchen_sink": {
+    "w": 33,
+    "h": 36,
+    "scale": 0.95,
+    "name": "Szafka ze zlewem",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "dishes",
+    "price": 180
+  },
+  "kitchen_drawers": {
+    "w": 32,
+    "h": 36,
+    "scale": 0.9,
+    "name": "Szafka z szufladami",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 140
+  },
+  "glass_wall_cabinet": {
+    "w": 35,
+    "h": 39,
+    "scale": 0.65,
+    "name": "Szafka wisząca z witryną",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 120
+  },
+  "tall_pantry": {
+    "w": 27,
+    "h": 50,
+    "scale": 1.2,
+    "name": "Wysoka szafka",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 200
+  },
+  "kitchen_table": {
+    "w": 49,
+    "h": 38,
+    "scale": 0.92,
+    "name": "Stół kuchenny z krzesłami",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "coffee",
+    "price": 220
+  },
+  "kitchen_stool": {
+    "w": 21,
+    "h": 37,
+    "scale": 0.84,
+    "name": "Hoker kuchenny",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 70
+  },
+  "range_hood": {
+    "w": 33,
+    "h": 34,
+    "scale": 0.76,
+    "name": "Okap kuchenny",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 130
+  },
+  "spice_rack": {
+    "w": 31,
+    "h": 32,
+    "scale": 0.5,
+    "name": "Stojak na przyprawy",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 50
+  },
+  "kitchen_cart": {
+    "w": 30,
+    "h": 36,
+    "scale": 0.8,
+    "name": "Stolik na kółkach",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 110
+  },
+  "coffee_maker": {
+    "w": 34,
+    "h": 42,
+    "scale": 0.39,
+    "name": "Ekspres do kawy",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "brew",
+    "price": 150
+  },
+  "toaster": {
+    "w": 31,
+    "h": 36,
+    "scale": 0.32,
+    "name": "Toster",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "cook",
+    "price": 60
+  },
+  "electric_kettle": {
+    "w": 27,
+    "h": 32,
+    "scale": 0.36,
+    "name": "Czajnik elektryczny",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "brew",
+    "price": 50
+  },
+  "blender": {
+    "w": 22,
+    "h": 40,
+    "scale": 0.37,
+    "name": "Blender",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "cook",
+    "price": 80
+  },
+  "stand_mixer": {
+    "w": 33,
+    "h": 41,
+    "scale": 0.36,
+    "name": "Mikser stojący",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "cook",
+    "price": 160
+  },
+  "kitchen_sideboard": {
+    "w": 34,
+    "h": 41,
+    "scale": 1.05,
+    "name": "Kredens",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 260
+  },
+  "kitchen_island": {
+    "w": 43,
+    "h": 39,
+    "scale": 0.8,
+    "name": "Wyspa kuchenna",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 280
+  },
+  "wine_rack": {
+    "w": 35,
+    "h": 39,
+    "scale": 0.72,
+    "name": "Regał na wino",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 140
+  },
+  "kitchen_shelves": {
+    "w": 34,
+    "h": 38,
+    "scale": 0.62,
+    "name": "Półki wiszące",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 70
+  },
+  "breadbox": {
+    "w": 41,
+    "h": 31,
+    "scale": 0.44,
+    "name": "Chlebak i pojemniki",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 60
+  },
+  "kitchen_trash": {
+    "w": 24,
+    "h": 36,
+    "scale": 0.5,
+    "name": "Kosz kuchenny",
+    "category": "kitchen",
+    "layer": "floor",
+    "interaction": "none",
+    "price": 40
+  },
+  "knife_block": {
+    "w": 27,
+    "h": 36,
+    "scale": 0.36,
+    "name": "Stojak na noże",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 40
+  },
+  "dish_drainer": {
+    "w": 38,
+    "h": 32,
+    "scale": 0.36,
+    "name": "Ociekacz na naczynia",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 40
+  },
+  "paper_towel": {
+    "w": 18,
+    "h": 33,
+    "scale": 0.41,
+    "name": "Stojak na ręcznik papierowy",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "none",
+    "price": 30
+  },
+  "potted_herbs": {
+    "w": 34,
+    "h": 35,
+    "scale": 0.45,
+    "name": "Zioła w doniczkach",
+    "category": "kitchen",
+    "layer": "wall",
+    "interaction": "water",
+    "price": 60
+  },
   "fridge_retro": {
     "w": 40,
     "h": 56,
