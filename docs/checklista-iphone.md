@@ -1,5 +1,7 @@
 # Gabigochi — sprawdzenie na iPhonie przed wręczeniem
 
+Adres gry: **https://aleckusi.github.io/gabigochi/** (repozytorium: https://github.com/AlecKusi/gabigochi).
+
 1. Otwórz link w Safari → Udostępnij → „Dodaj do ekranu początkowego”. Ikona z twarzą Gabi, nazwa „Gabigochi”.
 2. Uruchom z ikony: pełny ekran, nic nie chowa się pod notchem / Dynamic Island ani paskiem gestów.
 3. Przejdź ekran urodzinowy, nakarm KitKatem (przeciągnij z lodówki), kup coś w sklepie.

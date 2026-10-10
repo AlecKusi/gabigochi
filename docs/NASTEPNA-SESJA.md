@@ -291,3 +291,10 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   urodzinowym), wskazany element pulsuje (`.tip-target`; ołówek dodatkowo złote tło). Postęp w `gabigochi.tipsStep`
   (wyjście z pokoju — wraca do tej samej wskazówki), „Pomiń” kończy; Profil → „Pokaż wskazówki” od nowa.
   Okno urodzinowe czeka, aż karta zniknie.
+
+## Publikacja (2026-10-10)
+- Za zgodą użytkownika: publiczne repozytorium https://github.com/AlecKusi/gabigochi (gałęzie `main`, `etap-1`),
+  GitHub Pages ze źródłem „GitHub Actions”, Actions włączone w repozytorium. Gra: https://aleckusi.github.io/gabigochi/
+  (wdrożenie #1 z `35962d2` — sukces, service worker się rejestruje).
+- Aktualizacja = commit na `main` i wypchnięcie (workflow `Deploy`: testy, build, Pages) — każdą kolejną publikację
+  najpierw potwierdzić z użytkownikiem; wpis w `RELEASES` (patrz `docs/AKTUALIZACJE.md`).
