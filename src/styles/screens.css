@@ -182,6 +182,19 @@ img.px.avatar.crisp { image-rendering: pixelated; image-rendering: crisp-edges; 
 .new-badge { position: absolute; top: 4px; left: 4px; z-index: 1; padding: 2px 5px; font-size: 11px; font-weight: 700; color: #fff; background: #ff5c8a; box-shadow: 0 0 0 2px var(--ink); transform: rotate(-8deg); pointer-events: none; }
 .badge.new { background: #ff5c8a; }
 .has-new::after { content: ''; display: inline-block; width: 7px; height: 7px; margin-left: 6px; vertical-align: 2px; background: #ff5c8a; box-shadow: 0 0 0 1px var(--ink); }
+/* Samouczek: karta u góry pokoju (na ścianie — Gabi i meble zostają widoczne), wskazany element pulsuje */
+.tip-card { position: absolute; left: 6px; right: 6px; top: 6px; z-index: 30; max-width: 340px; margin: 0 auto; padding: 10px 12px; display: grid; gap: 8px; }
+.tip-card.pop { animation: pop-in 280ms cubic-bezier(.2, 1.5, .4, 1); }
+.tip-count { font-size: 12px; color: var(--text-soft); }
+.tip-text { font-size: 15px; line-height: 1.35; }
+.tip-actions { display: flex; justify-content: space-between; gap: 8px; }
+.tip-target { animation: tip-pulse 1.1s ease-in-out infinite; }
+/* ołówek w rogu sceny: pierścień przycina krawędź sceny — dodatkowo złote tło */
+.edit-toggle.tip-target { background: #ffd34d; }
+@keyframes tip-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px var(--ink), 0 0 0 4px #ffd34d; }
+  50% { box-shadow: 0 0 0 2px var(--ink), 0 0 0 9px rgba(255, 211, 77, .35); }
+}
 /* Urodziny: wiek i prezent */
 .birthday-gift { text-align: center; }
 .birthday-gift .gift-age { font-size: 44px; font-weight: 700; line-height: 1; color: #ffd34d; text-shadow: 2px 2px 0 var(--ink); margin: 4px 0; }

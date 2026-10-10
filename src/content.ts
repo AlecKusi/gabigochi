@@ -9,6 +9,15 @@ export const content = {
   /** Okno urodzinowego prezentu (`{wiek}` — ile lat kończy). */
   birthdayGift: 'Dziś kończysz {wiek} lat! Wszystkiego najlepszego — prezent od Gabigochi:',
   wishesTitle: 'Sto lat, Gabi!',
+  /** Samouczek przy pierwszym wejściu do pokoju (po ekranie urodzinowym); `target` — element, który pulsuje. */
+  tips: [
+    { text: 'To Twoja Gabi! Stuknij ją, żeby ją pogłaskać, albo przytrzymaj i przeciągnij — da się ją podnieść.', target: '.stage' },
+    { text: 'Stuknij mebel, a Gabi do niego podejdzie: usiądzie, zrobi kawę, weźmie kąpiel… Strzałki po bokach prowadzą do innych pokoi.', target: '.stage' },
+    { text: 'Gdy zgłodnieje: Karm otwiera lodówkę — stuknij jedzenie albo przeciągnij je prosto do Gabi.', target: '[data-nav="feed"]' },
+    { text: 'W minigrach zdobywasz monety. Za monety kupisz jedzenie i meble w Sklepie, a ubrania w Szafie.', target: '[data-nav="games"]' },
+    { text: 'Ołówek to tryb Urządzaj: przestawiaj meble, stawiaj kupione z magazynu, zmieniaj tapety i podłogi.', target: '.edit-toggle' },
+    { text: 'Wieczorem zgaś Światło, żeby Gabi się wyspała. A w Profilu (stuknij portret u góry) zrób czasem kopię zapisu.', target: '.profile-btn' },
+  ],
   wishes: [
     'Sto lat.. Sto lat.. a jednak 26!',
     'Wszystkiego najlepszego z okazji podatku dochodowego, kolejnej osiemnastki <3',

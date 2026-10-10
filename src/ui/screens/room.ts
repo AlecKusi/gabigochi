@@ -43,6 +43,7 @@ import { needBar } from '../needBar';
 import { clampRoomX, createPetDrag } from '../petDrag';
 import { createPixelStage, deviceRect, drawSprite } from '../pixelStage';
 import { play, step, type Sfx, type StepSurface } from '../sound';
+import { showTips } from '../tips';
 import { PHASE_ICON, clockNow, gameClock } from '../../home/clock';
 import { PHASE_NAMES, dayPhase, type DayPhase } from '../../home/daytime';
 
@@ -318,8 +319,8 @@ export function roomScreen(app: App): Screen {
     ),
   );
 
-  const navBtn = (name: IconName, label: string, onClick: () => void) =>
-    h('button', { class: 'nav-btn', onclick: onClick }, h('span', { class: 'nav-icon' }, icon(name, 3)), h('span', {}, label));
+  const navBtn = (name: IconName, label: string, onClick: () => void, nav?: string) =>
+    h('button', { class: 'nav-btn', 'data-nav': nav, onclick: onClick }, h('span', { class: 'nav-icon' }, icon(name, 3)), h('span', {}, label));
 
   const roomNav = createRoomNav(canvas, {
     canSwipeFrom: (e) => {
@@ -367,8 +368,8 @@ export function roomScreen(app: App): Screen {
     h(
       'nav',
       { class: 'room-nav' },
-      navBtn('apple', 'Karm', () => openFridge(app, el, stage, doFeed)),
-      navBtn('gamepad', 'Graj', () => app.go('games')),
+      navBtn('apple', 'Karm', () => openFridge(app, el, stage, doFeed), 'feed'),
+      navBtn('gamepad', 'Graj', () => app.go('games'), 'games'),
       h('button', { class: 'nav-btn', onclick: toggleLight }, lightIcon, lightLabel),
       navBtn('shopbag', 'Sklep', () => app.go('shop')),
       navBtn('dress', 'Szafa', () => app.go('wardrobe')),
@@ -1389,11 +1390,14 @@ export function roomScreen(app: App): Screen {
     say(pick(content.lines.greeting), 2400);
   }
   raf = requestAnimationFrame(frame);
+  // samouczek przy pierwszym wejściu do pokoju (po ekranie urodzinowym); wyjście z pokoju — wraca w tym samym miejscu
+  const hideTips = s0.seenBirthday ? showTips(el, content.tips) : () => {};
 
   return {
     el,
     destroy() {
       destroyed = true;
+      hideTips();
       cancelAnimationFrame(raf);
       closeSheet?.();
       drag.destroy();

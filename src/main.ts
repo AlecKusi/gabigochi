@@ -145,7 +145,7 @@ async function boot(): Promise<void> {
     const running = app;
     /** Urodziny Gabi: prezent i życzenia — gdy jest już w grze (nie na ekranie powitalnym, nie w minigrze ani w oknie). */
     const birthday = () => {
-      if (!store.get().seenBirthday || running.root.querySelector('.game-shell, .overlay')) return;
+      if (!store.get().seenBirthday || running.root.querySelector('.game-shell, .overlay, .tip-card')) return;
       const r = claimBirthdayGift(store.get(), Date.now());
       if (!r.granted) return;
       store.update(() => r.state);

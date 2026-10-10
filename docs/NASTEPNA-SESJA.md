@@ -285,3 +285,9 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   (`CONFIG.coins.birthdayGift`, pole zapisu `lastBirthdayGift` — rok), okno z życzeniami, fanfara i konfetti
   (`src/ui/birthdayGift.ts`, sprawdzane przy starcie i co 10 s, gdy nie ma ekranu powitalnego, minigry ani okna);
   przez cały dzień połowa luźnych tekstów to `lines.birthdayToday`.
+
+## Samouczek (2026-10-10)
+- `content.tips` (6 wskazówek) + `src/ui/tips.ts`: karta na górze sceny przy pierwszym wejściu do pokoju (po ekranie
+  urodzinowym), wskazany element pulsuje (`.tip-target`; ołówek dodatkowo złote tło). Postęp w `gabigochi.tipsStep`
+  (wyjście z pokoju — wraca do tej samej wskazówki), „Pomiń” kończy; Profil → „Pokaż wskazówki” od nowa.
+  Okno urodzinowe czeka, aż karta zniknie.
