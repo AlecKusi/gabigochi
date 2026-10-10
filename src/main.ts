@@ -7,6 +7,7 @@ import './styles/screens.css';
 import './styles/games.css';
 import { registerSW } from 'virtual:pwa-register';
 import { createApp, type App, type ScreenFactory, type ScreenName } from './app';
+import { markSeen, readSeenVersion, unseenReleases } from './core/changelog';
 import { CONFIG } from './core/config';
 import { claimDailyBonus } from './core/economy';
 import { applyElapsed } from './core/needs';
@@ -19,6 +20,7 @@ import { FRAMES, PORTRAIT_MASKS, loadSprites, maskUrl } from './sprites/loader';
 import { h } from './ui/dom';
 import { mountInstall } from './ui/install';
 import { unlockAudio } from './ui/sound';
+import { showWhatsNew } from './ui/whatsNew';
 import { birthdayScreen } from './ui/screens/birthday';
 import { gamesScreen } from './ui/screens/games';
 import { profileScreen } from './ui/screens/profile';
@@ -127,6 +129,10 @@ async function boot(): Promise<void> {
     }
     await app.go(store.get().seenBirthday ? 'room' : 'birthday');
     if (pendingUpdate) app.toast('Jest nowa wersja! Uruchom aplikację ponownie.');
+    // po aktualizacji: co nowego od wersji, którą gracz ostatnio widział (pierwsze uruchomienie — nic)
+    const news = unseenReleases(readSeenVersion(localStorage));
+    markSeen(localStorage);
+    if (news.length > 0 && store.get().seenBirthday) showWhatsNew(app.root, news);
 
     if (loaded.recovered) app.toast('Nie udało się wczytać zapisu, zaczynamy od nowa.');
     else if (loaded.repaired) app.toast('Część mieszkania nie wczytała się — wróciła do ustawień początkowych.');

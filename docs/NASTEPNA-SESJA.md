@@ -251,3 +251,13 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   `shadowHsv` (cień ma odcień 210–240°, metal krzeseł ~180°).
 - Dojście do przedmiotu liczy plan z klatkami stanów przedmiotu (`itemStates`) — do umywalki z arkusza Gabi idzie
   na środek (popiersie pod umywalką), nie obok.
+
+## Aktualizacje i kopia zapisu (2026-10-10)
+- Instrukcja wydawania wersji i zasady zgodności zapisów: `docs/AKTUALIZACJE.md`.
+- `src/core/changelog.ts` (`RELEASES`, `APP_VERSION`) + okno „Co nowego?” po aktualizacji (`src/ui/whatsNew.ts`,
+  klucz `gabigochi.seenVersion`; pierwsze uruchomienie — bez okna).
+- Profil → Kopia zapisu (`src/ui/saveBackup.ts`, `src/core/saveTransfer.ts`): plik `.json` przez menu
+  udostępniania (telefon) albo pobranie (komputer); wczytanie przez te same migracje co zapis, obecny zapis do
+  `gabigochi.save_backup`, kopia z nowszej wersji odrzucona.
+- `tests/core/saveCompat.test.ts` + zamrożony `tests/fixtures/save-v2-2026-10-10.json` (wszystkie przedmioty,
+  ubrania, wyglądy, jedzenie, rekordy) — każda przyszła wersja musi go wczytać bez strat.

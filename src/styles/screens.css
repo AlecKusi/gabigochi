@@ -176,6 +176,12 @@ img.px.avatar.crisp { image-rendering: pixelated; image-rendering: crisp-edges; 
 .records h2 { font-size: 18px; margin-bottom: 8px; }
 .records ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .records li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }
+.backup-card { padding: 14px 16px; display: grid; gap: 8px; }
+.backup-card h2 { font-size: 18px; }
+.backup-card p { font-size: 14px; line-height: 1.35; color: var(--text-soft); }
+.backup-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.backup-actions .px-btn { flex: 1 1 130px; }
+.backup-file { display: none; }
 
 /* Urodziny */
 .birthday { overflow-y: auto; align-items: center; text-align: center; gap: 12px; padding: calc(var(--safe-top) + 16px) 16px calc(var(--safe-bottom) + 24px); color: var(--text-light); }

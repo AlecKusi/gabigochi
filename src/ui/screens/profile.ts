@@ -7,6 +7,7 @@ import { screenHeader } from '../screenHeader';
 import { CONFIG } from '../../core/config';
 import { itemUrl } from '../home/itemSprites';
 import { needBar } from '../needBar';
+import { backupCard } from '../saveBackup';
 import { play, setSoundEnabled, soundEnabled } from '../sound';
 
 export function profileScreen(app: App): Screen {
@@ -33,6 +34,7 @@ export function profileScreen(app: App): Screen {
       h('section', { class: 'records px-box' }, h('h2', {}, 'Rekordy'), h('ul', {}, ...rows)),
       soundToggle(),
       h('button', { class: 'px-btn', onclick: () => app.go('birthday', { replay: true }) }, 'Pokaż życzenia'),
+      backupCard(app),
     ),
   );
   return { el, destroy: header.destroy };
