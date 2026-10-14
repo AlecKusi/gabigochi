@@ -5,3 +5,6 @@ tools/.venv/
 tools/out/
 __pycache__/
 .claude/worktrees/
+
+# makiety z sesji projektowania (brainstorming)
+.superpowers/
