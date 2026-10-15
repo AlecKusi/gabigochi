@@ -15,6 +15,14 @@ export interface Release {
  * To numer wydania, a nie `SAVE_VERSION` — format zapisu zmienia się rzadko i ma własne migracje.
  */
 export const RELEASES: readonly Release[] = [
+  {
+    version: 2,
+    date: '2026-10-15',
+    changes: [
+      'Nowa szyfrokrzyżówka jak z gazety: 40 plansz z ukrytymi hasłami o Gabi.',
+      'Przycisk „Sprawdź” zaznacza błędne litery na czerwono.',
+    ],
+  },
   { version: 1, date: '2026-10-10', changes: ['Pierwsza wersja Gabigochi. Wszystkiego najlepszego!'] },
 ];
 

@@ -32,7 +32,7 @@ Propozycje (najprostsze pierwsze):
 3. ~~**Kot w pudełkach**~~ (zrobione) — Somerka wyskakuje z pudełek, stuknij ją, zanim się schowa (30 s, klatki kota już są).
 4. ~~**Ukulele Simon**~~ (zrobione) — Gabi gra coraz dłuższą melodię na 4 strunach, powtórz ją (dźwięki 8-bit z `sound.ts`).
 5. **Zastrzyk w punkt** (pielęgniarka) — wskaźnik biega po pasku, zatrzymaj go w zielonym polu; pole się zwęża.
-6. **Wisielec** — hasła z listy krzyżówki (`cryptoWords.ts`), za każdy błąd kot zjada kawałek KitKata.
+6. **Wisielec** — hasła z `tools/crypto/hasla.txt` (te same co w szyfrokrzyżówce), za każdy błąd kot zjada kawałek KitKata.
 7. ~~**Trzy kubki**~~ (zrobione) — kot chowa się pod kubkiem, kubki się tasują, zgadnij gdzie jest (coraz szybciej).
 8. ~~**Skaczący kotek**~~ (zrobione) — bieg bez końca: stuknięcie = skok nad doniczkami i ogórkami (jak dinozaur z Chrome).
 9. **Wąż z KitKatami** — klasyczny wąż na kratce, sterowanie przesunięciem palca.
@@ -71,8 +71,8 @@ Nauka przy biurku, toaleta, prysznic (z turbanem), wanna (turban + suszarka), um
 - Gdy Gabi stoi na małym siedzisku (pufa), stuknięcie w siedzisko trafia w Gabi (głaskanie) — szydełko wtedy z panelu albo po odejściu Gabi.
 
 ## Minigry etapu 2 — zrobione (2026-10-07)
-Bricks n Balls, Sudoku (3 poziomy, notatki, zapis w toku), Szyfrokrzyżówka (polskie litery, podpowiedzi, zapis w toku) — na liście minigier, sprawdzone w przeglądarce.
-- Słowa osobiste do krzyżówek: `src/games/cryptoWords.ts` (`PERSONAL_WORDS`) — do podmiany przez użytkownika; słowa > 11 liter (np. PIELĘGNIARKA) się nie mieszczą.
+Bricks n Balls, Sudoku (3 poziomy, notatki, zapis w toku), Szyfrokrzyżówka (od 2026-10-15 plansze jak z gazety — opis niżej) — na liście minigier, sprawdzone w przeglądarce.
+- Słowa osobiste do szyfrokrzyżówki: `tools/crypto/osobiste.txt` (do 9 liter), potem ponowne wygenerowanie plansz.
 
 ## Uwagi techniczne
 - Python do narzędzi: `/c/gvenv/Scripts/python` (venv w repo nie działa przez długie ścieżki).
@@ -306,3 +306,12 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   (wdrożenie #1 z `35962d2` — sukces, service worker się rejestruje).
 - Aktualizacja = commit na `main` i wypchnięcie (workflow `Deploy`: testy, build, Pages) — każdą kolejną publikację
   najpierw potwierdzić z użytkownikiem; wpis w `RELEASES` (patrz `docs/AKTUALIZACJE.md`).
+
+## Szyfrokrzyżówka jak z gazety (2026-10-15)
+- Jedna plansza 9×9 z zaczernionymi polami, tabela liter, hasło, „Sprawdź”, 3 podpowiedzi; 40 gotowych plansz
+  w `src/games/cryptoPuzzles.json` (`PUZZLES`), kolejność i rozwiązane w `gabigochi.game.cryptoSolved`,
+  trwająca plansza w `gabigochi.game.crypto` (format 2).
+- Generator: `tools/make_crypto.py` (`--selftest`, `--count 40 --seed 1`, ok. 5 min), słowniki w `tools/crypto/`,
+  podgląd `tools/out/crypto_preview.png`. Nowa paczka plansz = dopisanie haseł/słów, nowe `--seed`, test zestawu.
+- Ze słownika `slowa.txt` usunięte słowa nie-polskie, rzadkie i ponure (np. ION, ZDRADA, WOJNA) — przy kolejnej
+  paczce obejrzeć listę słów z podglądu tak samo.

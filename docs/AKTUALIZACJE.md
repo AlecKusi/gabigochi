@@ -33,6 +33,8 @@ i „Wczytaj kopię”). Przed wczytaniem kopii obecny zapis trafia do `gabigoch
 - **Zmiana kształtu zapisu** (np. inny typ pola): podnieś `SAVE_VERSION`, dopisz krok w `migrate()` (stara
   wersja → nowa) i test. Starsza gra nie nadpisze zapisu z nowszej (`NewerSaveError`).
 - Nowa minigra: id w `GAMES` i rekord w `records` — rekordy z nieznanymi id po prostu zostają.
+- Plansze szyfrokrzyżówki: istniejących `id` (`p01`…) nie zmieniaj — trwająca plansza i lista rozwiązanych
+  odwołują się do nich. Nowe plansze dopisuj z nowymi `id`.
 - **Nie zmieniaj** `tests/fixtures/save-v2-2026-10-10.json`. Przy dużej zmianie formatu dodaj nowy plik obok
   (np. `save-v3-…json`) i osobny test. Stary ma się dalej wczytywać.
 - Nowe pokoje dopisuj do `LATER_ROOMS`, a nowe wyglądy domyślne do `LATER_DEFAULT_LOOKS`.
