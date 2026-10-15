@@ -202,6 +202,37 @@ describe('plansza gazetowa: zapis trwającej planszy', () => {
     expect(readPuzzleSave(JSON.stringify({ ...raw, revealed, guesses, hints: raw.hints + 1 }), ALL)).not.toBeNull();
   });
 
+  it('odkryta na start zostaje odkryta (przy zgodnej liczbie odkrytych); podpowiedzi poza zakresem → null', () => {
+    const base = puzzleState(P1);
+    const raw = JSON.parse(writePuzzleSave(base));
+    const closed = base.revealed.map((r, k) => (r ? -1 : k)).filter((k) => k >= 0);
+    /** Zapis z dodatkowo odkrytymi liczbami (z właściwymi literami) i ewentualnie ukrytą jedną z odkrytych na start. */
+    const edited = (extra: number[], hide?: number, hints = raw.hints) => {
+      const revealed = [...raw.revealed];
+      const guesses = [...raw.guesses];
+      for (const k of extra) {
+        revealed[k] = true;
+        guesses[k] = base.key[k];
+      }
+      if (hide !== undefined) {
+        revealed[hide] = false;
+        guesses[hide] = null;
+      }
+      return readPuzzleSave(JSON.stringify({ ...raw, revealed, guesses, hints }), ALL);
+    };
+
+    // (a) jedna odkryta na start ukryta, inna odkryta w jej miejsce, hints bez zmian — liczba odkrytych się zgadza
+    const hidden = base.revealed.indexOf(true);
+    expect(edited([closed[0]])).toBeNull(); // sama zmiana liczby odkrytych jest odrzucana
+    expect(edited([closed[0]], hidden)).toBeNull();
+    expect(edited([closed[0]], undefined, 1)).not.toBeNull(); // dodatkowe odkrycie jest poprawne, gdy hints się zgadzają
+    // (b) MAX_HINTS + 1 dodatkowych odkryć i hints = MAX_HINTS + 1 — liczba odkrytych się zgadza, ale to za dużo podpowiedzi
+    const extra = closed.slice(0, MAX_HINTS + 1);
+    expect(base.key.length).toBeGreaterThan(START_REVEALED + MAX_HINTS + 1); // plansza nie jest przez to rozwiązana
+    expect(edited(closed.slice(0, MAX_HINTS), undefined, MAX_HINTS)).not.toBeNull(); // granica: dokładnie MAX_HINTS jest w porządku
+    expect(edited(extra, undefined, MAX_HINTS + 1)).toBeNull();
+  });
+
   it('odrzuca zapis z tą samą literą przy dwóch liczbach, błędną literą w odkrytej, złą długością i literą spoza alfabetu', () => {
     const raw = JSON.parse(writePuzzleSave(played()));
     const typed = raw.guesses.findIndex((g: string | null, k: number) => g !== null && !raw.revealed[k]);
