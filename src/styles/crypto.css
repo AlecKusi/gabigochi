@@ -1,4 +1,4 @@
-/* Szyfrokrzyżówka */
+/* Szyfrokrzyżówka jak z gazety: tabela liter, siatka 9×9 z zaczernionymi polami, hasło, klawiatura */
 .crypto {
   align-self: stretch;
   width: 100%;
@@ -14,100 +14,78 @@
   gap: 6px;
 }
 
+/* tabela liter: liczby 1..N w dwóch rzędach, pod każdą litera */
+.cx-keytab { display: grid; grid-template-columns: repeat(var(--kcols), minmax(0, 1fr)); gap: 1px; width: 100%; flex: none; background: var(--ink); border: 1px solid var(--ink); }
+.cx-k { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 2px 0 1px; border: 0; font: inherit; color: var(--text); background: var(--panel); cursor: pointer; }
+.cx-k-n { font-size: 10px; line-height: 1; color: var(--text-soft); }
+.cx-k-l { font-size: 15px; line-height: 17px; min-height: 17px; font-weight: 700; color: var(--accent-2); }
+.cx-k.given .cx-k-l { color: var(--text); }
+.cx-k.same { background: var(--coin); }
+.cx-k.bad .cx-k-l { color: var(--danger); }
+
 .crypto-grid {
-  /* bok pola: mieści planszę w szerokości i zostawia ~330 px na klawiaturę i tabelę */
-  --gap: 2px;
+  /* bok pola: plansza mieści się w szerokości i zostawia ~340 px na tabelę, hasło, klawiaturę i przyciski */
+  --gap: 1px;
   --cell: max(22px, min(
-    42px,
+    40px,
     calc((100cqw - (var(--cols) - 1) * var(--gap) - 6px) / var(--cols)),
-    calc((100cqh - 330px - (var(--rows) - 1) * var(--gap)) / var(--rows))
+    calc((100cqh - 340px - (var(--rows) - 1) * var(--gap)) / var(--rows))
   ));
   display: grid;
   grid-template-columns: repeat(var(--cols), var(--cell));
   grid-auto-rows: var(--cell);
   gap: var(--gap);
   flex: none;
-  padding: 3px;
+  padding: 2px;
+  background: var(--ink);
 }
-.cx-block { background: transparent; }
-.cx-cell {
-  position: relative;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  font: inherit;
-  color: var(--text);
-  background: var(--panel);
-  box-shadow: 0 0 0 2px var(--ink);
-  cursor: pointer;
-}
-.cx-num {
-  position: absolute;
-  left: 2px;
-  top: 1px;
-  font-size: max(8px, calc(var(--cell) * .28));
-  line-height: 1;
-  color: var(--text-soft);
-}
-.cx-letter { font-size: calc(var(--cell) * .56); line-height: 1; margin-top: calc(var(--cell) * .14); font-weight: 700; }
-.cx-cell.given { background: var(--panel-2); }
-.cx-cell.given .cx-letter { color: var(--accent-2); }
+.cx-block { background: var(--energy); }
+.cx-cell { position: relative; display: grid; place-items: center; padding: 0; border: 0; font: inherit; color: var(--accent-2); background: var(--panel); cursor: pointer; transition: background-color 120ms; }
+.cx-num { position: absolute; left: 2px; top: 1px; font-size: max(8px, calc(var(--cell) * .26)); line-height: 1; color: var(--text-soft); }
+.cx-letter { font-size: calc(var(--cell) * .54); line-height: 1; margin-top: calc(var(--cell) * .14); font-weight: 700; }
+.cx-cell.given { color: var(--text); }
 .cx-cell.same { background: #fff1b8; }
-.cx-cell.sel { background: var(--coin); box-shadow: 0 0 0 2px var(--ink), inset 0 0 0 2px var(--accent-2); }
-.crypto.solved .cx-cell { background: #e3ffd9; animation: cx-pop 420ms steps(4); }
-@keyframes cx-pop { 50% { transform: scale(1.12); } }
+.cx-cell.sel { background: var(--coin); }
+.cx-cell.bad { color: var(--danger); }
+
+/* animacje: litera wskakuje, błąd się trzęsie, podpowiedź błyska złotem, „Sprawdź” bez błędów — zielony błysk, wygrana — fala */
+.cx-cell.pop .cx-letter { animation: cx-pop-in 260ms cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes cx-pop-in { from { transform: scale(.3); } }
+.cx-cell.shake { animation: shake 320ms steps(8); }
+.cx-cell.gold { animation: cx-gold 700ms ease-out; }
+@keyframes cx-gold { 30% { background: var(--coin); } }
+.crypto-grid.ok-flash { animation: cx-ok 650ms ease-out; }
+@keyframes cx-ok { 40% { box-shadow: 0 0 0 6px #6fdc8c; } }
+.crypto.solved .cx-cell { background: #e3ffd9; animation: cx-wave 500ms steps(5) calc(var(--d) * 45ms) backwards; }
+@keyframes cx-wave { 50% { transform: scale(1.15); background: var(--coin); } }
+
+/* hasło */
+.cx-solution { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; flex: none; }
+.cx-sol-box { width: 26px; display: flex; flex-direction: column; align-items: center; background: #ffe58a; color: var(--text); box-shadow: 0 0 0 1px var(--ink); }
+.cx-sol-n { font-size: 9px; line-height: 1; padding-top: 1px; color: var(--text-soft); }
+.cx-sol-l { font-size: 15px; line-height: 18px; min-height: 18px; font-weight: 700; }
+.cx-sol-gap { width: 10px; }
+.cx-sol-box.flip { animation: cx-flip 380ms ease-out; }
+@keyframes cx-flip { from { transform: rotateY(90deg); } }
+.cx-big { margin: 0; font-size: 26px; font-weight: 700; color: var(--coin); text-shadow: 2px 2px 0 var(--ink); text-align: center; }
+.cx-big:empty { display: none; }
+.crypto.solved .cx-big { animation: pop-in 420ms cubic-bezier(.2, 1.5, .4, 1); }
 
 .crypto-status { margin: 0; min-height: 18px; font-size: 14px; color: var(--text-light); text-align: center; }
 
-.crypto-map { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 100%; flex: none; }
-.cx-chip {
-  display: inline-flex;
-  gap: 2px;
-  min-width: 36px;
-  height: 22px;
-  padding: 0 4px;
-  border: 0;
-  font: inherit;
-  font-size: 13px;
-  color: var(--text-soft);
-  background: var(--bg-2);
-  box-shadow: 0 0 0 2px var(--ink);
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-}
-.cx-chip-n { font-size: 11px; color: var(--text-light); opacity: .75; }
-.cx-chip-n::after { content: '→'; margin-left: 1px; }
-.cx-chip-l { color: var(--text-light); min-width: 10px; }
-.cx-chip.known { background: var(--panel-2); }
-.cx-chip.known .cx-chip-n { color: var(--text-soft); }
-.cx-chip.known .cx-chip-l { color: var(--text); font-weight: 700; }
-.cx-chip.given .cx-chip-l { color: var(--accent-2); }
-.cx-chip.same { background: var(--coin); }
-.cx-chip.same .cx-chip-n, .cx-chip.same .cx-chip-l { color: var(--text); }
-
+/* klawiatura: 3 rzędy po 11 (32 litery + gumka) */
 .crypto-kb { display: grid; gap: 4px; width: 100%; flex: none; padding: 0 2px; }
-.cx-kb-row { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; }
-.cx-key {
-  height: 38px;
-  padding: 0;
-  border: 0;
-  font: inherit;
-  font-size: 18px;
-  color: var(--text);
-  background: var(--panel);
-  box-shadow: 0 0 0 2px var(--ink), inset 0 -3px 0 0 var(--panel-2);
-  cursor: pointer;
-}
+.cx-kb-row { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 3px; }
+.cx-key { height: 36px; padding: 0; border: 0; font: inherit; font-size: 16px; color: var(--text); background: var(--panel); box-shadow: 0 0 0 2px var(--ink), inset 0 -3px 0 0 var(--panel-2); cursor: pointer; }
 .cx-key:active { transform: translateY(2px); }
 .cx-key.used { background: var(--panel-2); color: var(--text-soft); }
 .cx-key.given { opacity: .4; }
 .cx-key.current { background: var(--coin); color: var(--text); }
+.cx-key.cx-erase { background: var(--bg-2); color: var(--text-light); }
 .cx-key.shake { animation: shake 320ms steps(8); }
 
-.crypto-actions { display: flex; justify-content: center; gap: 10px; flex: none; }
-.crypto-actions .px-btn { padding: 9px 14px; font-size: 15px; }
+.crypto-actions { display: flex; justify-content: center; gap: 10px; flex: none; width: 100%; }
+.crypto-actions .px-btn { flex: 1; padding: 9px 10px; font-size: 15px; }
 
 .crypto-start { align-self: center; }
 .crypto-start h2 { font-size: 22px; margin: 0 0 8px; }
