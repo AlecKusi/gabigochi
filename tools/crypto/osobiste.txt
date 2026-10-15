@@ -1,4 +1,4 @@
-# Słowa o Gabi — każda plansza zaczyna się od jednego z nich (najwyżej 8 liter trafia jako pierwsze słowo).
+# Słowa o Gabi — każda plansza zaczyna się od jednego z nich (słowa do 8 liter mogą trafić jako pierwsze słowo).
 GABI
 GABRYSIA
 HACHI
