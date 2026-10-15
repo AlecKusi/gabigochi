@@ -32,6 +32,8 @@ export interface Crossword {
 }
 
 export interface CryptoState {
+  /** Plansza z zestawu (`Puzzle.id`); '' — plansza ze starego, losowego układania. */
+  id: string;
   rows: number;
   cols: number;
   /** Liczba szyfru 1..N albo null (pole puste), wierszami. */
@@ -271,6 +273,7 @@ export function createPuzzle(cw: Crossword, rng: Rng): CryptoState {
   const key = cipher(cw, rng);
   const shown = new Set(revealStart(cw, key, rng));
   return {
+    id: '',
     rows: cw.rows,
     cols: cw.cols,
     cells: cw.cells.map((ch) => (ch ? key.indexOf(ch) + 1 : null)),
@@ -340,6 +343,163 @@ export function cryptoReward(score: number): Reward {
 }
 
 // ---------------------------------------------------------------------------
+// Plansze gazetowe (gotowy zestaw z tools/make_crypto.py)
+
+export const ROWS = 9;
+export const COLS = 9;
+/** Ile liter jest odkrytych na start. */
+export const START_REVEALED = 4;
+/** Lista rozwiązanych plansz i numer obrotu zestawu (osobno od trwającej planszy). */
+export const PROGRESS_KEY = 'gabigochi.game.cryptoSolved';
+
+/** Plansza z `cryptoPuzzles.json`: 9 wierszy po 9 znaków (`#` — zaczernione pole), hasło, słowa osobiste. */
+export interface Puzzle {
+  id: string;
+  grid: readonly string[];
+  solution: string;
+  personal: readonly string[];
+}
+
+/** Ziarno losowania liczb planszy z jej `id` (FNV-1a) — ta sama plansza ma zawsze te same liczby. */
+export function seedOf(id: string): number {
+  let h = 0x811c9dc5;
+  for (const ch of id) {
+    h ^= ch.codePointAt(0)!;
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h;
+}
+
+/** Litery planszy wierszami; zaczernione pole — null. */
+export function puzzleLetters(p: Puzzle): (string | null)[] {
+  return p.grid.flatMap((row) => [...row].map((ch) => (ch === '#' ? null : ch)));
+}
+
+/** Liczby odkryte na start: 2 spośród 4 najczęstszych liter planszy i 2 losowe ze środka listy częstości. */
+export function startNumbers(letters: readonly (string | null)[], key: readonly string[], rng: Rng): number[] {
+  const freq = new Map<string, number>();
+  for (const ch of letters) if (ch) freq.set(ch, (freq.get(ch) ?? 0) + 1);
+  const byFreq = [...key].sort((a, b) => (freq.get(b) ?? 0) - (freq.get(a) ?? 0) || (a < b ? -1 : a > b ? 1 : 0));
+  const top = shuffle(byFreq.slice(0, 4), rng).slice(0, 2);
+  const middle = shuffle(byFreq.slice(4, Math.max(6, Math.ceil(byFreq.length * 0.6))), rng).slice(0, START_REVEALED - 2);
+  return [...top, ...middle].map((ch) => key.indexOf(ch) + 1);
+}
+
+/** Stan nowej planszy: liczby 1..N losowane z ziarnem `id`, `START_REVEALED` liter odkrytych. */
+export function puzzleState(p: Puzzle): CryptoState {
+  const rng = seededRng(seedOf(p.id));
+  const letters = puzzleLetters(p);
+  const key = shuffle([...new Set(letters.filter((c): c is string => c !== null))].sort(), rng);
+  const shown = new Set(startNumbers(letters, key, rng));
+  return {
+    id: p.id,
+    rows: ROWS,
+    cols: COLS,
+    cells: letters.map((ch) => (ch === null ? null : key.indexOf(ch) + 1)),
+    key,
+    guesses: key.map((ch, i) => (shown.has(i + 1) ? ch : null)),
+    revealed: key.map((_, i) => shown.has(i + 1)),
+    hints: 0,
+  };
+}
+
+/** „Sprawdź”: liczby z wpisaną błędną literą (puste się nie liczą). */
+export function wrongNumbers(s: CryptoState): number[] {
+  return s.key.flatMap((ch, i) => (s.guesses[i] !== null && s.guesses[i] !== ch ? [i + 1] : []));
+}
+
+/** Hasło jako liczby (null — przerwa między słowami). Litera hasła spoza planszy to błąd danych. */
+export function solutionNumbers(p: Puzzle, s: CryptoState): (number | null)[] {
+  return [...p.solution].map((ch) => {
+    if (ch === ' ') return null;
+    const n = s.key.indexOf(ch) + 1;
+    if (n === 0) throw new Error(`Litera hasła ${ch} spoza planszy ${p.id}`);
+    return n;
+  });
+}
+
+/** Postęp w zestawie: numer obrotu (kolejność plansz) i rozwiązane plansze. */
+export interface Progress {
+  round: number;
+  solved: string[];
+}
+
+export function readProgress(raw: unknown): Progress {
+  let data = raw;
+  if (typeof raw === 'string') {
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      return { round: 0, solved: [] };
+    }
+  }
+  if (!data || typeof data !== 'object') return { round: 0, solved: [] };
+  const { round, solved } = data as { round?: unknown; solved?: unknown };
+  return {
+    round: Number.isInteger(round) && (round as number) >= 0 ? (round as number) : 0,
+    solved: Array.isArray(solved) ? [...new Set(solved.filter((x): x is string => typeof x === 'string'))] : [],
+  };
+}
+
+export function markSolved(pr: Progress, id: string): Progress {
+  return pr.solved.includes(id) ? pr : { ...pr, solved: [...pr.solved, id] };
+}
+
+/** Kolejność plansz w danym obrocie (każdy obrót inaczej potasowany). */
+export function puzzleOrder(puzzles: readonly Puzzle[], round: number): Puzzle[] {
+  return shuffle(puzzles, seededRng(1000 + round));
+}
+
+/**
+ * Następna plansza: pierwsza nierozwiązana w kolejności obrotu, z pominięciem `skip` (porzuconej), chyba że to
+ * jedyna nierozwiązana. Gdy wszystkie są rozwiązane — nowy obrót (inna kolejność, pusta lista).
+ */
+export function nextPuzzle(puzzles: readonly Puzzle[], pr: Progress, skip?: string): { puzzle: Puzzle; progress: Progress } {
+  const done = new Set(pr.solved);
+  let progress = pr;
+  let open = puzzleOrder(puzzles, pr.round).filter((p) => !done.has(p.id));
+  if (open.length === 0) {
+    progress = { round: pr.round + 1, solved: [] };
+    open = puzzleOrder(puzzles, progress.round);
+  }
+  return { puzzle: open.find((p) => p.id !== skip) ?? open[0], progress };
+}
+
+/** Zapis trwającej planszy (format 2: plansza z zestawu + wpisane litery). */
+export function writePuzzleSave(s: CryptoState): string {
+  return JSON.stringify({ v: 2, id: s.id, guesses: s.guesses, revealed: s.revealed, hints: s.hints });
+}
+
+/** Odczyt zapisu formatu 2. Stary format, uszkodzony, nieznana plansza albo już rozwiązana → null. */
+export function readPuzzleSave(raw: unknown, puzzles: readonly Puzzle[]): CryptoState | null {
+  let data = raw;
+  if (typeof raw === 'string') {
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+  if (!data || typeof data !== 'object') return null;
+  const { v, id, guesses, revealed, hints } = data as Record<string, unknown>;
+  if (v !== 2 || typeof id !== 'string') return null;
+  const puzzle = puzzles.find((p) => p.id === id);
+  if (!puzzle) return null;
+  const base = puzzleState(puzzle);
+  const n = base.key.length;
+  if (!Array.isArray(guesses) || guesses.length !== n) return null;
+  if (!guesses.every((g) => g === null || (typeof g === 'string' && ALPHABET_SET.has(g)))) return null;
+  const typed = guesses.filter((g) => g !== null);
+  if (new Set(typed).size !== typed.length) return null;
+  if (!Array.isArray(revealed) || revealed.length !== n || !revealed.every((r) => typeof r === 'boolean')) return null;
+  if (!revealed.every((r, i) => !r || guesses[i] === base.key[i])) return null;
+  if (!base.revealed.every((r, i) => !r || revealed[i])) return null;
+  if (!Number.isInteger(hints) || (hints as number) < 0 || (hints as number) > MAX_HINTS) return null;
+  const s: CryptoState = { ...base, guesses: guesses as (string | null)[], revealed: revealed as boolean[], hints: hints as number };
+  return isSolved(s) ? null : s;
+}
+
+// ---------------------------------------------------------------------------
 // Zapis w toku
 
 export const SAVE_KEY = 'gabigochi.game.crypto';
@@ -381,6 +541,7 @@ export function parseSave(raw: unknown): CryptoState | null {
   if (!revealed.every((r, i) => !r || guesses[i] === key[i])) return null;
   if (!isInt(hints, 0, MAX_HINTS)) return null;
   const result: CryptoState = {
+    id: '',
     rows,
     cols,
     cells: cells as (number | null)[],

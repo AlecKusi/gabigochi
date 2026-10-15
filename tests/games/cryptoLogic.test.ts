@@ -212,6 +212,7 @@ describe('cipher i revealStart', () => {
 function tiny(): CryptoState {
   // plansza „KOT” – liczby: K=1, O=2, T=3; 2 odkryte
   return {
+    id: '',
     rows: 1,
     cols: 3,
     cells: [1, 2, 3],
@@ -276,6 +277,7 @@ describe('hint', () => {
 
   it('bez wskazania odkrywa losową nierozwiązaną; maksymalnie 3', () => {
     const big: CryptoState = {
+      id: '',
       rows: 1,
       cols: 6,
       cells: [1, 2, 3, 4, 5, 6],
