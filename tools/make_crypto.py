@@ -27,7 +27,7 @@ MAX_TWO = 6   # najwięcej słów dwuliterowych w planszy
 def read_list(name):
     """Niepuste linie pliku bez komentarzy, wielkimi literami, pojedyncze spacje, bez powtórzeń."""
     out = []
-    for line in (WORDS_DIR / name).read_text(encoding='utf-8').splitlines():
+    for line in (WORDS_DIR / name).read_text(encoding='utf-8-sig').splitlines():
         w = ' '.join(line.split()).upper()
         if w and not w.startswith('#'):
             out.append(w)
@@ -94,42 +94,179 @@ def pattern_ok(grid):
 
 def random_pattern(rng):
     """Losuje układ czarnych pól spełniający `pattern_ok` (próby do skutku)."""
-    while True:
+    for _ in range(200_000):
         grid = ['.'] * (N * N)
         for p in rng.sample(range(N * N), rng.randint(int(BLOCK_MIN * N * N) + 1, int(BLOCK_MAX * N * N))):
             grid[p] = '#'
         if pattern_ok(grid):
             return grid
+    raise RuntimeError('brak układu spełniającego pattern_ok')
+
+
+EMPTY = frozenset()
 
 
 class Lexicon:
-    """Słowa pogrupowane po długości z indeksem (długość, pozycja, litera) → zbiór słów."""
+    """Słowa pogrupowane po długości z indeksem (długość, pozycja, litera) → zbiór słów. Zbiory są niezmienne
+    (frozenset), a ich kolejność przypadkowa — przed losowaniem kandydatów trzeba je posortować."""
 
     def __init__(self, words):
-        self.words = set(words)
-        self.by_len = {}
-        self.index = {}
+        words = list(words)
+        by_len, index = {}, {}
         for w in words:
-            self.by_len.setdefault(len(w), set()).add(w)
+            by_len.setdefault(len(w), set()).add(w)
             for i, ch in enumerate(w):
-                self.index.setdefault((len(w), i, ch), set()).add(w)
+                index.setdefault((len(w), i, ch), set()).add(w)
+        self.words = frozenset(words)
+        self.by_len = {k: frozenset(v) for k, v in by_len.items()}
+        self.index = {k: frozenset(v) for k, v in index.items()}
 
     def matches(self, pattern):
-        """Słowa pasujące do wzoru (lista liter albo None) — zbiór tylko do odczytu."""
-        sets = [self.index.get((len(pattern), i, ch), set()) for i, ch in enumerate(pattern) if ch]
+        """Słowa pasujące do wzoru (lista liter albo None)."""
+        sets = [self.index.get((len(pattern), i, ch), EMPTY) for i, ch in enumerate(pattern) if ch]
         if not sets:
-            return self.by_len.get(len(pattern), set())
+            return self.by_len.get(len(pattern), EMPTY)
         sets.sort(key=len)
-        out = set(sets[0])
-        for s in sets[1:]:
-            out &= s
-            if not out:
-                break
-        return out
+        return sets[0].intersection(*sets[1:])
+
+
+STEP_LIMIT = 30_000   # kroków wypełniania na jeden układ czarnych pól
+BRANCH = 40           # najwyżej tylu kandydatów na słowo w jednym kroku
+
+
+def fill(grid, lex, seed_word, rng):
+    """Wypełnia białe pola tak, żeby każdy ciąg ≥ 2 był słowem z `lex` (bez powtórzeń); `seed_word` (słowo
+    osobiste) trafia najpierw w losowe miejsce o pasującej długości. Zwraca 81 znaków ('#' = czarne) albo None."""
+    slots = runs(grid)
+    letters = [None] * (N * N)
+    assigned, used = set(), set()
+    steps = 0
+    fits = [i for i, s in enumerate(slots) if len(s) == len(seed_word)]
+    if not fits:
+        return None
+    first = rng.choice(fits)
+    for p, ch in zip(slots[first], seed_word):
+        letters[p] = ch
+    assigned.add(first)
+    used.add(seed_word)
+
+    def candidates(i):
+        """Słowa pasujące do slotu i jeszcze nieużyte; None = slot bez liter (dowolne słowo tej długości)."""
+        pat = [letters[p] for p in slots[i]]
+        if all(pat):
+            w = ''.join(pat)
+            return [w] if w in lex.words and w not in used else []
+        if not any(pat):
+            return None
+        return [w for w in lex.matches(pat) if w not in used]
+
+    def solve():
+        nonlocal steps
+        steps += 1
+        if steps > STEP_LIMIT:
+            return False
+        best, best_opts, best_n = None, None, None
+        for i in range(len(slots)):
+            if i in assigned:
+                continue
+            opts = candidates(i)
+            n = len(lex.by_len.get(len(slots[i]), ())) if opts is None else len(opts)
+            if n == 0:
+                return False
+            if best is None or n < best_n:
+                best, best_opts, best_n = i, opts, n
+                if n == 1:
+                    break
+        if best is None:
+            return True
+        # posortowane przed losowaniem — ta sama kolejność niezależnie od PYTHONHASHSEED (powtarzalne --seed)
+        opts = sorted(lex.by_len[len(slots[best])] - used) if best_opts is None else sorted(best_opts)
+        rng.shuffle(opts)
+        for w in opts[:BRANCH]:
+            changed = [p for p in slots[best] if letters[p] is None]
+            for p, ch in zip(slots[best], w):
+                letters[p] = ch
+            assigned.add(best)
+            used.add(w)
+            if solve():
+                return True
+            used.discard(w)
+            assigned.discard(best)
+            for p in changed:
+                letters[p] = None
+        return False
+
+    if not solve():
+        return None
+    return ['#' if grid[p] == '#' else letters[p] for p in range(N * N)]
+
+
+def pick_solution(letters, phrases, used_phrases):
+    """Pierwsze nieużyte hasło, którego wszystkie litery są w planszy; gdy takiego brak — użyte, które pasuje."""
+    have = {ch for ch in letters if ch != '#'}
+    fitting = [p for p in phrases if set(p.replace(' ', '')) <= have]
+    fresh = [p for p in fitting if p not in used_phrases]
+    return (fresh or fitting or [None])[0]
+
+
+def generate(count, seed):
+    """Lista `count` plansz {id, grid, solution, personal}; postęp wypisywany na bieżąco."""
+    rng = random.Random(seed)
+    words, personal, phrases = load_words()
+    lex = Lexicon(words)
+    pool = [w for w in personal if len(w) <= MAX_RUN]
+    puzzles, used_phrases = [], set()
+    tries = 0
+    while len(puzzles) < count:
+        tries += 1
+        seed_word = pool[(len(puzzles) * 7 + tries) % len(pool)]
+        grid = fill(random_pattern(rng), lex, seed_word, rng)
+        if grid is None:
+            continue
+        solution = pick_solution(grid, phrases, used_phrases)
+        if solution is None:
+            continue
+        found = sorted({''.join(grid[p] for p in run) for run in runs(grid)} & set(personal))
+        puzzles.append({
+            'id': f'p{len(puzzles) + 1:02d}',
+            'grid': [''.join(grid[r * N:(r + 1) * N]) for r in range(N)],
+            'solution': solution,
+            'personal': found,
+        })
+        used_phrases.add(solution)
+        print(f'{len(puzzles):2d}/{count} (próba {tries}): {solution} — {", ".join(found)}', flush=True)
+    return puzzles
+
+
+def preview(puzzles):
+    """Podgląd wszystkich plansz (litery, czarne pola, hasło) w tools/out/crypto_preview.png."""
+    from PIL import Image, ImageDraw, ImageFont
+    cell, pad, per_row = 22, 16, 5
+    w_one, h_one = N * cell + pad, N * cell + 40
+    img = Image.new('RGB', (per_row * w_one + pad, ((len(puzzles) + per_row - 1) // per_row) * h_one + pad), (42, 31, 61))
+    d = ImageDraw.Draw(img)
+    try:
+        font = ImageFont.truetype('C:/Windows/Fonts/arial.ttf', 14)
+        small = ImageFont.truetype('C:/Windows/Fonts/arial.ttf', 11)
+    except OSError:
+        font = small = ImageFont.load_default()
+    for k, p in enumerate(puzzles):
+        ox, oy = pad + (k % per_row) * w_one, pad + (k // per_row) * h_one
+        d.text((ox, oy), f"{p['id']}: {p['solution']}", fill=(255, 211, 77), font=small)
+        for r, row in enumerate(p['grid']):
+            for c, ch in enumerate(row):
+                x, y = ox + c * cell, oy + 16 + r * cell
+                if ch == '#':
+                    d.rectangle([x, y, x + cell - 1, y + cell - 1], fill=(90, 168, 240))
+                else:
+                    d.rectangle([x, y, x + cell - 1, y + cell - 1], fill=(243, 236, 255), outline=(27, 19, 38))
+                    d.text((x + 5, y + 3), ch, fill=(43, 29, 64), font=font)
+    PREVIEW.parent.mkdir(parents=True, exist_ok=True)
+    img.save(PREVIEW)
 
 
 def selftest():
-    row = list('AB#CDE#FG') + ['#'] * 72
+    row =list('AB#CDE#FG') + ['#'] * 72
     assert runs(row) == [[0, 1], [3, 4, 5], [7, 8]], runs(row)
     col = ['#'] * 81
     for p in (0, 9, 18):
@@ -156,6 +293,19 @@ def selftest():
         assert by_len[length] >= n, f'za mało słów długości {length}: {by_len[length]} < {n}'
     assert len(personal) >= 30, len(personal)
     assert len(phrases) >= 45, len(phrases)
+    corner = ['#'] * 81
+    for r in range(3):
+        for c in range(3):
+            corner[r * N + c] = '.'
+    small = Lexicon(['DOM', 'ALE', 'RAK', 'DAR', 'OLA', 'MEK'])
+    done = [g for g in (fill(corner, small, 'DOM', random.Random(k)) for k in range(20)) if g]
+    assert done, 'wypełnianie 3×3 nie udało się ani razu'
+    for g in done:
+        ws = [''.join(g[p] for p in run) for run in runs(g)]
+        assert all(w in small.words for w in ws) and len(set(ws)) == len(ws), ws
+    assert pick_solution(list('KOTALA') + ['#'] * 75, ['STO LAT', 'KOT ALA'], set()) == 'KOT ALA'
+    assert pick_solution(list('KOTALA') + ['#'] * 75, ['KOT ALA'], {'KOT ALA'}) == 'KOT ALA'
+    assert pick_solution(list('KOTALA') + ['#'] * 75, ['STO LAT'], set()) is None
     print('selftest OK')
 
 
@@ -163,7 +313,12 @@ def main():
     if '--selftest' in sys.argv:
         selftest()
         return
-    raise SystemExit('Generowanie plansz — Task 3.')
+    count = int(sys.argv[sys.argv.index('--count') + 1]) if '--count' in sys.argv else 40
+    seed = int(sys.argv[sys.argv.index('--seed') + 1]) if '--seed' in sys.argv else 1
+    puzzles = generate(count, seed)
+    OUT.write_text(json.dumps({'version': 1, 'puzzles': puzzles}, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+    preview(puzzles)
+    print(f'Zapisano {len(puzzles)} plansz: {OUT}; podgląd: {PREVIEW}')
 
 
 if __name__ == '__main__':
