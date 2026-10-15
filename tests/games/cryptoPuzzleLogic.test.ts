@@ -140,6 +140,17 @@ describe('plansza gazetowa: kolejność i postęp', () => {
     expect(nextPuzzle(ALL, { round: 0, solved: [order[0], order[1]] }, order[2]).puzzle.id).toBe(order[2]);
   });
 
+  it('„Nowa plansza” idzie po kolei za porzuconą, z przejściem na początek', () => {
+    const order = puzzleOrder(ALL, 0).map((p) => p.id);
+    const none = { round: 0, solved: [] };
+    expect(nextPuzzle(ALL, none, order[0]).puzzle.id).toBe(order[1]);
+    expect(nextPuzzle(ALL, none, order[1]).puzzle.id).toBe(order[2]);
+    expect(nextPuzzle(ALL, none, order[2]).puzzle.id).toBe(order[0]);
+    // porzucona już rozwiązana albo nieznana — po prostu pierwsza nierozwiązana
+    expect(nextPuzzle(ALL, { round: 0, solved: [order[0]] }, order[0]).puzzle.id).toBe(order[1]);
+    expect(nextPuzzle(ALL, none, 'nie-ma-takiej').puzzle.id).toBe(order[0]);
+  });
+
   it('pusty zestaw plansz to błąd', () => {
     expect(() => nextPuzzle([], { round: 0, solved: [] })).toThrow();
   });

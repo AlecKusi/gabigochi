@@ -5,6 +5,7 @@
   max-width: 440px;
   min-height: 0;
   container-type: size;
+  position: relative;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
@@ -22,6 +23,7 @@
 .cx-k.given .cx-k-l { color: var(--text); }
 .cx-k.same { background: var(--coin); }
 .cx-k.bad .cx-k-l { color: var(--danger); }
+.cx-k-fill { background: var(--energy); }
 
 .crypto-grid {
   /* bok pola: plansza mieści się w szerokości i zostawia ~340 px na tabelę, hasło, klawiaturę i przyciski */
@@ -59,17 +61,19 @@
 .crypto.solved .cx-cell { background: #e3ffd9; animation: cx-wave 500ms steps(5) calc(var(--d) * 45ms) backwards; }
 @keyframes cx-wave { 50% { transform: scale(1.15); background: var(--coin); } }
 
-/* hasło */
-.cx-solution { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; flex: none; }
-.cx-sol-box { width: 26px; display: flex; flex-direction: column; align-items: center; background: #ffe58a; color: var(--text); box-shadow: 0 0 0 1px var(--ink); }
-.cx-sol-n { font-size: 9px; line-height: 1; padding-top: 1px; color: var(--text-soft); }
-.cx-sol-l { font-size: 15px; line-height: 18px; min-height: 18px; font-weight: 700; }
-.cx-sol-gap { width: 10px; }
+/* hasło: słowa się nie łamią (zawijanie tylko między słowami); kratka skaluje się tak, by 14 liter mieściło się w szerokości */
+.cx-solution { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; flex: none; }
+.cx-sol-word { display: flex; flex-wrap: nowrap; gap: 2px; }
+.cx-sol-box { width: min(26px, calc(100cqw / 14 - 2px)); display: flex; flex-direction: column; align-items: center; background: #ffe58a; color: var(--text); box-shadow: 0 0 0 1px var(--ink); }
+.cx-sol-n { font-size: min(9px, calc(100cqw / 14 * .36)); line-height: 1; padding-top: 1px; color: var(--text-soft); }
+.cx-sol-l { font-size: min(15px, calc(100cqw / 14 * .58)); line-height: 18px; min-height: 18px; font-weight: 700; }
 .cx-sol-box.flip { animation: cx-flip 380ms ease-out; }
 @keyframes cx-flip { from { transform: rotateY(90deg); } }
-.cx-big { margin: 0; font-size: 26px; font-weight: 700; color: var(--coin); text-shadow: 2px 2px 0 var(--ink); text-align: center; }
+/* wygrana: hasło jako nakładka na środku (nie zabiera miejsca w układzie) */
+.cx-big { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); z-index: 2; margin: 0; padding: 8px 14px; max-width: 96%; white-space: nowrap; font-size: min(26px, 7cqw); font-weight: 700; color: var(--coin); text-shadow: 2px 2px 0 var(--ink); text-align: center; background: var(--panel); box-shadow: 0 0 0 3px var(--ink); }
 .cx-big:empty { display: none; }
-.crypto.solved .cx-big { animation: pop-in 420ms cubic-bezier(.2, 1.5, .4, 1); }
+.crypto.solved .cx-big { animation: cx-big-in 420ms cubic-bezier(.2, 1.5, .4, 1); }
+@keyframes cx-big-in { from { transform: translate(-50%, -50%) scale(.3); opacity: 0; } }
 
 .crypto-status { margin: 0; min-height: 18px; font-size: 14px; color: var(--text-light); text-align: center; }
 

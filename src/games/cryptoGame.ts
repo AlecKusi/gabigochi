@@ -86,6 +86,7 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
     const N = s.key.length;
     const position = PUZZLES.filter((p) => p.id !== puzzle.id && progress.solved.includes(p.id)).length + 1;
     const sol = solutionNumbers(puzzle, s);
+    let lastHud = '';
 
     // --- tabela liter: liczby 1..N w dwóch rzędach
     const keyCells = Array.from({ length: N }, (_, k) => {
@@ -98,6 +99,8 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
       return { btn, letter };
     });
     const keytab = h('div', { class: 'cx-keytab', style: `--kcols:${Math.ceil(N / 2)}` }, ...keyCells.map((c) => c.btn));
+    // nieparzysta liczba liter: ostatnie miejsce w tabeli wypełnia zaczernione pole (jak w siatce)
+    if (N % 2 === 1) keytab.append(h('span', { class: 'cx-k-fill', 'aria-hidden': 'true' }));
 
     // --- siatka (--d: przekątna — opóźnienie fali przy wygranej)
     const cellEls: (HTMLButtonElement | null)[] = [];
@@ -120,12 +123,26 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
     });
 
     // --- hasło
-    const solItems = sol.map((n) => {
-      if (n === null) return { n, box: h('span', { class: 'cx-sol-gap' }), letter: null };
+    // kratki grupowane w słowa (słowo się nie łamie); między słowami odstęp robi `gap` kontenera
+    const solItems: { n: number; box: HTMLElement; letter: HTMLElement }[] = [];
+    const solWords: HTMLElement[] = [];
+    let wordBoxes: HTMLElement[] = [];
+    const endWord = () => {
+      if (wordBoxes.length > 0) solWords.push(h('span', { class: 'cx-sol-word' }, ...wordBoxes));
+      wordBoxes = [];
+    };
+    for (const n of sol) {
+      if (n === null) {
+        endWord();
+        continue;
+      }
       const letter = h('span', { class: 'cx-sol-l' });
-      return { n, box: h('div', { class: 'cx-sol-box' }, h('span', { class: 'cx-sol-n' }, n), letter), letter };
-    });
-    const solution = h('div', { class: 'cx-solution', 'aria-label': 'Hasło' }, ...solItems.map((x) => x.box));
+      const box = h('div', { class: 'cx-sol-box' }, h('span', { class: 'cx-sol-n' }, n), letter);
+      solItems.push({ n, box, letter });
+      wordBoxes.push(box);
+    }
+    endWord();
+    const solution = h('div', { class: 'cx-solution', role: 'group', 'aria-label': 'Hasło' }, ...solWords);
     const big = h('p', { class: 'cx-big', 'aria-live': 'polite' });
 
     // --- klawiatura i przyciski
@@ -148,9 +165,16 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
       ),
     );
     const checkBtn = h('button', { class: 'px-btn secondary cx-check' }, 'Sprawdź');
-    checkBtn.addEventListener('click', check);
+    // blur: Spacja/Enter na przycisku z fokusem nie powtarza akcji (podpowiedź kosztuje monety)
+    checkBtn.addEventListener('click', () => {
+      checkBtn.blur();
+      check();
+    });
     const hintBtn = h('button', { class: 'px-btn cx-hint' });
-    hintBtn.addEventListener('click', useHint);
+    hintBtn.addEventListener('click', () => {
+      hintBtn.blur();
+      useHint();
+    });
     const status = h('p', { class: 'crypto-status', 'aria-live': 'polite' });
     const actions = h('div', { class: 'crypto-actions' }, checkBtn, hintBtn);
 
@@ -166,7 +190,11 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
       s.cells.forEach((n, i) => {
         const el = cellEls[i];
         if (!el || n === null) return;
-        letterEls[i]!.textContent = s.guesses[n - 1] ?? '';
+        const g = s.guesses[n - 1];
+        letterEls[i]!.textContent = g ?? '';
+        el.setAttribute('aria-label', g ? `Pole z liczbą ${n}, litera ${g}` : `Pole z liczbą ${n}`);
+        if (i === selected) el.setAttribute('aria-current', 'true');
+        else el.removeAttribute('aria-current');
         el.classList.toggle('given', s.revealed[n - 1]);
         el.classList.toggle('same', n === sn);
         el.classList.toggle('sel', i === selected);
@@ -178,7 +206,7 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
         btn.classList.toggle('same', k + 1 === sn);
         btn.classList.toggle('bad', flagged.has(k + 1));
       });
-      for (const { n, letter } of solItems) if (letter && n !== null) letter.textContent = s.guesses[n - 1] ?? '';
+      for (const { n, letter } of solItems) letter.textContent = s.guesses[n - 1] ?? '';
       const used = new Map<string, number>();
       s.guesses.forEach((g, k) => g && used.set(g, k));
       for (const [ch, key] of keyEls) {
@@ -191,8 +219,14 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
       hintBtn.textContent = `Podpowiedź (−10) · ${left}`;
       hintBtn.disabled = finished || left <= 0;
       checkBtn.disabled = finished;
-      status.textContent = message || 'Stuknij pole i wybierz literę.';
-      env.setHud(`Plansza ${position}/${total} · podp. ${s.hints}/${MAX_HINTS}`);
+      // regiony aria-live zapowiadają się przy każdej zmianie tekstu — ruszamy je tylko, gdy tekst naprawdę inny
+      const text = message || 'Stuknij pole i wybierz literę.';
+      if (status.textContent !== text) status.textContent = text;
+      const hud = `Plansza ${position}/${total} · podp. ${s.hints}/${MAX_HINTS}`;
+      if (hud !== lastHud) {
+        lastHud = hud;
+        env.setHud(hud);
+      }
     }
 
     /** Klasa animacji na chwilę (zdjęta po `ms`, żeby mogła zagrać ponownie). */
@@ -225,13 +259,13 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
       render();
     }
 
-    /** Następne pole (w kolejności czytania) z liczbą bez wpisanej litery. */
-    function advance(): void {
-      const count = s.cells.length;
+    /** Następne pole (w kolejności czytania) z liczbą bez wpisanej litery — według stanu `st` (już po wpisaniu). */
+    function advance(st: CryptoState): void {
+      const count = st.cells.length;
       for (let d = 1; d <= count; d++) {
         const i = (selected + d) % count;
-        const n = s.cells[i];
-        if (n !== null && s.guesses[n - 1] === null) {
+        const n = st.cells[i];
+        if (n !== null && st.guesses[n - 1] === null) {
           selected = i;
           return;
         }
@@ -291,7 +325,7 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
       }
       message = '';
       play(letter ? 'type' : 'erase');
-      if (letter) advance();
+      if (letter) advance(next);
       commit(next);
       if (letter && !finished) animateNumber(n, 'pop');
     }
@@ -311,7 +345,7 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
         return;
       }
       play('match');
-      message = s.guesses.every((g) => g !== null) ? 'Wszystko się zgadza!' : 'Na razie bez błędów!';
+      message = 'Na razie bez błędów!';
       render();
       flash(grid, 'ok-flash', 650);
     }
@@ -330,8 +364,9 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
     function win(): void {
       finished = true;
       flagged.clear();
-      store(SAVE_KEY, null);
-      store(PROGRESS_KEY, JSON.stringify(markSolved(progress, puzzle.id)));
+      // Zapis dostaje stan rozwiązany (readPuzzleSave traktuje go jak brak zapisu). Plansza jest oznaczana jako
+      // rozwiązana dopiero po animacji — wyjście w jej trakcie nie odbiera nagrody, plansza wraca świeża.
+      store(SAVE_KEY, writePuzzleSave(s));
       message = 'Brawo! Hasło odszyfrowane!';
       selected = -1;
       big.textContent = puzzle.solution;
@@ -339,7 +374,11 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
       root.classList.add('solved');
       confetti(env.body);
       play('match');
-      later(() => resolve(cryptoScore(s.hints)), 2200);
+      later(() => {
+        store(SAVE_KEY, null);
+        store(PROGRESS_KEY, JSON.stringify(markSolved(progress, puzzle.id)));
+        resolve(cryptoScore(s.hints));
+      }, 2200);
     }
 
     function later(fn: () => void, ms: number): void {
@@ -356,7 +395,7 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
       if (e.metaKey || (e.ctrlKey && !e.altKey)) return;
       if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
-        guess(null);
+        if (!e.repeat) guess(null);
         return;
       }
       const arrow = ARROWS[e.key];
@@ -368,7 +407,8 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
       const ch = e.key.toLocaleUpperCase('pl');
       if (ALPHABET.includes(ch)) {
         e.preventDefault();
-        guess(ch);
+        // przytrzymany klawisz (auto-repeat) nie wpisuje litery w kolejne pola
+        if (!e.repeat) guess(ch);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -378,7 +418,7 @@ function playBoard(env: GameEnv, puzzle: Puzzle, initial: CryptoState, progress:
       timers.clear();
     });
 
-    store(SAVE_KEY, writePuzzleSave(s));
+    // zapis powstaje dopiero przy pierwszym ruchu (commit) — samo otwarcie planszy nie zostawia „niedokończonej”
     render();
   });
 }

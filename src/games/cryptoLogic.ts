@@ -211,8 +211,9 @@ export function puzzleOrder(puzzles: readonly Puzzle[], round: number): Puzzle[]
 }
 
 /**
- * Następna plansza: pierwsza nierozwiązana w kolejności obrotu, z pominięciem `skip` (porzuconej), chyba że to
- * jedyna nierozwiązana. Gdy wszystkie są rozwiązane — nowy obrót (inna kolejność, pusta lista).
+ * Następna plansza: pierwsza nierozwiązana w kolejności obrotu. Gdy `skip` (porzucona plansza) jest wśród
+ * nierozwiązanych — następna nierozwiązana PO nim, z przejściem na początek (chyba że to jedyna nierozwiązana).
+ * Gdy wszystkie są rozwiązane — nowy obrót (inna kolejność, pusta lista).
  */
 export function nextPuzzle(puzzles: readonly Puzzle[], pr: Progress, skip?: string): { puzzle: Puzzle; progress: Progress } {
   if (puzzles.length === 0) throw new Error('Pusty zestaw plansz');
@@ -223,7 +224,8 @@ export function nextPuzzle(puzzles: readonly Puzzle[], pr: Progress, skip?: stri
     progress = { round: pr.round + 1, solved: [] };
     open = puzzleOrder(puzzles, progress.round);
   }
-  return { puzzle: open.find((p) => p.id !== skip) ?? open[0], progress };
+  const k = skip === undefined ? -1 : open.findIndex((p) => p.id === skip);
+  return { puzzle: k >= 0 && open.length > 1 ? open[(k + 1) % open.length] : open[0], progress };
 }
 
 /** Zapis trwającej planszy (format 2: plansza z zestawu + wpisane litery). */
