@@ -132,6 +132,8 @@ class Lexicon:
 
 STEP_LIMIT = 30_000   # kroków wypełniania na jeden układ czarnych pól
 BRANCH = 40           # najwyżej tylu kandydatów na słowo w jednym kroku
+SEED_TRIES = 3000     # prób na jedno słowo osobiste, zanim zostanie pominięte (rzadkie, np. HACHI, ~770)
+MAX_TRIES = 200_000   # prób łącznie, zanim generator się podda
 
 
 def fill(grid, lex, seed_word, rng):
@@ -210,22 +212,35 @@ def pick_solution(letters, phrases, used_phrases):
 
 
 def generate(count, seed):
-    """Lista `count` plansz {id, grid, solution, personal}; postęp wypisywany na bieżąco."""
+    """Lista `count` plansz {id, grid, solution, personal}; postęp wypisywany na bieżąco. Każda plansza dostaje
+    kolejne słowo osobiste z pliku (podpisowe są pierwsze) i trzyma je przez kolejne próby, aż się uda albo
+    skończy się limit SEED_TRIES — wtedy słowo jest pomijane."""
     rng = random.Random(seed)
     words, personal, phrases = load_words()
     lex = Lexicon(words)
     pool = [w for w in personal if len(w) <= MAX_RUN]
+    if not pool:
+        raise RuntimeError('brak słów osobistych do 8 liter')
     puzzles, used_phrases = [], set()
-    tries = 0
+    tries = seed_tries = k = 0
     while len(puzzles) < count:
+        if tries >= MAX_TRIES:
+            raise RuntimeError(f'za mało plansz: {len(puzzles)}/{count} po {tries} próbach')
+        seed_word = pool[k % len(pool)]
+        if seed_tries >= SEED_TRIES:
+            print(f'pomijam słowo {seed_word} po {SEED_TRIES} próbach', flush=True)
+            k += 1
+            seed_tries = 0
+            continue
         tries += 1
-        seed_word = pool[(len(puzzles) * 7 + tries) % len(pool)]
+        seed_tries += 1
         grid = fill(random_pattern(rng), lex, seed_word, rng)
         if grid is None:
             continue
         solution = pick_solution(grid, phrases, used_phrases)
         if solution is None:
             continue
+        # może być więcej niż jedno słowo osobiste (przypadkowe trafienia ze słownika) — to dopuszczalne
         found = sorted({''.join(grid[p] for p in run) for run in runs(grid)} & set(personal))
         puzzles.append({
             'id': f'p{len(puzzles) + 1:02d}',
@@ -234,7 +249,9 @@ def generate(count, seed):
             'personal': found,
         })
         used_phrases.add(solution)
-        print(f'{len(puzzles):2d}/{count} (próba {tries}): {solution} — {", ".join(found)}', flush=True)
+        k += 1
+        seed_tries = 0
+        print(f'{len(puzzles):2d}/{count} (próba {tries}, słowo {seed_word}): {solution} — {", ".join(found)}', flush=True)
     return puzzles
 
 
@@ -266,7 +283,7 @@ def preview(puzzles):
 
 
 def selftest():
-    row =list('AB#CDE#FG') + ['#'] * 72
+    row = list('AB#CDE#FG') + ['#'] * 72
     assert runs(row) == [[0, 1], [3, 4, 5], [7, 8]], runs(row)
     col = ['#'] * 81
     for p in (0, 9, 18):
@@ -303,6 +320,12 @@ def selftest():
     for g in done:
         ws = [''.join(g[p] for p in run) for run in runs(g)]
         assert all(w in small.words for w in ws) and len(set(ws)) == len(ws), ws
+        assert 'DOM' in ws, ws
+    block = ['#'] * 81
+    for p in (0, 1, N, N + 1):
+        block[p] = '.'
+    # w bloku 2×2 każde wypełnienie powtórzyłoby słowo AA, więc wypełnianie musi się nie udać
+    assert all(fill(block, Lexicon(['AA']), 'AA', random.Random(k)) is None for k in range(5))
     assert pick_solution(list('KOTALA') + ['#'] * 75, ['STO LAT', 'KOT ALA'], set()) == 'KOT ALA'
     assert pick_solution(list('KOTALA') + ['#'] * 75, ['KOT ALA'], {'KOT ALA'}) == 'KOT ALA'
     assert pick_solution(list('KOTALA') + ['#'] * 75, ['STO LAT'], set()) is None
@@ -316,7 +339,8 @@ def main():
     count = int(sys.argv[sys.argv.index('--count') + 1]) if '--count' in sys.argv else 40
     seed = int(sys.argv[sys.argv.index('--seed') + 1]) if '--seed' in sys.argv else 1
     puzzles = generate(count, seed)
-    OUT.write_text(json.dumps({'version': 1, 'puzzles': puzzles}, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+    OUT.write_text(json.dumps({'version': 1, 'puzzles': puzzles}, ensure_ascii=False, indent=1) + '\n',
+                   encoding='utf-8', newline='\n')
     preview(puzzles)
     print(f'Zapisano {len(puzzles)} plansz: {OUT}; podgląd: {PREVIEW}')
 
