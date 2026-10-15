@@ -1,8 +1,8 @@
-# Gdzie skończyliśmy (2026-10-10)
+# Gdzie skończyliśmy (2026-10-15)
 
 ## Stan
 Gra jest **opublikowana**: https://aleckusi.github.io/gabigochi/ (repozytorium https://github.com/AlecKusi/gabigochi,
-wdrożenie z `main` przez GitHub Actions). Praca na `etap-1` (578 testów, typy i build przechodzą).
+wdrożenie z `main` przez GitHub Actions). Praca na `etap-1` (577 testów, typy i build przechodzą).
 - 6 pokoi (salon, sypialnia, pracownia, łazienka, kuchnia, balkon), urządzanie, sklep (14 potraw, meble — w tym
   26 łazienkowych i 30 kuchennych, okna, ozdoby, rośliny, gaming, hobby, balkon, tapety, podłogi) ze znaczkiem „NOWE”
   po aktualizacjach;
@@ -72,7 +72,8 @@ Nauka przy biurku, toaleta, prysznic (z turbanem), wanna (turban + suszarka), um
 
 ## Minigry etapu 2 — zrobione (2026-10-07)
 Bricks n Balls, Sudoku (3 poziomy, notatki, zapis w toku), Szyfrokrzyżówka (od 2026-10-15 plansze jak z gazety — opis niżej) — na liście minigier, sprawdzone w przeglądarce.
-- Słowa osobiste do szyfrokrzyżówki: `tools/crypto/osobiste.txt` (do 9 liter), potem ponowne wygenerowanie plansz.
+- Słowa osobiste do szyfrokrzyżówki: `tools/crypto/osobiste.txt` (trafiają do plansz słowa do 8 liter). Nowe słowa
+  wchodzą tylko do nowej paczki plansz — istniejących `p01`–`p40` nie generować od nowa (opis niżej).
 
 ## Uwagi techniczne
 - Python do narzędzi: `/c/gvenv/Scripts/python` (venv w repo nie działa przez długie ścieżki).
@@ -311,7 +312,13 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
 - Jedna plansza 9×9 z zaczernionymi polami, tabela liter, hasło, „Sprawdź”, 3 podpowiedzi; 40 gotowych plansz
   w `src/games/cryptoPuzzles.json` (`PUZZLES`), kolejność i rozwiązane w `gabigochi.game.cryptoSolved`,
   trwająca plansza w `gabigochi.game.crypto` (format 2).
-- Generator: `tools/make_crypto.py` (`--selftest`, `--count 40 --seed 1`, ok. 5 min), słowniki w `tools/crypto/`,
-  podgląd `tools/out/crypto_preview.png`. Nowa paczka plansz = dopisanie haseł/słów, nowe `--seed`, test zestawu.
+- Generator: `tools/make_crypto.py` (`--selftest`, `--count 40 --seed 1`, 5–10 min), słowniki w `tools/crypto/`,
+  podgląd `tools/out/crypto_preview.png`. Generator zawsze nadpisuje cały plik i numeruje od `p01`, a każda zmiana
+  słowników zmienia plansze — po wydaniu **nie generować zestawu od nowa** (trwająca plansza i lista rozwiązanych
+  odwołują się do `id`).
+- Nowa paczka plansz: dopisać hasła do `hasla.txt` (generator potrzebuje co najmniej tylu haseł, ile plansz),
+  wygenerować w kopii (inne `--seed`), odrzucić hasła już użyte w `p01`–`p40`, przenumerować od `p41`, dopisać
+  do `cryptoPuzzles.json` i podnieść liczbę plansz w `tests/games/cryptoPuzzles.test.ts`. Ewentualnie dopisać do
+  generatora tryb dopisywania (`--first-id`).
 - Ze słownika `slowa.txt` usunięte słowa nie-polskie, rzadkie i ponure (np. ION, ZDRADA, WOJNA) — przy kolejnej
   paczce obejrzeć listę słów z podglądu tak samo.
