@@ -21,7 +21,7 @@ export const RELEASES: readonly Release[] = [
     version: 2,
     date: '2026-10-15',
     changes: [
-      'Nowa szyfrokrzyżówka jak z gazety: 40 plansz z ukrytymi hasłami o Gabi.',
+      'Nowa szyfrokrzyżówka: 40 plansz z ukrytymi hasłami o Gabi.',
       'Przycisk „Sprawdź” zaznacza błędne litery na czerwono.',
     ],
     soon: ['Staramy się naprawić ubrania Gabi, dodać pory roku i kilka nowych rzeczy dla Gabi i Somerki!'],
