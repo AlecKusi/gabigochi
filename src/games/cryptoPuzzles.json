@@ -1,0 +1,735 @@
+{
+ "version": 1,
+ "puzzles": [
+  {
+   "id": "p01",
+   "grid": [
+    "SOPRAN#DO",
+    "OKO#SOS#B",
+    "KOKS##MOL",
+    "#LAT#GABI",
+    "BIZON#KUC",
+    "#C#PAT##Z",
+    "ZABAWA#JA",
+    "####Ó#ŻUĆ",
+    "MŁODZIEŻ#"
+   ],
+   "solution": "STO LAT GABI",
+   "personal": [
+    "GABI"
+   ]
+  },
+  {
+   "id": "p02",
+   "grid": [
+    "OD#NO#BÓG",
+    "ZABAWKA#A",
+    "ONI#I#BÓB",
+    "NIĆ#ERA#R",
+    "#E#PSY##Y",
+    "F#TO#MORS",
+    "OSA#N#G#I",
+    "LOT#OBORA",
+    "KLAKSON##"
+   ],
+   "solution": "KOTKA SOMERKA",
+   "personal": [
+    "GABRYSIA"
+   ]
+  },
+  {
+   "id": "p03",
+   "grid": [
+    "TE#WRONA#",
+    "ARIA#POR#",
+    "#ALT#OSA#",
+    "S#E#ON##G",
+    "K###HACHI",
+    "AS#BO#AUT",
+    "KĘPA#ORKA",
+    "APARAT##R",
+    "Ć#TY#ORDA"
+   ],
+   "solution": "KITKAT DLA GABI",
+   "personal": [
+    "HACHI"
+   ]
+  },
+  {
+   "id": "p04",
+   "grid": [
+    "POR#ISKRA",
+    "SNOP##O##",
+    "Y#SOMERKA",
+    "#WAM#MY#W",
+    "TA#PLOTKA",
+    "USTA#JA#R",
+    "L#U#WIR#I",
+    "I#BOA#ZZA",
+    "ĆMA#TO#A#"
+   ],
+   "solution": "MIAU MIAU",
+   "personal": [
+    "SOMERKA"
+   ]
+  },
+  {
+   "id": "p05",
+   "grid": [
+    "K###KOJOT",
+    "IŁ#PONAD#",
+    "T#OAZA##E",
+    "K#DWA#LOT",
+    "ARA##TUBY",
+    "TY#S##DOK",
+    "#S#TECZKA",
+    "KANAREK##",
+    "##ANALIZA"
+   ],
+   "solution": "DAN DAN DANANA",
+   "personal": [
+    "KITKAT"
+   ]
+  },
+  {
+   "id": "p06",
+   "grid": [
+    "LORDOFON#",
+    "A##U##ROK",
+    "TEKST#AS#",
+    "A##ZESZYT",
+    "Ć#ŻE#O##E",
+    "#BUK#KADR",
+    "CAR#GIL#M",
+    "OCET##ONI",
+    "#AKORDEON"
+   ],
+   "solution": "OKULARY NA NOSIE",
+   "personal": [
+    "LORDOFON"
+   ]
+  },
+  {
+   "id": "p07",
+   "grid": [
+    "JUTRO#EMU",
+    "A#RANY#O#",
+    "#SYN###CO",
+    "P#BOCIAN#",
+    "AS##I##OD",
+    "PASTA#R#B",
+    "ULE#S#OBA",
+    "GAJ#TULIĆ",
+    "A#FIOLET#"
+   ],
+   "solution": "STO LAT STO LAT",
+   "personal": [
+    "FIOLET"
+   ]
+  },
+  {
+   "id": "p08",
+   "grid": [
+    "ERA##SKĄD",
+    "MY#KOK##U",
+    "USTA#OBOK",
+    "#A#PORADA",
+    "O#BIDON#T",
+    "ŚRUBA#DO#",
+    "#ARA#DYM#",
+    "#DARY#TEJ",
+    "PAKA#RANA"
+   ],
+   "solution": "MONSTERA ROŚNIE",
+   "personal": [
+    "KAPIBARA"
+   ]
+  },
+  {
+   "id": "p09",
+   "grid": [
+    "PO#OFICER",
+    "A#S#L#Z#O",
+    "WĄTROBA#K",
+    "##Ó#POST#",
+    "PUŁAPKA#P",
+    "OD#TA#MOC",
+    "BACA#NICH",
+    "Y#AKT##ZA",
+    "TOR##ZBYĆ"
+   ],
+   "solution": "KAPIBARA RZĄDZI",
+   "personal": [
+    "FLOPPA"
+   ]
+  },
+  {
+   "id": "p10",
+   "grid": [
+    "KOMIKS###",
+    "OSY#OKO#S",
+    "TA#STOP#K",
+    "##K#EKIPA",
+    "UDA#K#SOK",
+    "#ANI#U#ZA",
+    "ZNAK#STAN",
+    "ZEPSUTY#K",
+    "A#A#LAMPA"
+   ],
+   "solution": "MALINIANKA",
+   "personal": [
+    "KOT",
+    "KOTEK"
+   ]
+  },
+  {
+   "id": "p11",
+   "grid": [
+    "#ETYKIETA",
+    "STO#OD#A#",
+    "TE##TEST#",
+    "ARA##ATAK",
+    "T#MY##A#A",
+    "EGO#WZROK",
+    "K#KARETKA",
+    "#Ż#LAT#NO",
+    "BEREK##O#"
+   ],
+   "solution": "I WISZ I WAS A BERD",
+   "personal": [
+    "KOT"
+   ]
+  },
+  {
+   "id": "p12",
+   "grid": [
+    "#KOT##OKO",
+    "#ATOM#NOS",
+    "#DO#AFERA",
+    "#R#ON##A#",
+    "T#R#G#ILE",
+    "E#AWANS#P",
+    "K#BO#OKNO",
+    "STALE#RAK",
+    "TATA#GAMA"
+   ],
+   "solution": "FLOPPA TO KOT",
+   "personal": [
+    "KOT",
+    "MANGA"
+   ]
+  },
+  {
+   "id": "p13",
+   "grid": [
+    "WASZ#U#BO",
+    "Y##MOL#ON",
+    "#SZYDEŁKO",
+    "#T#Ć#WAS#",
+    "NOS#BAS#K",
+    "E#MNĄ#KUR",
+    "OBU#BLADY",
+    "NAGLE#WAT",
+    "#NA#LWY#Y"
+   ],
+   "solution": "LAWENDOWE WŁOSY",
+   "personal": [
+    "SZYDEŁKO"
+   ]
+  },
+  {
+   "id": "p14",
+   "grid": [
+    "PUB#BOŻY#",
+    "#LAT#TE#U",
+    "W#RANO##D",
+    "ŁÓDKA#LUZ",
+    "Ó#Z##BO#I",
+    "CIOS#ARKA",
+    "Z##SANDAŁ",
+    "KOZAKI#R#",
+    "A#AKTA#K#"
+   ],
+   "solution": "SZYDEŁKOWANIE",
+   "personal": [
+    "WŁÓCZKA"
+   ]
+  },
+  {
+   "id": "p15",
+   "grid": [
+    "DYSK##SOS",
+    "##TOMIK#M",
+    "S#OKULARY",
+    "IKS#SER#C",
+    "NO#M##GAZ",
+    "IMBIR#AS#",
+    "APETYT#TO",
+    "KOT#Ś#TE#",
+    "#TAM#KARA"
+   ],
+   "solution": "DOBRANOC GABI",
+   "personal": [
+    "KOT",
+    "OKULARY"
+   ]
+  },
+  {
+   "id": "p16",
+   "grid": [
+    "C#KICZ#NA",
+    "EGO#ZAKON",
+    "BAŃKA#OSY",
+    "UL##SAM#Ż",
+    "LEN##HIT#",
+    "ARA#ZAKAZ",
+    "#IDOL#S#I",
+    "#A#SET##M",
+    "##LAWENDA"
+   ],
+   "solution": "MANGA I HERBATA",
+   "personal": [
+    "LAWENDA"
+   ]
+  },
+  {
+   "id": "p17",
+   "grid": [
+    "ABY##LIST",
+    "#A##WIDEO",
+    "UL#RAMEN#",
+    "#EMALIA#Ż",
+    "#TUPET#TY",
+    "A#Z#C#M#T",
+    "STYL#JUDO",
+    "#OKULARY#",
+    "KRAB###MY"
+   ],
+   "solution": "PIES SPAWACZ",
+   "personal": [
+    "MUZYKA",
+    "OKULARY",
+    "RAMEN"
+   ]
+  },
+  {
+   "id": "p18",
+   "grid": [
+    "FAKT#BABA",
+    "L#O#WIRUS",
+    "ETAT#GEST",
+    "TELEFON#M",
+    "#NA#OSADA",
+    "PO##L##N#",
+    "ERA#DUSIĆ",
+    "C#KREDA#M",
+    "HIT#RAMKA"
+   ],
+   "solution": "SOMERKA I HACHI",
+   "personal": [
+    "TELEFON"
+   ]
+  },
+  {
+   "id": "p19",
+   "grid": [
+    "KROK#JAK#",
+    "O#KOLANO#",
+    "SROKA#ILE",
+    "TO#STO#A#",
+    "IŚĆ##ROCK",
+    "UL##AKCJA",
+    "MIT#BAZAR",
+    "#N#MY#K#P",
+    "WYĆ##BOK#"
+   ],
+   "solution": "KAWA Z MLEKIEM",
+   "personal": [
+    "ROŚLINY"
+   ]
+  },
+  {
+   "id": "p20",
+   "grid": [
+    "#MĄKA#KOC",
+    "TO#OBRĘCZ",
+    "ON#MY#SET",
+    "MSZA#J#TE",
+    "#TARTA##R",
+    "TEN##GADY",
+    "ARIA#OTO#",
+    "TAM#UDO##",
+    "A##PLAMKA"
+   ],
+   "solution": "PIEROGI BABCI",
+   "personal": [
+    "MONSTERA"
+   ]
+  },
+  {
+   "id": "p21",
+   "grid": [
+    "#T##URLOP",
+    "ZASADA#DO",
+    "#ROLADA#Ż",
+    "BALE#I#WY",
+    "AS##PO##C",
+    "S#KTO#LUZ",
+    "#URODZINY",
+    "UDAR##NIĆ",
+    "#ON#PAKA#"
+   ],
+   "solution": "TORT URODZINOWY",
+   "personal": [
+    "URODZINY"
+   ]
+  },
+  {
+   "id": "p22",
+   "grid": [
+    "ORANŻADA#",
+    "NUTA#H#R#",
+    "#RUMIANEK",
+    "LAT###ONO",
+    "U###DO#AS",
+    "DROGI#T#Z",
+    "Z#PREZENT",
+    "KWIAT####",
+    "I#S#ALBUM"
+   ],
+   "solution": "PIZZA I SUSHI",
+   "personal": [
+    "PREZENT"
+   ]
+  },
+  {
+   "id": "p23",
+   "grid": [
+    "WSPINAĆ#D",
+    "#Ł#Ł#B#BO",
+    "PAW#TYTUŁ",
+    "UWAGA#OSY",
+    "DAR#TOR##",
+    "Ł#CIASTKO",
+    "OWAL#A#O#",
+    "##BEZ#STO",
+    "ĆMY#AS##N"
+   ],
+   "solution": "KOT W PUDEŁKU",
+   "personal": [
+    "KOT",
+    "TORT"
+   ]
+  },
+  {
+   "id": "p24",
+   "grid": [
+    "#B#ROMB#O",
+    "PONAD#ALT",
+    "#JAD#TRIO",
+    "KARATE#T#",
+    "I#ARA#ERA",
+    "JOD#K#T#S",
+    "#PAN#RYŻ#",
+    "#I#I#OKEJ",
+    "KSIĄŻKA#A"
+   ],
+   "solution": "JESIENIARA",
+   "personal": [
+    "KSIĄŻKA"
+   ]
+  },
+  {
+   "id": "p25",
+   "grid": [
+    "B#POLONEZ",
+    "AS#TONA#N",
+    "LOTOS#UDA",
+    "#K####KOD",
+    "KIM#GRAM#",
+    "O#UL#A#IŁ",
+    "Ń#RODZINA",
+    "#N#R##LOT",
+    "NOZDRZE#A"
+   ],
+   "solution": "GABI I UKULELE",
+   "personal": [
+    "NAUKA"
+   ]
+  },
+  {
+   "id": "p26",
+   "grid": [
+    "PO#KOMETA",
+    "OSPA#A##S",
+    "DO#NAS#R#",
+    "#B#ANANAS",
+    "ON#PIŻAMA",
+    "CYNA##SAM",
+    "Z#U#G#Z#E",
+    "KOTLET###",
+    "ODA#NADAL"
+   ],
+   "solution": "NOCNE NIEBO",
+   "personal": [
+    "PIŻAMA"
+   ]
+  },
+  {
+   "id": "p27",
+   "grid": [
+    "KAPITAN#T",
+    "OSA#OLIWA",
+    "M#KĄPIEL#",
+    "AHA##B#E#",
+    "R##DZIECI",
+    "##ONO###S",
+    "TANIO#SOK",
+    "ULE##CEDR",
+    "ŻE##TON#A"
+   ],
+   "solution": "TANIEC W SALONIE",
+   "personal": [
+    "KĄPIEL"
+   ]
+  },
+  {
+   "id": "p28",
+   "grid": [
+    "#OKO#UCHO",
+    "O#I#C#ZAŚ",
+    "SWETEREK#",
+    "PYŁ#G#R#Ż",
+    "AS#SŁOŃCE",
+    "#TEZA####",
+    "BARY#POST",
+    "OWAL#IDEA",
+    "NA#DOK#R#"
+   ],
+   "solution": "DZIEŃ DOBRY",
+   "personal": [
+    "SWETEREK"
+   ]
+  },
+  {
+   "id": "p29",
+   "grid": [
+    "FAJKA#HAU",
+    "A##LUZ##R",
+    "KWIAT#BON",
+    "TA#POGODA",
+    "#SOK#UDA#",
+    "G#PIZZA#I",
+    "DWA#Ł#JOD",
+    "Y#Ł#ON#DO",
+    "ŻE#SMOG#L"
+   ],
+   "solution": "PODLEJ KWIATKI",
+   "personal": [
+    "PIZZA"
+   ]
+  },
+  {
+   "id": "p30",
+   "grid": [
+    "ŻE#JA#KOD",
+    "#UDO#K#BO",
+    "URODZINY#",
+    "KOK##NA#Ł",
+    "U##WIOSNA",
+    "LOT#Ł#I#T",
+    "ETER##OBA",
+    "LOGO#GNU#",
+    "E#OKO#OSA"
+   ],
+   "solution": "NOWA SUKIENKA",
+   "personal": [
+    "UKULELE",
+    "URODZINY"
+   ]
+  },
+  {
+   "id": "p31",
+   "grid": [
+    "#STUK#OHO",
+    "L#OD#STAN",
+    "U#KARAOKE",
+    "BOA##N#E#",
+    "#BRAMKARZ",
+    "GAZ#LIS#A",
+    "E##ŻE###P",
+    "SĘP#KŁODA",
+    "T#ONO#NOS"
+   ],
+   "solution": "ZIELONA HERBATA",
+   "personal": [
+    "KARAOKE"
+   ]
+  },
+  {
+   "id": "p32",
+   "grid": [
+    "K#ŻE#MGŁA",
+    "L##GWAR#S",
+    "A#KOSMOS#",
+    "K#O#PASTA",
+    "SUSHI#ZA#",
+    "O#Z#NO#NA",
+    "NAUKA#A#Z",
+    "#KLĄĆ#LWY",
+    "ETAT#STYL"
+   ],
+   "solution": "PRZYTUL KOTKA",
+   "personal": [
+    "NAUKA",
+    "SUSHI"
+   ]
+  },
+  {
+   "id": "p33",
+   "grid": [
+    "E#UPROSIĆ",
+    "GAD#U#UL#",
+    "ONO#RAMEN",
+    "#A#ŻAL##O",
+    "#NIE#BUNT",
+    "#A##MOP#A",
+    "AS#TA#ALT",
+    "K#POSIŁEK",
+    "T##PYŁ#NA"
+   ],
+   "solution": "SŁODKIE SNY",
+   "personal": [
+    "RAMEN"
+   ]
+  },
+  {
+   "id": "p34",
+   "grid": [
+    "PO#TEŻ##T",
+    "I#ROK#CZY",
+    "EMU#IDEA#",
+    "RYM#POLKA",
+    "O##BAL#Ł#",
+    "GUMA#AGAT",
+    "IDOL#RADA",
+    "#KRET#BAK",
+    "POSTAWIĆ#"
+   ],
+   "solution": "DYŻUR W SZPITALU",
+   "personal": [
+    "GABI",
+    "PIEROGI"
+   ]
+  },
+  {
+   "id": "p35",
+   "grid": [
+    "A#PO#DWIE",
+    "SOL#TON##",
+    "#TACA#E#M",
+    "KOCYK#TOR",
+    "O##N#G##U",
+    "SPŁAWIK#G",
+    "ZA#MINUTA",
+    "#R#ON#RYĆ",
+    "KARNAWAŁ#"
+   ],
+   "solution": "WOLNY WEEKEND",
+   "personal": [
+    "KOCYK"
+   ]
+  },
+  {
+   "id": "p36",
+   "grid": [
+    "#HIT#URNA",
+    "#E#EURO#S",
+    "GRA#LOGO#",
+    "#B###KAWA",
+    "NAS#O#LOT",
+    "#TAJNY#CO",
+    "HALO##DOM",
+    "U#OGON#W#",
+    "KUNA#ANYŻ"
+   ],
+   "solution": "KOCHAM KITKATY",
+   "personal": [
+    "HERBATA",
+    "KAWA"
+   ]
+  },
+  {
+   "id": "p37",
+   "grid": [
+    "#POMOC###",
+    "##SEN#BIT",
+    "STAN#PULA",
+    "#Y#UPADEK",
+    "##A#OKO#I",
+    "ROK#KAWA#",
+    "ASTER#ALT",
+    "MY#MYĆ#BO",
+    "A#ŻUĆ#BON"
+   ],
+   "solution": "STARBUCKS",
+   "personal": [
+    "KAWA"
+   ]
+  },
+  {
+   "id": "p38",
+   "grid": [
+    "OCHRONA#O",
+    "NA##BOBAS",
+    "ARA#C#Y#I",
+    "##LWY##BO",
+    "USTA#OPAŁ",
+    "#Y#FAN#L#",
+    "ŚNIEG#OKO",
+    "##KLAKSON",
+    "NOS#T#ANI"
+   ],
+   "solution": "HACHI I HIPCIO",
+   "personal": [
+    "BALKON"
+   ]
+  },
+  {
+   "id": "p39",
+   "grid": [
+    "BIS#E#AS#",
+    "O#TAK#K#Ł",
+    "#POKRYWKA",
+    "PASTA#A#S",
+    "#N#ON#RAK",
+    "METR##ERA",
+    "ILE#ZALEW",
+    "A#NO#RANY",
+    "UL#DLA#A#"
+   ],
+   "solution": "DZIK I DRWAL",
+   "personal": [
+    "MIAU"
+   ]
+  },
+  {
+   "id": "p40",
+   "grid": [
+    "#JEŻ#K#UL",
+    "P#M##ON#I",
+    "OBU#GROSZ",
+    "CO#AWARIA",
+    "IKONA#KOK",
+    "S#BAR#AS#",
+    "KLON#G#T#",
+    "#ERA#NORA",
+    "KWAS#UDA#"
+   ],
+   "solution": "SESJA ZDANA",
+   "personal": [
+    "SIOSTRA"
+   ]
+  }
+ ]
+}
