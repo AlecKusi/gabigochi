@@ -1,0 +1,22 @@
+# Jedyne słowa dwuliterowe dozwolone w planszach (pospolite, rozpoznawalne).
+JA
+TY
+ON
+MY
+WY
+TO
+TA
+TE
+NA
+DO
+OD
+ZA
+PO
+BO
+ŻE
+CO
+NO
+AS
+UL
+OŚ
+IŁ
