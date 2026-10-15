@@ -381,7 +381,7 @@ export function startNumbers(letters: readonly (string | null)[], key: readonly 
   for (const ch of letters) if (ch) freq.set(ch, (freq.get(ch) ?? 0) + 1);
   const byFreq = [...key].sort((a, b) => (freq.get(b) ?? 0) - (freq.get(a) ?? 0) || (a < b ? -1 : a > b ? 1 : 0));
   const top = shuffle(byFreq.slice(0, 4), rng).slice(0, 2);
-  const middle = shuffle(byFreq.slice(4, Math.max(6, Math.ceil(byFreq.length * 0.6))), rng).slice(0, START_REVEALED - 2);
+  const middle = shuffle(byFreq.slice(4, Math.max(6, Math.ceil(byFreq.length * 0.6))), rng).slice(0, Math.max(0, START_REVEALED - 2));
   return [...top, ...middle].map((ch) => key.indexOf(ch) + 1);
 }
 
@@ -455,6 +455,7 @@ export function puzzleOrder(puzzles: readonly Puzzle[], round: number): Puzzle[]
  * jedyna nierozwiązana. Gdy wszystkie są rozwiązane — nowy obrót (inna kolejność, pusta lista).
  */
 export function nextPuzzle(puzzles: readonly Puzzle[], pr: Progress, skip?: string): { puzzle: Puzzle; progress: Progress } {
+  if (puzzles.length === 0) throw new Error('Pusty zestaw plansz');
   const done = new Set(pr.solved);
   let progress = pr;
   let open = puzzleOrder(puzzles, pr.round).filter((p) => !done.has(p.id));
@@ -495,6 +496,7 @@ export function readPuzzleSave(raw: unknown, puzzles: readonly Puzzle[]): Crypto
   if (!revealed.every((r, i) => !r || guesses[i] === base.key[i])) return null;
   if (!base.revealed.every((r, i) => !r || revealed[i])) return null;
   if (!Number.isInteger(hints) || (hints as number) < 0 || (hints as number) > MAX_HINTS) return null;
+  if (revealed.filter(Boolean).length !== base.revealed.filter(Boolean).length + (hints as number)) return null;
   const s: CryptoState = { ...base, guesses: guesses as (string | null)[], revealed: revealed as boolean[], hints: hints as number };
   return isSolved(s) ? null : s;
 }

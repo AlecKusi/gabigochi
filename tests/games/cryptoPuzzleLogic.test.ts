@@ -140,6 +140,10 @@ describe('plansza gazetowa: kolejność i postęp', () => {
     expect(nextPuzzle(ALL, { round: 0, solved: [order[0], order[1]] }, order[2]).puzzle.id).toBe(order[2]);
   });
 
+  it('pusty zestaw plansz to błąd', () => {
+    expect(() => nextPuzzle([], { round: 0, solved: [] })).toThrow();
+  });
+
   it('po rozwiązaniu wszystkich — nowy obrót od pustej listy', () => {
     const r = nextPuzzle(ALL, { round: 0, solved: ['t1', 't2', 't3'] });
     expect(r.progress).toEqual({ round: 1, solved: [] });
@@ -161,11 +165,12 @@ describe('plansza gazetowa: zapis trwającej planszy', () => {
   const played = () => {
     let s = puzzleState(P1);
     s = applyGuess(s, unsolvedNumbers(s)[0], freeLetter(s.key));
-    return hint(s, () => 0);
+    return hint(s, () => 0, unsolvedNumbers(s)[1]);
   };
 
   it('zapis i odczyt zachowują litery, odkrycia i podpowiedzi', () => {
     const s = played();
+    expect(s.guesses.some((g, i) => g !== null && !s.revealed[i])).toBe(true);
     expect(readPuzzleSave(writePuzzleSave(s), ALL)).toEqual(s);
   });
 
@@ -182,5 +187,33 @@ describe('plansza gazetowa: zapis trwającej planszy', () => {
     expect(readPuzzleSave(JSON.stringify({ ...raw, revealed: raw.revealed.map(() => false) }), ALL)).toBeNull();
     expect(readPuzzleSave(JSON.stringify({ ...raw, guesses: s.key }), ALL)).toBeNull();
     expect(readPuzzleSave(JSON.stringify({ ...raw, hints: MAX_HINTS + 1 }), ALL)).toBeNull();
+  });
+
+  it('liczba odkrytych = odkryte na start + podpowiedzi (dopisane ręcznie odkrycie → null)', () => {
+    const raw = JSON.parse(writePuzzleSave(played()));
+    const key = puzzleState(P1).key;
+    const i = raw.revealed.findIndex((r: boolean, k: number) => !r && raw.guesses[k] === null);
+    const revealed = [...raw.revealed];
+    const guesses = [...raw.guesses];
+    revealed[i] = true;
+    guesses[i] = key[i];
+    expect(readPuzzleSave(JSON.stringify({ ...raw, revealed, guesses }), ALL)).toBeNull();
+    // ta sama zmiana, ale z podpowiedzią doliczoną do licznika, jest poprawnym zapisem
+    expect(readPuzzleSave(JSON.stringify({ ...raw, revealed, guesses, hints: raw.hints + 1 }), ALL)).not.toBeNull();
+  });
+
+  it('odrzuca zapis z tą samą literą przy dwóch liczbach, błędną literą w odkrytej, złą długością i literą spoza alfabetu', () => {
+    const raw = JSON.parse(writePuzzleSave(played()));
+    const typed = raw.guesses.findIndex((g: string | null, k: number) => g !== null && !raw.revealed[k]);
+    const empty = raw.guesses.map((g: string | null, k: number) => (g === null && !raw.revealed[k] ? k : -1)).filter((k: number) => k >= 0);
+    const start = puzzleState(P1).revealed.indexOf(true);
+    const save = (patch: object) => readPuzzleSave(JSON.stringify({ ...raw, ...patch }), ALL);
+    const withGuess = (at: number, letter: string) => raw.guesses.map((g: string | null, k: number) => (k === at ? letter : g));
+
+    expect(save({})).not.toBeNull(); // punkt wyjścia jest poprawny
+    expect(save({ guesses: withGuess(empty[0], raw.guesses[typed]) })).toBeNull(); // ta sama litera dwa razy
+    expect(save({ guesses: withGuess(start, freeLetter([...raw.guesses, ...puzzleState(P1).key])) })).toBeNull(); // odkryta z inną literą
+    expect(save({ guesses: [...raw.guesses, null] })).toBeNull(); // zła długość (reszta bez zmian)
+    expect(save({ guesses: withGuess(empty[0], 'X') })).toBeNull(); // spoza alfabetu
   });
 });
