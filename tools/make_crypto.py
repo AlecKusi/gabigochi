@@ -221,6 +221,8 @@ def generate(count, seed):
     pool = [w for w in personal if len(w) <= MAX_RUN]
     if not pool:
         raise RuntimeError('brak słów osobistych do 8 liter')
+    if count > len(phrases):
+        raise RuntimeError(f'za mało haseł: {len(phrases)} < {count}')
     puzzles, used_phrases = [], set()
     tries = seed_tries = k = 0
     while len(puzzles) < count:
@@ -238,7 +240,7 @@ def generate(count, seed):
         if grid is None:
             continue
         solution = pick_solution(grid, phrases, used_phrases)
-        if solution is None:
+        if solution is None or solution in used_phrases:   # powtórzone hasło = nieudana próba
             continue
         # może być więcej niż jedno słowo osobiste (przypadkowe trafienia ze słownika) — to dopuszczalne
         found = sorted({''.join(grid[p] for p in run) for run in runs(grid)} & set(personal))
