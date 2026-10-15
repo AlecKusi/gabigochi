@@ -8,6 +8,8 @@ export interface Release {
   changes: readonly string[];
   /** Rzeczy dodane w tej wersji (id przedmiotów, tapet i podłóg, ubrań, jedzenia) — znaczek „NOWE” w sklepie i szafie. */
   items?: readonly string[];
+  /** Zapowiedź kolejnych zmian („W planach”) — w oknie „Co nowego?” tylko z najnowszej wersji. */
+  soon?: readonly string[];
 }
 
 /**
@@ -22,6 +24,7 @@ export const RELEASES: readonly Release[] = [
       'Nowa szyfrokrzyżówka jak z gazety: 40 plansz z ukrytymi hasłami o Gabi.',
       'Przycisk „Sprawdź” zaznacza błędne litery na czerwono.',
     ],
+    soon: ['Staramy się naprawić ubrania Gabi, dodać pory roku i kilka nowych rzeczy dla Gabi i Somerki!'],
   },
   { version: 1, date: '2026-10-10', changes: ['Pierwsza wersja Gabigochi. Wszystkiego najlepszego!'] },
 ];

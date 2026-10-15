@@ -8,7 +8,7 @@ import './styles/games.css';
 import { registerSW } from 'virtual:pwa-register';
 import { createApp, type App, type ScreenFactory, type ScreenName } from './app';
 import { claimBirthdayGift } from './core/birthday';
-import { markSeen, readSeenVersion, unseenReleases } from './core/changelog';
+import { RELEASES, markSeen, readSeenVersion, unseenReleases } from './core/changelog';
 import { CONFIG } from './core/config';
 import { claimDailyBonus } from './core/economy';
 import { applyElapsed } from './core/needs';
@@ -137,6 +137,8 @@ async function boot(): Promise<void> {
     addNew(localStorage, releaseItems(news));
     markSeen(localStorage);
     if (news.length > 0 && store.get().seenBirthday) showWhatsNew(app.root, news);
+    // podgląd okna „Co nowego?” przy tworzeniu gry: ?nowosci (najnowsza wersja, niezależnie od tego, co już widziane)
+    else if (import.meta.env.DEV && new URLSearchParams(location.search).has('nowosci')) showWhatsNew(app.root, RELEASES.slice(0, 1));
 
     if (loaded.recovered) app.toast('Nie udało się wczytać zapisu, zaczynamy od nowa.');
     else if (loaded.repaired) app.toast('Część mieszkania nie wczytała się — wróciła do ustawień początkowych.');
