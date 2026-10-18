@@ -16,7 +16,7 @@ pokoi widać opady, Gabi mówi o pogodzie, a w sklepie pojawiają się ozdoby se
 | Podłoga balkonu | z obrazka (śnieg, liście, płatki); wybór podłogi na balkonie znika |
 | Okna w pokojach | opady na szybie + odcień pogody; namalowany widok bez zmian |
 | Ozdoby sezonowe | do kupienia tylko w swojej porze roku, kupione zostają na zawsze |
-| Etapy | 1: tła, pogoda, długość dnia, okna, kwestie (wersja 3); 2: ozdoby, gdy będzie arkusz (wersja 4) |
+| Etapy | 1: tła, pogoda, długość dnia, okna, kwestie (wersja 3); 2: ozdoby sezonowe z 3 arkuszy (wersja 4) |
 
 ## Etap 1
 
@@ -128,17 +128,23 @@ Kiedy:
   w sklepie.
 - Przed wydaniem animacje pokazane użytkownikowi (podgląd), wypchnięcie tylko za zgodą.
 
-## Etap 2: ozdoby sezonowe (po arkuszu od użytkownika)
+## Etap 2: ozdoby sezonowe
 
-Arkusz: prompt B w `docs/prompty-pory-roku.md` → `assets/source/sheet-seasonal.*`, wycinanie jak dotychczas
-(`tools/frames.json`, `tools/extract_sprites.py`).
+Arkusze od użytkownika (2026-10-18), wycinanie jak dotychczas (`tools/frames.json`, `tools/extract_sprites.py`):
+- `assets/source/sheet-seasonal.jpg` — ozdoby z promptu B (1024×765);
+- `assets/source/sheet-autumn1.jpg` („Przedmioty i ozdoby jesienne”) i `assets/source/sheet-autumn2.jpg`
+  („Więcej przedmiotów i ozdób jesiennych”) — dodatkowe jesienne od użytkownika (po 1024×765).
+
+Ozdoby z promptu B (w arkuszu choinka zgaszona i zapalona to ta sama choinka — klatki „wyłączona/włączona”;
+„Choinka B” to inne drzewko, więc jest osobną rzeczą):
 
 | id | nazwa | pora | warstwa / kategoria | interakcja | cena |
 | --- | --- | --- | --- | --- | --- |
 | pumpkin | Dynia z buźką | jesień | podłoga / decor | lampka (klatka świecąca) | 60 |
-| apple_basket | Kosz jabłek i kasztanów | jesień | podłoga / decor | — | 50 |
+| apple_basket | Kosz jabłek | jesień | podłoga / decor | — | 50 |
 | leaf_garland | Girlanda z liści | jesień | ściana / decor | — | 70 |
-| xmas_tree | Choinka z lampkami | zima | podłoga / decor | lampka (klatki A/B migają) | 250 |
+| xmas_tree | Choinka z lampkami | zima | podłoga / decor | lampka (klatka zapalona; lampki migają w kodzie) | 250 |
+| xmas_tree_blue | Choinka z niebieskimi lampkami | zima | podłoga / decor | lampka (świeci; lampki migają w kodzie) | 230 |
 | snowman | Bałwanek | zima | podłoga / balcony | „Słodziak!” (`cute`) | 90 |
 | poinsettia | Gwiazda betlejemska | zima | podłoga / plant | podlewanie | 80 |
 | catkins | Bazie w wazonie | wiosna | podłoga / decor | — | 50 |
@@ -149,12 +155,28 @@ Arkusz: prompt B w `docs/prompty-pory-roku.md` → `assets/source/sheet-seasonal
 | flamingo | Dmuchany flaming | lato | podłoga / balcony | „Słodziak!” (`cute`) | 80 |
 | watermelon | Arbuz na talerzu | lato | podłoga / decor | — | 40 |
 
+Dodatkowe jesienne z arkuszy użytkownika — wszystkie bez powtórek (pominięte: dwie kolejne girlandy z liści,
+dwa dyniowe lampiony — jest już „Dynia z buźką” — i „Stroik jesienny”, bo jest „Wianek jesienny”). Wszystkie
+kupowane tylko jesienią; ceny 20–300 (małe dynie najtaniej, kominek najdrożej), dokładne w planie:
+
+| arkusz | rzeczy | interakcja |
+| --- | --- | --- |
+| autumn1 | Dynia, Dynia ozdobna, Dynia olbrzymia, Zestaw dyń, Kosz zbiorów, Kosz z szyszkami, Kukurydza (snopek), Strach na wróble | — |
+| autumn1 | Świeca w słoiku, Lampion jesienny, Kominek z dyniami | lampka; płomień migocze w kodzie |
+| autumn1 | Wrzosy w doniczce (jeden z dwóch wariantów) | podlewanie |
+| autumn2 | Dynia piżmowa, Patison, Kosz z kolbami kukurydzy, Zbiory warzyw, Słomiany chochoł, Kostki słomy i dynie, Jesienny kącik (słoma, chryzantemy, lampiony), Jesienny drogowskaz, Kosz z liśćmi | — |
+| autumn2 | Wianek jesienny (z kokardą; ściana) | — |
+| autumn2 | Ławka z kocem i poduszkami | jak ławka balkonowa (Gabi siada, jeśli ławka balkonowa to ma) |
+| autumn2 | Jesienne palenisko (balkon) | lampka; płomień migocze w kodzie |
+| autumn2 | Chryzantemy w garnku | podlewanie |
+
 - Pole `season` w metadanych przedmiotu (`frames.json` → `items.generated.json` → `ItemDef.season`).
 - Sklep: rzecz sezonowa widoczna tylko w swojej porze roku, ze znaczkiem „Tylko jesienią” (zimą, wiosną, latem);
   kupiona zostaje na zawsze (magazyn, stawianie bez ograniczeń).
-- Świecenie i ruch: dynia i choinka działają jak lampki (włączanie dotknięciem; włączone nie ciemnieją w nocy);
-  zapalona dynia — klatka świecąca, zapalona choinka — klatki A/B na zmianę; wiatrak — włączony kręci się
-  (klatki 1–3). Nowy mechanizm: klatki stanu „włączony” dla przedmiotów typu lampka.
+- Świecenie i ruch: dynie, choinki, świeca, lampion, kominek i palenisko działają jak lampki (włączanie
+  dotknięciem; włączone nie ciemnieją w nocy); zapalona dynia i choinka — klatka świecąca; lampki choinek migają,
+  a płomienie migoczą w kodzie (jasne piksele lampek/płomienia pulsują); wiatrak — włączony kręci się
+  (klatki 1–3). Nowy mechanizm: klatki stanu „włączony” i animacja „włączony” dla przedmiotów typu lampka.
 - `RELEASES` wersja 4 z `items` (znaczek „NOWE”).
 
 ## Testy
