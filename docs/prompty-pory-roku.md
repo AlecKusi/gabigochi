@@ -18,8 +18,16 @@ Co gra rysuje sama, więc **nie ma tego na obrazku**:
 - deszcz, śnieg, lecące liście i płatki (animacje w kodzie);
 - zapalone okna w nocy (zapalam je w kodzie na oknach z obrazka).
 
+**Obecny balkon jako wzór.** Gra rysuje balkon kodem, więc wyrenderowałem go do plików (powiększenie ×8):
+- `assets/source/balkon-obecny.png`: cały balkon tak jak w grze, w dzień (1024×1280);
+- `assets/source/balkon-obecny-widok.png`: sam widok nad podłogą, czyli dokładnie obszar nowego tła (1024×1024);
+- `assets/source/balkon-szablon.png`: ten sam widok z niebem w kolorze #FF00FF, czyli format, w jakim ma wyjść
+  nowe tło. Budynki mogą być wyższe i ładniejsze niż w szablonie. Dolne 20% obrazka zasłania balustrada, widać je
+  tylko między szczebelkami.
+
 **Kolejność:**
-1. Najpierw wygeneruj **lato**. Dołącz `assets/source/sheet-balcony1.jpg` jako wzór stylu.
+1. Najpierw wygeneruj **lato**. Dołącz `assets/source/balkon-szablon.png` (układ) i
+   `assets/source/sheet-balcony1.jpg` (wzór stylu).
 2. Potem jesień, zimę i wiosnę jako **edycję obrazka letniego**. Dołącz gotowe lato i napisz, że układ ma zostać
    identyczny. Wtedy budynki i drzewo będą w tych samych miejscach we wszystkich porach roku.
 
@@ -28,7 +36,9 @@ Co gra rysuje sama, więc **nie ma tego na obrazku**:
 ```
 Pixel art background for a cozy tamagotchi-style mobile game: the view from a 4th-floor balcony of an apartment
 block in a Polish city, looking out over the neighbourhood. Same pixel-art style as the attached reference sheet
-(soft colours, dark outlines on near objects, limited palette).
+(soft colours, dark outlines on near objects, limited palette). The attached magenta layout image shows the
+current, very simple version of this view: keep its idea (city skyline at the bottom, flat magenta sky) but make
+it much richer and prettier.
 
 Composition (square image, 1:1):
 - The SKY must be one flat solid magenta colour (#FF00FF) everywhere above the buildings and around the tree:
@@ -40,6 +50,8 @@ Composition (square image, 1:1):
 - One big tree on the LEFT side, close to the balcony: trunk from the bottom edge, crown roughly between 30% and
   70% of the image height, covering about the left third of the image. Leave the upper-right area completely empty
   sky (the game puts the sun and the moon there).
+- The bottom 20% of the image will be hidden behind the game's balcony railing (seen only between its bars), so
+  keep the important details above that line.
 - Nothing in the foreground: no balcony railing, no balcony floor, no roof edge, no people, no cars, no text,
   no frame, no signature.
 - Crisp pixel art on a consistent grid: 128 x 128 art pixels (every art pixel = 8x8 image pixels in a 1024x1024
