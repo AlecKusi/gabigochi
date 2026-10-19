@@ -1,4 +1,5 @@
 import { dayPhase, type DayPhase } from './daytime';
+import { seasonNow, weatherNow, type Season, type Weather } from './season';
 
 /**
  * Zegar gry = zegar telefonu. Zegar ścienny ma okienko nieba z porą dnia (klatki `wall_clock_<pora>`) i wskazówki
@@ -57,7 +58,17 @@ export const PHASE_ICON: Readonly<Record<DayPhase, 'sunrise' | 'sun' | 'sunset' 
   night: 'moon',
 };
 
-/** Godzina i pora dnia naraz (pasek, kwestia Gabi). */
-export function clockNow(d: Date): { text: string; phase: DayPhase } {
-  return { text: clockText(d), phase: dayPhase(d) };
+/** Ikonka pogody na pasku (pogodnie — bez ikonki: słońce/księżyc pokazuje już pora dnia). */
+export const WEATHER_ICON: Readonly<Record<Weather, 'weather_cloud' | 'weather_rain' | 'weather_storm' | 'weather_snow' | 'weather_frost' | null>> = {
+  sunny: null,
+  cloudy: 'weather_cloud',
+  rain: 'weather_rain',
+  storm: 'weather_storm',
+  snow: 'weather_snow',
+  frost: 'weather_frost',
+};
+
+/** Godzina, pora dnia, pora roku i pogoda naraz (pasek, kwestia Gabi). */
+export function clockNow(d: Date): { text: string; phase: DayPhase; season: Season; weather: Weather } {
+  return { text: clockText(d), phase: dayPhase(d), season: seasonNow(d), weather: weatherNow(d) };
 }

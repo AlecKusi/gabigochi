@@ -44,9 +44,9 @@ import { clampRoomX, createPetDrag } from '../petDrag';
 import { createPixelStage, deviceRect, drawSprite } from '../pixelStage';
 import { play, step, type Sfx, type StepSurface } from '../sound';
 import { showTips } from '../tips';
-import { PHASE_ICON, clockNow, gameClock } from '../../home/clock';
+import { PHASE_ICON, WEATHER_ICON, clockNow, gameClock } from '../../home/clock';
 import { PHASE_NAMES, dayPhase, eveningProgress, type DayPhase } from '../../home/daytime';
-import { seasonNow, weatherNow } from '../../home/season';
+import { SEASON_NAMES, WEATHER_NAMES, seasonNow, weatherNow, type Weather } from '../../home/season';
 import { flashSlot } from '../../home/weatherFx';
 import { preloadBackdrops } from '../home/balconyBackdrop';
 import { reducedMotion } from '../transition';
@@ -269,6 +269,7 @@ export function roomScreen(app: App): Screen {
   };
   // zegarek z porą dnia (godzina z telefonu — ta sama co za oknami i na zegarze ściennym)
   const clockIcon = h('span', { class: 'clock-icon' });
+  const weatherIcon = h('span', { class: 'clock-icon' });
   const clockTime = h('span', { class: 'clock-time' });
   const clockPill = h(
     'button',
@@ -277,24 +278,37 @@ export function roomScreen(app: App): Screen {
       onclick: () => {
         const c = clockNow(gameClock());
         play('tap');
-        app.toast(`${PHASE_NAMES[c.phase]} · ${c.text}`);
+        app.toast(`${PHASE_NAMES[c.phase]} · ${c.text} · ${SEASON_NAMES[c.season]}, ${WEATHER_NAMES[c.weather]}`);
       },
     },
     clockIcon,
+    weatherIcon,
     clockTime,
   );
   let shownClock = '';
   let shownPhase: DayPhase | null = null;
+  let shownWeather: Weather | null = null;
   function syncClock(): void {
     const c = clockNow(gameClock());
+    if (c.text !== shownClock || c.weather !== shownWeather) {
+      clockPill.setAttribute(
+        'aria-label',
+        `Godzina ${c.text}, ${PHASE_NAMES[c.phase].toLowerCase()}, ${SEASON_NAMES[c.season].toLowerCase()}, ${WEATHER_NAMES[c.weather]}`,
+      );
+    }
     if (c.text !== shownClock) {
       shownClock = c.text;
       clockTime.textContent = c.text;
-      clockPill.setAttribute('aria-label', `Godzina ${c.text}, ${PHASE_NAMES[c.phase].toLowerCase()}`);
     }
     if (c.phase !== shownPhase) {
       shownPhase = c.phase;
       clockIcon.replaceChildren(icon(PHASE_ICON[c.phase], 2));
+    }
+    if (c.weather !== shownWeather) {
+      shownWeather = c.weather;
+      const name = WEATHER_ICON[c.weather];
+      weatherIcon.replaceChildren(...(name ? [icon(name, 2)] : []));
+      weatherIcon.hidden = name === null;
     }
   }
   syncClock();

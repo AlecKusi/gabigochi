@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CLOCK_FACE, PHASE_ICON, WALL_CLOCK, clockNow, clockText, handAngles } from '../../src/home/clock';
+import { CLOCK_FACE, PHASE_ICON, WALL_CLOCK, WEATHER_ICON, clockNow, clockText, handAngles } from '../../src/home/clock';
 import { findItem, itemFrames } from '../../src/home/catalog';
 import { interactionSteps } from '../../src/home/interactionPlan';
 import { content } from '../../src/content';
@@ -68,5 +68,19 @@ describe('podgląd innej pory dnia', () => {
     expect(clockText(gameClock(now))).toBe('7:30');
     setClockOverride(null);
     expect(gameClock(now).getTime()).toBe(now);
+  });
+});
+
+describe('pogoda przy zegarze', () => {
+  it('clockNow podaje porę roku i pogodę; ikonka dla każdej pogody poza pogodną (wtedy jest słońce/księżyc pory dnia)', () => {
+    const c = clockNow(new Date(2026, 9, 19, 12, 0));
+    expect(c.season).toBe('autumn');
+    expect(['sunny', 'cloudy', 'rain']).toContain(c.weather);
+    expect(WEATHER_ICON.sunny).toBeNull();
+    for (const w of ['cloudy', 'rain', 'storm', 'snow', 'frost'] as const) {
+      const name = WEATHER_ICON[w];
+      expect(name, w).not.toBeNull();
+      expect(ICONS[name!], w).toBeDefined();
+    }
   });
 });

@@ -53,6 +53,7 @@
   cursor: pointer;
 }
 .clock-icon { display: inline-flex; }
+.clock-icon[hidden] { display: none; }
 .coin-pill.bump { animation: bump 300ms cubic-bezier(.3, 1.8, .5, 1); }
 
 .need { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-light); }
