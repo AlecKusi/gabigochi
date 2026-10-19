@@ -81,6 +81,8 @@ describe('pogoda przy zegarze', () => {
       const name = WEATHER_ICON[w];
       expect(name, w).not.toBeNull();
       expect(ICONS[name!], w).toBeDefined();
+      expect(ICONS[name!].length, `${w}: wysokość`).toBe(12);
+      expect(ICONS[name!].every((row) => row.length === 12), `${w}: szerokość`).toBe(true);
     }
   });
 });

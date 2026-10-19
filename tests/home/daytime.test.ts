@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { PHASE_STARTS, WINDOW_PHASE_TINT, dayPhase, eveningProgress } from '../../src/home/daytime';
+import { PHASE_STARTS, WINDOW_PHASE_TINT, dayPhase, eveningProgress, isBedtime } from '../../src/home/daytime';
 import { setSeasonOverride } from '../../src/home/season';
 
 const at = (h: number) => new Date(2026, 9, 9, h, 30);
@@ -60,5 +60,22 @@ describe('pora dnia wg pory roku', () => {
   it('podgląd pory roku zmienia długość dnia', () => {
     setSeasonOverride('zima');
     expect(dayPhase(on(10, 9, 16))).toBe('evening');
+  });
+});
+
+describe('pora snu', () => {
+  it('od 21:00 do 6:00 — pora snu; o 20:59 jeszcze nie, o 6:00 już nie', () => {
+    expect(isBedtime(on(10, 9, 20, 59))).toBe(false);
+    expect(isBedtime(on(10, 9, 21, 0))).toBe(true);
+    expect(isBedtime(on(10, 9, 0, 0))).toBe(true);
+    expect(isBedtime(on(10, 9, 5, 59))).toBe(true);
+    expect(isBedtime(on(10, 9, 6, 0))).toBe(false);
+  });
+
+  it('nie zależy od pory roku: zimą o 18:00 jest noc, ale to jeszcze nie pora spać; latem o 21:00 wieczór, ale już pora spać', () => {
+    expect(dayPhase(on(1, 10, 18))).toBe('night');
+    expect(isBedtime(on(1, 10, 18))).toBe(false);
+    expect(dayPhase(on(7, 10, 21))).toBe('evening');
+    expect(isBedtime(on(7, 10, 21))).toBe(true);
   });
 });

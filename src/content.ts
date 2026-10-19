@@ -28,13 +28,14 @@ const seasonLines: {
     frost: ['Mróz szczypie w nos!', 'Szron na szybach!'],
   },
   catWeather: {
+    sunny: ['{kot} wygrzewa się w słoneczku.'],
     snow: ['{kot} chce łapać płatki za szybą!'],
     rain: ['{kot} patrzy na krople na szybie.'],
     storm: ['{kot} chowa się pod łóżkiem!'],
   },
   catSeason: {
     spring: ['{kot} kicha od kwiatków!'],
-    summer: ['{kot} wygrzewa się w słoneczku.'],
+    summer: ['{kot} szuka chłodnego kąta.'],
     autumn: ['{kot} poluje na liście!'],
   },
 };
@@ -126,8 +127,8 @@ export const content = {
     clockDay: ['Jest {czas}.', '{czas} — dzień w pełni!', 'Dopiero {czas}, jeszcze dużo dnia!'],
     clockEvening: ['Jest {czas}, robi się wieczór.', '{czas} — zachód słońca!', 'Już {czas}, czas na relaks.'],
     clockNight: ['Jest {czas}… pora spać!', '{czas}?! Trzeba iść do łóżka.', 'Już {czas}, dobranoc!'],
-    // noc wg pory roku, ale jeszcze nie pora spać (zimą od 17:00) — {czas} to godzina z telefonu
-    clockDark: ['Jest {czas}, a już ciemno!', '{czas} — za oknem już noc.', 'Już {czas}, księżyc świeci!'],
+    // noc wg pory roku, ale nie pora spać (zimą wieczorem od 17:00 i rano 6–7) — {czas} to godzina z telefonu
+    clockDark: ['Jest {czas}, a za oknem ciemno!', '{czas} — za oknem noc.', '{czas} — księżyc na niebie!'],
     toilet: ['Pssst!'],
     shower: ['Czas na prysznic!', 'Ciepła woda!'],
     showerDone: ['Świeżutka!', 'Pachnę jak kwiatuszek!'],
@@ -154,7 +155,7 @@ export const content = {
     fridge: ['Co by tu zjeść…', 'Zajrzyjmy do lodówki!'],
     cook: ['Gotuję coś pysznego!', 'Mmm, ale pachnie!', 'Szefowa kuchni Gabi!'],
     catfood: ['{kot}, jedzonko!', 'Smacznego, {kot}!'],
-    catHungry: ['{kot} jest głodny…', 'Trzeba nakarmić {kot}!', 'Miau? {kot} prosi o jedzenie.'],
+    catHungry: ['{kot} chce jeść…', 'Czas nakarmić kotka — {kot} czeka!', 'Miau? {kot} prosi o jedzenie.'],
     cookLater: ['Na razie wystarczy gotowania!', 'Lodówka pełna, ugotuję coś później.'],
     plantsThirsty: ['Kwiatki chcą pić!', 'Podlejemy kwiatki?'],
     noSeat: ['Brakuje mi siedziska…'],

@@ -26,6 +26,11 @@ export function dayPhase(d: Date): DayPhase {
   return 'night';
 }
 
+/** Pora snu Gabi (21:00–6:00) — niezależna od pory roku (okna i tło idą wg `dayPhase`). */
+export function isBedtime(d: Date): boolean {
+  return d.getHours() >= 21 || d.getHours() < 6;
+}
+
 /** Jak daleko w zmierzch: 0 — rano i w dzień, 1 — w nocy, wieczorem rośnie od 0 do 1 (przejście tła balkonu). */
 export function eveningProgress(d: Date): number {
   const s = PHASE_STARTS[seasonNow(d)];

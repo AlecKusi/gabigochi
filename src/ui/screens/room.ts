@@ -21,7 +21,7 @@ import { ACTIVITIES, ACTIVITY_IDS, type ActivityId } from '../../pet/activities'
 import { animationName, createBrain, pickEmote, stepBrain, triggerBrain, wakeBrain, type Brain } from '../../pet/brain';
 import { SHADOW_COLOR, shadowRect } from '../../pet/petRenderer';
 import { FEET_Y, ROOM_H, ROOM_W } from '../../pet/room';
-import { clockLines, greetingLine, pick, pickLine, windowLine } from '../../pet/speech';
+import { clockLinesAt, greetingLine, pick, pickLine, windowLine } from '../../pet/speech';
 import { ANGRY_TAPS, SUGAR_RUSH, avatarFor, countRecent, statusAnimation, type StatusAnim } from '../../pet/status';
 import { ANIMATIONS, frameAt, resolveAnimation } from '../../sprites/animations';
 import { DISPLAY_HEIGHT, FRAMES, type FrameMeta } from '../../sprites/loader';
@@ -45,7 +45,7 @@ import { createPixelStage, deviceRect, drawSprite } from '../pixelStage';
 import { play, step, type Sfx, type StepSurface } from '../sound';
 import { showTips } from '../tips';
 import { PHASE_ICON, WEATHER_ICON, clockNow, gameClock } from '../../home/clock';
-import { PHASE_NAMES, dayPhase, eveningProgress, type DayPhase } from '../../home/daytime';
+import { PHASE_NAMES, dayPhase, eveningProgress, isBedtime, type DayPhase } from '../../home/daytime';
 import { SEASON_NAMES, WEATHER_NAMES, seasonNow, weatherNow, type Weather } from '../../home/season';
 import { flashSlot } from '../../home/weatherFx';
 import { preloadBackdrops } from '../home/balconyBackdrop';
@@ -76,8 +76,6 @@ const ON_TOP = ROOM_H * 2;
 const ITEM_TAP_SLOP = 12;
 /** Szansa, że pogawędka przy spragnionej roślinie będzie o kwiatkach. */
 const PLANT_NAG_CHANCE = 0.5;
-/** Pora snu wg zegara (21–6) — nie zależy od pory roku (okno i tło idą wg `dayPhase`). */
-const isNightHour = (d: Date) => d.getHours() >= 21 || d.getHours() < 6;
 /** Poniżej tej energii stuknięcie kanapy to drzemka, a nie szydełko. */
 const NAP_ENERGY = 60;
 /** Identyfikator kotka w interakcjach (nie jest przedmiotem z pokoju). */
@@ -599,8 +597,8 @@ export function roomScreen(app: App): Screen {
     const now = Date.now();
     if (key === 'calendar') return `Dziś Dzień ${dayNumber(store.get().createdAt, now)}!`;
     if (key === 'clock') {
-      const c = clockNow(gameClock(now));
-      return pick(clockLines(c.phase, isNightHour(gameClock(now)))).split('{czas}').join(c.text);
+      const d = gameClock(now);
+      return pick(clockLinesAt(d)).split('{czas}').join(clockNow(d).text);
     }
     if (key === 'window') {
       const d = gameClock(now);
@@ -690,7 +688,7 @@ export function roomScreen(app: App): Screen {
     const steps = it && kind
       ? interactionSteps(kind, {
           hasRail: hasTowelRail(items),
-          night: isNightHour(gameClock()),
+          night: dayPhase(gameClock()) === 'night',
           variant: Math.random(),
           energy: store.get().needs.energy,
           itemStates: Object.keys(itemFrames(it.itemId)),
@@ -1409,7 +1407,7 @@ export function roomScreen(app: App): Screen {
           say(withAge(pick(content.lines.birthdayToday), Date.now()));
         } else {
           const d = gameClock();
-          say(withCat(pickLine(s.needs, Math.random, { season: seasonNow(d), weather: weatherNow(d) })));
+          say(withCat(pickLine(s.needs, Math.random, { season: seasonNow(d), weather: weatherNow(d), night: dayPhase(d) === 'night' })));
         }
       } else {
         // codzienna mina: ziewanie, nuda, zamyślenie, pomysł, przeciąganie, śmiech
@@ -1428,7 +1426,8 @@ export function roomScreen(app: App): Screen {
   const unsubscribe = store.subscribe(sync);
   if (!s0.sleeping) {
     brain = triggerBrain(brain, 'wave', performance.now());
-    say(greetingLine(weatherNow(gameClock())), 2400);
+    const d = gameClock();
+    say(withCat(greetingLine(weatherNow(d), dayPhase(d) === 'night')), 2400);
   }
   raf = requestAnimationFrame(frame);
   // samouczek przy pierwszym wejściu do pokoju (po ekranie urodzinowym); wyjście z pokoju — wraca w tym samym miejscu
