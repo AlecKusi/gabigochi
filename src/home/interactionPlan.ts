@@ -143,6 +143,7 @@ export function interactionSteps(kind: Interaction, ctx: PlanCtx): InteractionSt
         { ms: 4000, item: null, gabi: at(['lie_phone_1', 'lie_phone_2'], 0.8, 'lie'), line: 'relaxPhone' },
       ];
     case 'lamp':
+    case 'switch':
       return [{ ms: 600, item: null, gabi: IDLE }];
     case 'calendar':
       return [{ ms: 2200, item: null, gabi: { kind: 'frames', frames: ['fun_talk'], fps: 1 }, line: 'calendar' }];
@@ -372,12 +373,13 @@ export function rewardInteraction(state: GameState, uid: string, kind: Interacti
   return { state: markReward(next, uid, now), rewarded: true };
 }
 
-/** Zapala/gasi lampkę (stan zapamiętany w układzie pokoju). */
+/** Zapala/gasi lampkę albo włącza/wyłącza urządzenie (wiatrak); stan zapamiętany w układzie pokoju. */
 export function toggleLamp(state: GameState, room: RoomId, uid: string): HomeOutcome {
   const r = state.rooms[room];
   const it = r.items.find((i) => i.uid === uid);
   if (!it) return { ok: false, reason: 'not-found' };
-  if (findItem(it.itemId)?.interaction !== 'lamp') return { ok: false, reason: 'unknown-item' };
+  const kind = findItem(it.itemId)?.interaction;
+  if (kind !== 'lamp' && kind !== 'switch') return { ok: false, reason: 'unknown-item' };
   return {
     ok: true,
     state: { ...state, rooms: { ...state.rooms, [room]: { ...r, items: r.items.map((i) => (i.uid === uid ? { ...i, lampOn: !i.lampOn } : i)) } } },

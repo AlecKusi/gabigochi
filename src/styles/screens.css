@@ -140,6 +140,7 @@ img.px.avatar.crisp { image-rendering: pixelated; image-rendering: crisp-edges; 
 .shop-body.settled .shop-card { animation: none; }
 .shop-card strong { font-size: 15px; line-height: 1.15; min-height: 2.3em; display: flex; align-items: center; }
 .shop-card small { color: var(--text-soft); font-size: 12px; min-height: 2.3em; }
+.shop-card .season-tag { color: var(--accent-2); font-weight: 700; }
 .shop-card .px-btn { margin-top: auto; align-self: stretch; font-size: 15px; padding: 8px 4px; }
 .shop-thumb { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; }
 .shop-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }

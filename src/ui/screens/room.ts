@@ -235,6 +235,7 @@ const CAT_BED_LIFT: Readonly<Record<string, number>> = {
   armchair_cozy: 11, armchair_bunny: 11, armchair_gothic: 11, armchair_wingback: 11,
   // balkon
   rattan_bench: 12, sun_lounger: 9, rattan_armchair: 11, egg_chair: 11, outdoor_pouf: 7, floor_cushions: 4,
+  blanket_bench: 10,
 };
 function catBeds(items: readonly PlacedItem[]): CatBed[] {
   // łapki kota na wysokości siedziska: linia dolna mebla minus wysokość siedziska, liczona od linii kota
@@ -697,8 +698,8 @@ export function roomScreen(app: App): Screen {
       : null;
     if (!it || !kind || !steps) return;
     brain = { ...brain, action: 'idle', targetX: brain.x, facing: it.x < brain.x ? 'left' : 'right' };
-    if (kind === 'lamp') play('click');
-    if (kind === 'lamp') store.update((s) => {
+    if (kind === 'lamp' || kind === 'switch') play('click');
+    if (kind === 'lamp' || kind === 'switch') store.update((s) => {
       const r = toggleLamp(s, viewRoom, it.uid);
       return r.ok ? r.state : s;
     });

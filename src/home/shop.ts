@@ -1,6 +1,7 @@
 import type { GameState } from '../core/types';
 import { CATALOG, SHOP_CATEGORIES, type ItemDef, type ShopCategory } from './catalog';
 import { LOOKS, type LookDef, type LookKind } from './looks';
+import type { Season } from './season';
 
 export interface ItemCounts {
   /** Sztuki w magazynie (kupione, niepostawione). */
@@ -26,10 +27,18 @@ export function countsLabel(c: ItemCounts): string {
   return parts.length ? parts.join(' · ') : 'Jeszcze nie masz';
 }
 
-/** Przedmioty kategorii sklepu w kolejności katalogu (bez przedmiotów specjalnych). */
-export function shopItems(category: ShopCategory): ItemDef[] {
-  return CATALOG.filter((d) => !d.special && d.category === category);
+/** Przedmioty kategorii sklepu w kolejności katalogu (bez specjalnych); sezonowe — tylko w swojej porze roku. */
+export function shopItems(category: ShopCategory, season?: Season): ItemDef[] {
+  return CATALOG.filter((d) => !d.special && d.category === category && (!d.season || d.season === season));
 }
+
+/** Znaczek na kafelku rzeczy sezonowej. */
+export const SEASON_ONLY: Readonly<Record<Season, string>> = {
+  spring: 'Tylko wiosną',
+  summer: 'Tylko latem',
+  autumn: 'Tylko jesienią',
+  winter: 'Tylko zimą',
+};
 
 /** Tapety albo podłogi w kolejności `LOOKS`; `null` dla kategorii przedmiotów. */
 export function shopLooks(category: ShopCategory): LookDef[] | null {

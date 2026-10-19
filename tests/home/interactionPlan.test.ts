@@ -10,7 +10,7 @@ const NOW = new Date(2026, 9, 6, 12).getTime();
 const HOUR = 3_600_000;
 
 /** Przedmiot, którego klatki stanów używa dana interakcja. */
-const ITEM_OF: Record<string, string> = { toilet: 'toilet', shower: 'shower', bath: 'bathtub', sink: 'sink' };
+const ITEM_OF: Record<string, string> = { toilet: 'toilet', shower: 'shower', bath: 'bathtub', sink: 'sink', switch: 'fan' };
 
 describe('kroki interakcji', () => {
   it('zajęcia i przedmioty bez interakcji nie mają kroków', () => {

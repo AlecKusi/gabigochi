@@ -4,6 +4,7 @@ import {
   itemSize,
 } from '../../src/home/catalog';
 import meta from '../../src/home/items.generated.json';
+import { SEASONS } from '../../src/home/season';
 
 describe('katalog przedmiotów', () => {
   it('ma ~60+ przedmiotów z unikalnymi id', () => {
@@ -170,5 +171,30 @@ describe('katalog przedmiotów', () => {
   it('nazwy przedmiotów sklepu są unikalne', () => {
     const names = CATALOG.map((d) => d.name);
     expect(names.filter((n, i) => names.indexOf(n) !== i)).toEqual([]);
+  });
+});
+
+describe('ozdoby sezonowe', () => {
+  const seasonal = CATALOG.filter((d) => d.season !== undefined);
+
+  it('39 rzeczy sezonowych: 28 jesiennych, 4 zimowe, 3 wiosenne, 4 letnie; pora roku znana', () => {
+    expect(seasonal).toHaveLength(39);
+    for (const d of seasonal) expect(SEASONS, d.id).toContain(d.season);
+    const count = (s: string) => seasonal.filter((d) => d.season === s).length;
+    expect([count('autumn'), count('winter'), count('spring'), count('summer')]).toEqual([28, 4, 3, 4]);
+  });
+
+  it('świecące są lampkami, wiatrak przełącznikiem z 3 klatkami śmigła, dynia i choinka mają klatkę zapaloną', () => {
+    for (const id of ['pumpkin', 'xmas_tree', 'xmas_tree_blue', 'jar_candle', 'autumn_lantern', 'fireplace', 'fire_pit']) {
+      expect(itemById(id).interaction, id).toBe('lamp');
+    }
+    expect(itemById('fan').interaction).toBe('switch');
+    expect(Object.keys(itemFrames('fan')).sort()).toEqual(['spin_2', 'spin_3']);
+    expect(itemFrames('pumpkin').lit).toBeDefined();
+    expect(itemFrames('xmas_tree').lit).toBeDefined();
+  });
+
+  it('rośliny sezonowe się podlewa', () => {
+    for (const id of ['poinsettia', 'heather', 'mum_pot']) expect(itemById(id).interaction, id).toBe('water');
   });
 });

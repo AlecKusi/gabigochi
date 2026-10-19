@@ -7,8 +7,8 @@ export const STUDY_DESK = 'writing_desk';
 /** Kanapy: Gabi szydełkuje na nich albo — zmęczona — ucina sobie drzemkę. */
 export const SOFAS: readonly string[] = [
   'sofa_cozy', 'sofa_kawaii', 'sofa_gothic', 'sofa_leather', 'loveseat',
-  // balkon: rattanowa ławka i leżak (też leżenie i drzemka)
-  'rattan_bench', 'sun_lounger',
+  // balkon: rattanowa ławka i leżak (też leżenie i drzemka), jesienna ławka z kocem
+  'rattan_bench', 'sun_lounger', 'blanket_bench',
 ];
 /** Siedziska, na których Gabi szydełkuje (siedzi na meblu, mebel zostaje widoczny). */
 export const SEATS: readonly string[] = [

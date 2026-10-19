@@ -2,9 +2,11 @@ import type { App, Screen } from '../../app';
 import { FOODS, type FoodDef } from '../../core/config';
 import { buyFood, priceOf } from '../../core/economy';
 import { SHOP_CATEGORIES, type ItemDef, type ShopCategory } from '../../home/catalog';
+import { gameClock } from '../../home/clock';
 import { buyItem, buyLook, type HomeError } from '../../home/layout';
 import type { LookDef } from '../../home/looks';
-import { DEFAULT_SHOP_CATEGORY, countsLabel, itemCounts, shopItems, shopLooks, thumbScale } from '../../home/shop';
+import { seasonNow } from '../../home/season';
+import { DEFAULT_SHOP_CATEGORY, SEASON_ONLY, countsLabel, itemCounts, shopItems, shopLooks, thumbScale } from '../../home/shop';
 import { h, icon } from '../dom';
 import { itemUrl } from '../home/itemSprites';
 import { lookSwatch } from '../home/lookSwatch';
@@ -23,8 +25,9 @@ export function shopScreen(app: App): Screen {
   const body = h('div', { class: 'shop-body' });
   let tab: Tab = 'food';
   let category: ShopCategory = DEFAULT_SHOP_CATEGORY;
+  const season = seasonNow(gameClock());
   const marks = newMarks();
-  const categoryIds = (c: ShopCategory): string[] => (shopLooks(c) ?? shopItems(c)).map((x) => x.id);
+  const categoryIds = (c: ShopCategory): string[] => (shopLooks(c) ?? shopItems(c, season)).map((x) => x.id);
 
   const tabButton = (label: string, id: Tab) =>
     h('button', { class: 'tab', role: 'tab', 'aria-selected': 'false', 'data-tab': id, onclick: () => { tab = id; render(); } }, label);
@@ -118,6 +121,7 @@ export function shopScreen(app: App): Screen {
         }),
       ),
       h('strong', {}, def.name),
+      def.season ? h('small', { class: 'season-tag' }, SEASON_ONLY[def.season]) : null,
       h('small', {}, countsLabel(counts)),
       buy,
     );
@@ -181,7 +185,7 @@ export function shopScreen(app: App): Screen {
       b.setAttribute('aria-selected', String(active));
     });
     const looks = shopLooks(category);
-    const cards = looks ? looks.map(lookCard) : shopItems(category).map(itemCard);
+    const cards = looks ? looks.map(lookCard) : shopItems(category, season).map(itemCard);
     const scroll = keepScroll ? body.scrollTop : 0;
     body.replaceChildren(chips, h('div', { class: 'shop-grid' }, ...cards));
     body.scrollTop = scroll;

@@ -3,7 +3,8 @@ import { createState } from '../../src/core/state';
 import type { GameState, PlacedItem } from '../../src/core/types';
 import { CATALOG, SHOP_CATEGORIES } from '../../src/home/catalog';
 import { LOOKS } from '../../src/home/looks';
-import { DEFAULT_SHOP_CATEGORY, countsLabel, itemCounts, shopItems, shopLooks, thumbScale } from '../../src/home/shop';
+import { DEFAULT_SHOP_CATEGORY, SEASON_ONLY, countsLabel, itemCounts, shopItems, shopLooks, thumbScale } from '../../src/home/shop';
+import { SEASONS } from '../../src/home/season';
 
 const T0 = new Date(2026, 9, 6, 12).getTime();
 const placed = (itemId: string, uid: string): PlacedItem => ({ uid, itemId, x: 64, y: 144, flip: false });
@@ -41,11 +42,21 @@ describe('shopItems / shopLooks', () => {
     expect(DEFAULT_SHOP_CATEGORY).toBe(SHOP_CATEGORIES[0].id);
   });
 
-  it('każda kategoria przedmiotów ma wpisy, a wszystkie przedmioty trafiają do jakiejś kategorii', () => {
+  it('każda kategoria przedmiotów ma wpisy, a każdy przedmiot jest w sklepie w jakiejś porze roku', () => {
     const itemCats = SHOP_CATEGORIES.filter((c) => c.id !== 'wallpaper' && c.id !== 'floor');
-    for (const c of itemCats) expect(shopItems(c.id).length).toBeGreaterThan(0);
-    const total = itemCats.reduce((n, c) => n + shopItems(c.id).length, 0);
-    expect(total).toBe(CATALOG.filter((d) => !d.special).length);
+    for (const c of itemCats) expect(shopItems(c.id, 'spring').length).toBeGreaterThan(0);
+    const seen = new Set<string>();
+    for (const s of SEASONS) for (const c of itemCats) for (const d of shopItems(c.id, s)) seen.add(d.id);
+    expect(seen.size).toBe(CATALOG.filter((d) => !d.special).length);
+  });
+
+  it('sezonowe tylko w swojej porze roku, całoroczne zawsze', () => {
+    expect(shopItems('decor', 'autumn').map((d) => d.id)).toContain('pumpkin');
+    expect(shopItems('decor', 'winter').map((d) => d.id)).not.toContain('pumpkin');
+    expect(shopItems('decor', 'winter').map((d) => d.id)).toContain('xmas_tree');
+    expect(shopItems('furniture', 'summer').map((d) => d.id)).toContain('fan');
+    for (const s of SEASONS) expect(shopItems('gaming', s).map((d) => d.id)).toContain('pc_desk');
+    expect(SEASON_ONLY.autumn).toBe('Tylko jesienią');
   });
 
   it('kategorie przedmiotów nie zwracają wyglądów, a tapety i podłogi — tylko swój rodzaj', () => {

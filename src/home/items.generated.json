@@ -2830,7 +2830,7 @@
     "category": "decor",
     "layer": "floor",
     "interaction": "none",
-    "price": 20,
+    "price": 30,
     "season": "autumn"
   },
   "pumpkin_giant": {
@@ -2950,7 +2950,7 @@
     "category": "decor",
     "layer": "floor",
     "interaction": "none",
-    "price": 25,
+    "price": 30,
     "season": "autumn"
   },
   "pattypan": {
@@ -2961,7 +2961,7 @@
     "category": "decor",
     "layer": "floor",
     "interaction": "none",
-    "price": 25,
+    "price": 30,
     "season": "autumn"
   },
   "corn_basket": {

@@ -1,4 +1,5 @@
 import meta from './items.generated.json';
+import type { Season } from './season';
 
 export const ITEM_CATEGORIES = ['furniture', 'window', 'decor', 'plant', 'gaming', 'hobby', 'bathroom', 'kitchen', 'balcony'] as const;
 export type ItemCategory = (typeof ITEM_CATEGORIES)[number];
@@ -6,7 +7,7 @@ export type ItemCategory = (typeof ITEM_CATEGORIES)[number];
 export type ItemLayer = 'wall' | 'floor' | 'rug';
 
 export const INTERACTIONS = [
-  'water', 'read', 'play', 'study', 'crochet', 'music', 'cute', 'lamp', 'calendar', 'window',
+  'water', 'read', 'play', 'study', 'crochet', 'music', 'cute', 'lamp', 'switch', 'calendar', 'window',
   'toilet', 'shower', 'bath', 'sink', 'hairdryer', 'wardrobe', 'coffee', 'nap', 'relax', 'lounge', 'tv', 'cat',
   'fridge', 'cook', 'catfood', 'clock', 'mirror', 'laundry', 'scale', 'brew', 'dishes', 'none',
 ] as const;
@@ -19,6 +20,8 @@ export interface ItemDef {
   layer: ItemLayer;
   interaction: Interaction;
   price: number;
+  /** Pora roku, w której rzecz jest w sklepie (kupiona zostaje na zawsze); brak — cały rok. */
+  season?: Season;
   /** Nazwa pliku w public/items (bez .png). */
   sprite: string;
   /** Wymiary sprite'a w px natywnych; na ekranie ×`scale` (px logiczne pokoju). */
@@ -50,6 +53,7 @@ interface RawMeta {
   layer?: ItemLayer;
   interaction?: Interaction;
   price?: number;
+  season?: Season;
   /** Klatka stanu: przedmiot bazowy i nazwa stanu (np. toilet / open). */
   frameOf?: string;
   state?: string;
@@ -72,6 +76,7 @@ export const CATALOG: readonly ItemDef[] = Object.entries(RAW)
     w: m.w,
     h: m.h,
     scale: m.scale ?? 1,
+    ...(m.season ? { season: m.season } : {}),
   }));
 
 const bedMeta = RAW[GABI_BED_SPRITE];
