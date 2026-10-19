@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GLASS_MIN_SHARE, NO_GLASS, glassMask, isGlassColour } from '../../src/home/glass';
+import { GLASS_CLIP, GLASS_MIN_SHARE, NO_GLASS, glassMask, isGlassColour } from '../../src/home/glass';
 
 type Px = readonly [number, number, number, number];
 const OUTLINE: Px = [42, 31, 61, 255];
@@ -44,6 +44,44 @@ describe('szyba okna', () => {
     expect(glassMask(image(10, 10, () => WOOD), 10, 10)).toBeNull();
     expect(glassMask(image(20, 20, (x, y) => (x >= 9 && x <= 10 && y >= 9 && y <= 10 ? SKY : WOOD)), 20, 20)).toBeNull();
     expect(glassMask(image(20, 20, (x) => (x === 10 ? OUTLINE : WOOD)), 20, 20)).toBeNull();
+  });
+
+  it('przycięcie: szyba na całą szerokość, a maska tylko w lewej połowie przycięcia', () => {
+    const w = 20;
+    const h = 12;
+    // obrys wokół, w środku szyba na całą szerokość
+    const data = image(w, h, (x, y) => (x === 0 || y === 0 || x === w - 1 || y === h - 1 ? OUTLINE : SKY));
+    const all = glassMask(data, w, h)!;
+    expect(all).not.toBeNull();
+    const cols = (m: Uint8Array) => [...new Set([...m.keys()].filter((i) => m[i]).map((i) => i % w))].sort((a, b) => a - b);
+    expect(cols(all)).toContain(w - 2);
+    const left = glassMask(data, w, h, { x: 0, y: 0, w: w / 2, h })!;
+    expect(left).not.toBeNull();
+    const leftCols = cols(left);
+    expect(leftCols.length).toBeGreaterThan(0);
+    expect(Math.max(...leftCols)).toBeLessThan(w / 2);
+    // pasek poza przycięciem nie jest szybą, więc maska wokół granicy cofa się o piksel erozji
+    expect(left.reduce((a, v) => a + v, 0)).toBeLessThan(all.reduce((a, v) => a + v, 0));
+  });
+
+  it('przycięcie wycina też w pionie; prostokąt bez szyby — null', () => {
+    const w = 16;
+    const data = image(w, w, (x, y) => (x === 0 || y === 0 || x === w - 1 || y === w - 1 ? OUTLINE : SKY));
+    const top = glassMask(data, w, w, { x: 0, y: 0, w, h: 8 })!;
+    expect(top).not.toBeNull();
+    for (let i = 0; i < w * w; i++) if (top[i]) expect(Math.floor(i / w)).toBeLessThan(8);
+    expect(glassMask(data, w, w, { x: 0, y: 0, w: 0, h: 0 })).toBeNull();
+  });
+
+  it('okna z przycięciem szyby mają sensowne prostokąty', () => {
+    expect(Object.keys(GLASS_CLIP).sort()).toEqual(['window_bay', 'window_rain', 'window_round_cat']);
+    for (const [id, c] of Object.entries(GLASS_CLIP)) {
+      expect(c.x, id).toBeGreaterThanOrEqual(0);
+      expect(c.y, id).toBeGreaterThanOrEqual(0);
+      expect(c.w, id).toBeGreaterThan(0);
+      expect(c.h, id).toBeGreaterThan(0);
+      expect(NO_GLASS.has(id), id).toBe(false);
+    }
   });
 
   it('próg udziału i wyjątki', () => {

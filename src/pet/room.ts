@@ -50,8 +50,9 @@ export interface BalconyView {
 
 /**
  * Balkon: namalowane tło pory roku (rano i w dzień dzienne, wieczorem przejście w nocne, w nocy nocne), odcień
- * pogody i szare chmury (zasłaniają namalowane słońce/księżyc), błysk burzy, w pogodny dzień ptaki, w pogodną noc migoczące i spadające gwiazdy, a na wierzchu
- * opady i drobinki pory roku (liście, płatki, motyle, świetliki).
+ * pogody i szare chmury (zasłaniają namalowane słońce/księżyc; wieczorem płynnie ciemnieją), błysk burzy,
+ * w pogodny dzień ptaki, w pogodną noc migoczące i spadające gwiazdy, a na wierzchu opady i drobinki pory roku
+ * (liście, płatki, motyle, świetliki).
  */
 export function drawBalcony(ctx: CanvasRenderingContext2D, v: BalconyView): void {
   ctx.fillStyle = '#2a1f3d';
@@ -68,7 +69,14 @@ export function drawBalcony(ctx: CanvasRenderingContext2D, v: BalconyView): void
     ctx.fillStyle = weatherTint;
     ctx.fillRect(0, 0, ROOM_W, ROOM_H);
   }
-  drawParticles(ctx, overcast(BALCONY_SKY, v.t, v.weather, v.phase === 'night'));
+  // chmury ciemnieją razem z tłem: dzienne kolory znikają, a nocne wchodzą wraz ze zmierzchem
+  if (v.dusk < 1) drawParticles(ctx, overcast(BALCONY_SKY, v.t, v.weather, false));
+  if (v.dusk > 0) {
+    ctx.save();
+    ctx.globalAlpha = v.dusk;
+    drawParticles(ctx, overcast(BALCONY_SKY, v.t, v.weather, true));
+    ctx.restore();
+  }
   const flash = v.weather === 'storm' && !v.calm ? lightning(v.t) : 0;
   if (flash > 0) {
     ctx.fillStyle = `rgba(255, 255, 255, ${0.45 * flash})`;

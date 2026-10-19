@@ -26,8 +26,8 @@ export interface Particle {
 
 const wrap = (v: number, span: number) => ((v % span) + span) % span;
 
-/** Ile drobinek na tę powierzchnię (gęstość na px²), co najmniej `min`. */
-const countFor = (a: Area, density: number, min: number) => Math.max(min, Math.round(a.w * a.h * density));
+/** Ile drobinek na tę powierzchnię (gęstość na px², `k` — mnożnik gęstości), co najmniej `min`. */
+const countFor = (a: Area, density: number, min: number, k = 1) => Math.max(min, Math.round(a.w * a.h * density * k));
 
 interface Fall {
   /** Prędkość spadania (px/s): od–do. */
@@ -55,9 +55,9 @@ function falling(a: Area, t: number, n: number, seed: number, o: Fall): Particle
   return out;
 }
 
-/** Deszcz (ukośne kreski 1×3); `heavy` — ulewa (burza). */
-export function rain(a: Area, t: number, heavy: boolean): Particle[] {
-  return falling(a, t, countFor(a, heavy ? 0.006 : 0.0035, heavy ? 5 : 3), 1, {
+/** Deszcz (ukośne kreski 1×3); `heavy` — ulewa (burza); `k` — mnożnik gęstości. */
+export function rain(a: Area, t: number, heavy: boolean, k = 1): Particle[] {
+  return falling(a, t, countFor(a, heavy ? 0.006 : 0.0035, heavy ? 5 : 3, k), 1, {
     speed: heavy ? [150, 190] : [110, 150],
     drift: heavy ? 45 : 25,
     sway: 0,
@@ -67,8 +67,8 @@ export function rain(a: Area, t: number, heavy: boolean): Particle[] {
 }
 
 /** Śnieg: płatki 1–2 px, różna prędkość, kołysanie. */
-export function snow(a: Area, t: number): Particle[] {
-  return falling(a, t, countFor(a, 0.004, 4), 2, {
+export function snow(a: Area, t: number, k = 1): Particle[] {
+  return falling(a, t, countFor(a, 0.004, 4, k), 2, {
     speed: [8, 16],
     drift: 2,
     sway: 3,
@@ -77,17 +77,15 @@ export function snow(a: Area, t: number): Particle[] {
   });
 }
 
-/** Mróz: tylko czasem pojedynczy, wolny płatek. */
-export function frostFlakes(a: Area, t: number): Particle[] {
-  const all = falling(a, t, countFor(a, 0.0004, 1), 3, {
+/** Mróz: zaledwie kilka wolnych płatków (bez migania — liczba stała, płatki zawijają się na brzegach). */
+export function frostFlakes(a: Area, t: number, k = 1): Particle[] {
+  return falling(a, t, countFor(a, 0.0001, 1, k), 3, {
     speed: [6, 10],
     drift: 1,
     sway: 2,
     size: () => [1, 1],
     color: () => '#f4fbff',
   });
-  // tylko czasem: każdy płatek widać przez ok. 40% jego cyklu (6 s)
-  return all.filter((_, i) => wrap(t / 6000 + hash(i * 8.3 + 0.6), 1) < 0.4);
 }
 
 const SPLASH = 'rgba(220, 235, 255, 0.85)';
@@ -111,8 +109,8 @@ export function splashes(a: Area, t: number, heavy: boolean): Particle[] {
 const LEAF_COLORS = ['#e8902c', '#c9581e', '#f2c14a', '#a8452a'];
 
 /** Jesienne liście: koziołkują (2×1 ↔ 1×2), lecą z wiatrem. */
-export function leaves(a: Area, t: number): Particle[] {
-  return falling(a, t, countFor(a, 0.0011, 2), 4, {
+export function leaves(a: Area, t: number, k = 1): Particle[] {
+  return falling(a, t, countFor(a, 0.0011, 2, k), 4, {
     speed: [10, 20],
     drift: 12,
     sway: 6,
@@ -124,8 +122,8 @@ export function leaves(a: Area, t: number): Particle[] {
 const PETAL_COLORS = ['#ffc4dc', '#ffffff', '#ffb0cf'];
 
 /** Wiosenne płatki kwiatów. */
-export function petals(a: Area, t: number): Particle[] {
-  return falling(a, t, countFor(a, 0.0015, 2), 5, {
+export function petals(a: Area, t: number, k = 1): Particle[] {
+  return falling(a, t, countFor(a, 0.0015, 2, k), 5, {
     speed: [7, 14],
     drift: 9,
     sway: 5,
@@ -225,23 +223,34 @@ export interface WeatherScene {
   area: Area;
   t: number;
   open: boolean;
+  /** Mnożnik gęstości opadów i listowia (domyślnie 1) — np. gęściej na małej szybie okna. */
+  density?: number;
 }
 
 export function weatherParticles(s: WeatherScene): Particle[] {
   const { area: a, t } = s;
+  const k = s.density ?? 1;
   const out: Particle[] = [];
   const daylight = s.phase === 'day' || s.phase === 'morning';
-  if (s.weather === 'rain' || s.weather === 'storm') out.push(...rain(a, t, s.weather === 'storm'));
+  if (s.weather === 'rain' || s.weather === 'storm') out.push(...rain(a, t, s.weather === 'storm', k));
   if (s.open && (s.weather === 'rain' || s.weather === 'storm')) out.push(...splashes(a, t, s.weather === 'storm'));
-  if (s.weather === 'snow') out.push(...snow(a, t));
-  if (s.weather === 'frost') out.push(...frostFlakes(a, t));
-  if (s.season === 'autumn' && (s.weather === 'sunny' || s.weather === 'cloudy')) out.push(...leaves(a, t));
-  if (s.season === 'spring' && s.weather === 'sunny') out.push(...petals(a, t));
+  if (s.weather === 'snow') out.push(...snow(a, t, k));
+  if (s.weather === 'frost') out.push(...frostFlakes(a, t, k));
+  if (s.season === 'autumn' && (s.weather === 'sunny' || s.weather === 'cloudy')) out.push(...leaves(a, t, k));
+  if (s.season === 'spring' && s.weather === 'sunny') out.push(...petals(a, t, k));
   if (s.open && s.season === 'summer' && s.weather === 'sunny' && daylight) out.push(...butterflies(a, t));
   if (s.open && s.season === 'summer' && s.phase === 'night' && (s.weather === 'sunny' || s.weather === 'cloudy')) {
     out.push(...fireflies(a, t));
   }
   return out;
+}
+
+/**
+ * Drobinki odbite w poziomie w obrębie obszaru `a` (nadal w nim): okno odbite (`flip`) rysujemy odwróconą warstwą,
+ * więc odbicie z góry sprawia, że na ekranie wiatr dalej wieje w tę samą stronę.
+ */
+export function mirrorIn(ps: readonly Particle[], a: Area): Particle[] {
+  return ps.map((p) => ({ ...p, x: 2 * a.x + a.w - p.x - p.w }));
 }
 
 /** Kolor chmur: [dzień, noc]. Pogodnie i przy mrozie — bez chmur. */
@@ -271,14 +280,14 @@ export function overcast(a: Area, t: number, weather: Weather, night: boolean): 
     const y1 = Math.min(a.y + a.h, Math.round(y + h));
     if (x1 > x0 && y1 > y0) out.push({ x: x0, y: y0, w: x1 - x0, h: y1 - y0, color });
   };
-  // stała chmura na słońcu/księżycu
-  push(SUN_BOX.x - 4, SUN_BOX.y - 1, SUN_BOX.w + 8, SUN_BOX.h + 2);
-  push(SUN_BOX.x - 1, SUN_BOX.y - 3, SUN_BOX.w + 2, 2);
+  // stała chmura na słońcu/księżycu: korpus i szerszy dół (schodkowo)
+  push(SUN_BOX.x - 1, a.y, SUN_BOX.w + 2, SUN_BOX.h + 1);
+  push(SUN_BOX.x - 6, SUN_BOX.y + 8, SUN_BOX.w + 12, 9);
   for (let i = 0; i < 5; i++) {
     const w = 24 + Math.round(hash(i * 2.7 + 0.4) * 14);
     const span = a.w + w + 20;
     const x = a.x - w - 10 + wrap(hash(i * 5.1 + 0.2) * span + (t / 1000) * (1.5 + i * 0.4), span);
-    const y = a.y + 4 + Math.round(hash(i * 3.3 + 0.9) * 30);
+    const y = a.y + 9 + Math.round(hash(i * 3.3 + 0.9) * 26);
     const top = Math.round(w * 0.25);
     push(x, y, w, 5);
     push(x + top, y - 3, w - 2 * top, 3);

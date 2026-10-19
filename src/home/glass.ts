@@ -17,13 +17,36 @@ export function isGlassColour(r: number, g: number, b: number): boolean {
   return light || dark;
 }
 
-/** Maska szyby (1 — szyba) dla pikseli RGBA `w`×`h`, albo null, gdy szyby brak lub jest za mała. */
-export function glassMask(rgba: ArrayLike<number>, w: number, h: number): Uint8Array | null {
+/** Prostokąt w px sprite'a. */
+export interface GlassClip {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** Okna, w których szybę trzeba przyciąć do prostokąta (rama, ławka albo kot w kolorach szyby). */
+export const GLASS_CLIP: Readonly<Record<string, GlassClip>> = {
+  window_rain: { x: 3, y: 1, w: 31, h: 34 },
+  window_bay: { x: 0, y: 0, w: 79, h: 35 },
+  window_round_cat: { x: 0, y: 0, w: 67, h: 36 },
+};
+
+/**
+ * Maska szyby (1 — szyba) dla pikseli RGBA `w`×`h`, albo null, gdy szyby brak lub jest za mała.
+ * `clip` — kandydaci poza prostokątem odpadają przed erozją.
+ */
+export function glassMask(rgba: ArrayLike<number>, w: number, h: number, clip?: GlassClip): Uint8Array | null {
   const cand = new Uint8Array(w * h);
   let opaque = 0;
   for (let i = 0; i < w * h; i++) {
     if (rgba[i * 4 + 3] === 0) continue;
     opaque++;
+    if (clip) {
+      const x = i % w;
+      const y = (i - x) / w;
+      if (x < clip.x || x >= clip.x + clip.w || y < clip.y || y >= clip.y + clip.h) continue;
+    }
     if (isGlassColour(rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2])) cand[i] = 1;
   }
   // erozja (4-sąsiedztwo; brzegi obrazka odpadają)

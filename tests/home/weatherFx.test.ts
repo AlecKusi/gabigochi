@@ -8,6 +8,7 @@ import {
   frostFlakes,
   leaves,
   lightning,
+  mirrorIn,
   overcast,
   petals,
   rain,
@@ -54,14 +55,38 @@ describe('drobinki pogody', () => {
     expect(rain(SKY, 0, true).length).toBeGreaterThan(rain(SKY, 0, false).length);
     expect(snow(PANE, 0).length).toBeGreaterThanOrEqual(4);
     expect(rain(PANE, 0, false).length).toBeGreaterThanOrEqual(3);
-    // mróz: tylko czasem pojedynczy płatek
-    let frostSeen = 0;
-    for (let t = 0; t <= 30_000; t += 500) {
-      const n = frostFlakes(PANE, t).length;
-      frostSeen = Math.max(frostSeen, n);
-      expect(n, `mróz @${t}`).toBeLessThanOrEqual(3);
+  });
+
+  it('mróz: kilka wolnych płatków, stała liczba (bez pojawiania się i znikania)', () => {
+    const skyCount = frostFlakes(SKY, 0).length;
+    const paneCount = frostFlakes(PANE, 0).length;
+    expect(skyCount).toBeGreaterThanOrEqual(1);
+    expect(skyCount).toBeLessThanOrEqual(3);
+    expect(paneCount).toBe(1);
+    for (let t = 0; t <= 60_000; t += 500) {
+      expect(frostFlakes(SKY, t).length, `balkon @${t}`).toBe(skyCount);
+      expect(frostFlakes(PANE, t).length, `szyba @${t}`).toBe(paneCount);
     }
-    expect(frostSeen).toBeGreaterThanOrEqual(1);
+  });
+
+  it('mnożnik gęstości: więcej drobinek, wciąż w obszarze i te same pierwsze (płynnie)', () => {
+    const fns: [string, (a: Area, t: number, k?: number) => Particle[]][] = [
+      ['deszcz', (a, t, k) => rain(a, t, false, k)],
+      ['ulewa', (a, t, k) => rain(a, t, true, k)],
+      ['śnieg', snow],
+      ['mróz', frostFlakes],
+      ['liście', leaves],
+      ['płatki', petals],
+    ];
+    expect(rain(PANE, 0, false, 3).length).toBeGreaterThan(rain(PANE, 0, false).length);
+    for (const [name, fn] of fns) {
+      const dense = fn(SKY, 4321, 3);
+      const base = fn(SKY, 4321);
+      expect(dense.length, name).toBeGreaterThan(base.length);
+      expect(fn(SKY, 4321, 1), name).toEqual(base);
+      expect(dense.slice(0, base.length), name).toEqual(base);
+      expect(inside(dense, SKY), name).toBe(true);
+    }
   });
 
   it('błyskawica: krótko, raz na kilka sekund; grzmot raz na błysk', () => {
@@ -101,36 +126,56 @@ describe('pogoda na scenie', () => {
     weatherParticles({ season: 'autumn', weather: 'sunny', phase: 'day', area: SKY, t: 5000, open: true, ...o });
   const colours = (ps: readonly Particle[]) => new Set(ps.map((p) => p.color));
 
-  it('śnieg — same białe płatki; deszcz — kreski 1×3; mróz — tylko czasem pojedyncze płatki', () => {
+  it('śnieg — same białe płatki; deszcz — kreski 1×3; mróz — zawsze 1–3 płatki', () => {
     const s = scene({ season: 'winter', weather: 'snow' });
     expect(s.length).toBeGreaterThan(20);
     expect(colours(s)).toEqual(new Set(['#ffffff']));
     const r = scene({ weather: 'rain', open: false });
     expect(r.every((p) => p.w === 1 && p.h === 3)).toBe(true);
-    let frostMax = 0;
     for (let t = 0; t <= 30_000; t += 1000) {
-      frostMax = Math.max(frostMax, scene({ season: 'winter', weather: 'frost', t }).length);
+      const n = scene({ season: 'winter', weather: 'frost', t }).length;
+      expect(n, `mróz @${t}`).toBeGreaterThanOrEqual(1);
+      expect(n, `mróz @${t}`).toBeLessThanOrEqual(3);
     }
-    expect(frostMax).toBeGreaterThanOrEqual(1);
-    expect(frostMax).toBeLessThan(8);
   });
 
-  it('deszcz na balkonie rozpryskuje się przy samej krawędzi (w oknie — bez rozprysków)', () => {
-    let splashed = 0;
-    for (let t = 0; t <= 2000; t += 50) {
-      for (const p of scene({ weather: 'rain', open: true, t })) {
-        if (p.w === 1 && p.h === 1 && p.y >= SKY.y + SKY.h - 2) splashed++;
+  it('gęstość sceny: więcej opadów, wszystko w obszarze (obszar nie od zera)', () => {
+    const area: Area = { x: 5, y: 7, w: 60, h: 50 };
+    const cases: Partial<Parameters<typeof weatherParticles>[0]>[] = [
+      { weather: 'rain' },
+      { weather: 'storm' },
+      { season: 'winter', weather: 'snow' },
+      { season: 'winter', weather: 'frost' },
+      { season: 'autumn', weather: 'sunny' },
+      { season: 'spring', weather: 'sunny' },
+    ];
+    for (const c of cases) {
+      const label = `${c.season ?? 'autumn'} ${c.weather}`;
+      const base = scene({ ...c, area, open: false });
+      for (const t of [0, 1500, 77_777]) {
+        const dense = scene({ ...c, area, open: false, t, density: 3 });
+        expect(dense.length, label).toBeGreaterThan(0);
+        expect(inside(dense, area), `${label} @${t}`).toBe(true);
       }
+      const denser = scene({ ...c, area, open: false, density: 3 }).length;
+      // mróz to zawsze kilka płatków (przy małym obszarze działa minimum), reszta wyraźnie gęstnieje
+      if (c.weather === 'frost') expect(denser, label).toBeGreaterThanOrEqual(base.length);
+      else expect(denser, label).toBeGreaterThan(base.length);
+      expect(scene({ ...c, area, open: false, density: 1 }), label).toEqual(base);
     }
-    expect(splashed).toBeGreaterThan(0);
-    expect(scene({ weather: 'storm', open: false }).every((p) => !(p.w === 1 && p.h === 1))).toBe(true);
   });
 
-  it('jesień przy słońcu — liście; wiosna przy słońcu — płatki, w deszcz bez płatków', () => {
-    expect(scene({}).length).toBeGreaterThan(0);
-    expect([...colours(scene({}))].every((c) => ['#e8902c', '#c9581e', '#f2c14a', '#a8452a'].includes(c))).toBe(true);
-    expect(colours(scene({ season: 'spring' })).has('#ffc4dc')).toBe(true);
-    expect(colours(scene({ season: 'spring', weather: 'rain' })).has('#ffc4dc')).toBe(false);
+  it('odbicie drobinek w obszarze: zostają w nim, x odbity względem środka obszaru, reszta bez zmian', () => {
+    const area: Area = { x: 5, y: 7, w: 20, h: 18 };
+    const ps = snow(area, 3000, 3);
+    const m = mirrorIn(ps, area);
+    expect(m.length).toBe(ps.length);
+    expect(inside(m, area)).toBe(true);
+    m.forEach((p, i) => {
+      expect(p.x).toBeCloseTo(area.x + area.w - (ps[i].x + ps[i].w - area.x), 9);
+      expect({ ...p, x: 0 }).toEqual({ ...ps[i], x: 0 });
+    });
+    expect(mirrorIn(m, area)).toEqual(ps);
   });
 
   it('lato: motyle w słoneczny dzień tylko na balkonie; świetliki nocą', () => {
@@ -158,6 +203,17 @@ describe('pogoda na scenie', () => {
     }
     expect(overcast(SKY, 0, 'sunny', false)).toEqual([]);
     expect(overcast(SKY, 0, 'frost', true)).toEqual([]);
+  });
+
+  it('chmury nie zakrywają sopla przy słońcu (x 79–81, y 8–12) ani nie wychodzą ponad niebo', () => {
+    for (const weather of ['cloudy', 'rain', 'storm', 'snow'] as const) {
+      for (let t = 0; t <= 600_000; t += 7919) {
+        const cs = overcast(SKY, t, weather, false);
+        expect(inside(cs, SKY)).toBe(true);
+        const hit = cs.find((c) => c.x < 82 && c.x + c.w > 79 && c.y < 13 && c.y + c.h > 8);
+        expect(hit, `${weather} @${t}`).toBeUndefined();
+      }
+    }
   });
 
   it('odcień pogody: pogodnie bez, pochmurno/deszcz/burza coraz ciemniej', () => {

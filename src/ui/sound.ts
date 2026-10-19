@@ -124,7 +124,7 @@ const C5 = 523, E5 = 659, G5 = 784, C6 = 1047, A4 = 440, F4 = 349, D5 = 587, E6 
  * Najmniejszy odstęp (ms) między powtórzeniami efektu: dziesiątki kulek w cegiełkach albo szybkie stukanie
  * nie zlewają się w trzask.
  */
-const MIN_GAP: Partial<Record<Sfx, number>> = { blip: 45, brick: 55, tick: 35, type: 30, flip: 40, peek: 120, place: 40, thunder: 2500 };
+const MIN_GAP: Partial<Record<Sfx, number>> = { blip: 45, brick: 55, tick: 35, type: 30, flip: 40, peek: 120, place: 40, thunder: 2000 };
 const lastAt = new Map<Sfx, number>();
 
 function tooSoon(s: Sfx): boolean {
