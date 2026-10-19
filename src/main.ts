@@ -34,6 +34,7 @@ import { headSpriteNames } from './wardrobe/catalog';
 import { createFigures } from './wardrobe/figures';
 import { itemUrl } from './ui/home/itemSprites';
 import { setClockOverride } from './home/clock';
+import { setSeasonOverride, setWeatherOverride } from './home/season';
 
 const SCREENS: Record<ScreenName, ScreenFactory> = {
   birthday: birthdayScreen,
@@ -97,9 +98,17 @@ async function boot(): Promise<void> {
       return;
     }
     void navigator.storage?.persist?.();
-    // podgląd innej pory dnia przy tworzeniu gry: ?godzina=23 albo ?godzina=7:30 (tylko wygląd, potrzeby bez zmian)
-    const hour = new URLSearchParams(location.search).get('godzina');
-    if (import.meta.env.DEV && hour) setClockOverride(hour);
+    // podgląd przy tworzeniu gry (tylko wygląd, potrzeby bez zmian): ?godzina=23 albo ?godzina=7:30,
+    // ?pora=wiosna|lato|jesien|zima, ?pogoda=slonce|pochmurno|deszcz|burza|snieg|mroz
+    const params = new URLSearchParams(location.search);
+    if (import.meta.env.DEV) {
+      const hour = params.get('godzina');
+      if (hour) setClockOverride(hour);
+      const pora = params.get('pora');
+      if (pora) setSeasonOverride(pora);
+      const pogoda = params.get('pogoda');
+      if (pogoda) setWeatherOverride(pogoda);
+    }
 
     const now = Date.now();
     const loaded = loadState(localStorage, now);
