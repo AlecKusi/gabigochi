@@ -23,8 +23,17 @@ export const RELEASES: readonly Release[] = [
     changes: [
       'Pory roku i pogoda: balkon zmienia się z porą roku, pada deszcz i śnieg, latem są burze, motyle i świetliki.',
       'Gabi mówi o pogodzie, a w oknach widać deszcz, śnieg i liście.',
+      'Ozdoby sezonowe w sklepie — teraz jesienne: dynie, wrzosy, kominek, palenisko i dużo więcej!',
     ],
-    soon: ['Ozdoby sezonowe w sklepie: dynie, choinki, wiatrak i dużo jesiennych rzeczy!'],
+    items: [
+      'pumpkin', 'apple_basket', 'leaf_garland', 'xmas_tree', 'xmas_tree_blue', 'snowman', 'poinsettia', 'catkins',
+      'egg_basket', 'birdhouse', 'fan', 'paddling_pool', 'flamingo', 'watermelon', 'pumpkin_classic', 'gourd',
+      'pumpkin_giant', 'pumpkin_cluster', 'harvest_basket', 'jar_candle', 'fireplace', 'corn_stalks', 'scarecrow',
+      'heather', 'pinecone_basket', 'autumn_lantern', 'butternut', 'pattypan', 'corn_basket', 'harvest_veggies',
+      'straw_bale', 'door_wreath', 'porch_display', 'autumn_sign', 'blanket_bench', 'straw_pumpkins', 'mum_pot',
+      'leaf_basket', 'fire_pit',
+    ],
+    soon: ['Staramy się naprawić ubrania Gabi i dodać kilka nowych rzeczy dla Gabi i Somerki!'],
   },
   {
     version: 2,

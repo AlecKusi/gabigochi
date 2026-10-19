@@ -336,4 +336,9 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   słońca, zimą przy zegarze wieczorem przed 21:00 i rano 6–7 „za oknem ciemno” zamiast „dobranoc”.
 - Podgląd (tylko `npm run dev`): `?pora=wiosna|lato|jesien|zima`, `?pogoda=slonce|pochmurno|deszcz|burza|snieg|mroz`,
   `?godzina=…`, `?monety=9000` (dopisuje monety raz).
-- Etap 2 (ozdoby sezonowe z `assets/source/sheet-seasonal.jpg`, `sheet-autumn1.jpg`, `sheet-autumn2.jpg`) — osobny plan.
+- Etap 2 — ozdoby sezonowe (2026-10-19): 39 rzeczy z `assets/source/sheet-seasonal.jpg`, `sheet-autumn1.jpg`,
+  `sheet-autumn2.jpg` (wpisy w `tools/frames.json` z polem `season`; aliasy arkuszy z siatką 6,4 i 3,2 px, `sampleMode`
+  smooth, cienie zdjęte pasami `shadow`), w sklepie tylko w swojej porze roku (`shopItems(category, season)`, znaczek
+  „Tylko jesienią”), kupione zostają na zawsze. Świecące (`interaction: 'lamp'`): dynie, choinki, świeca, lampion,
+  kominek, palenisko — `src/home/lamps.ts` (klatka `lit`, mruganie choinek, drgająca poświata); wiatrak
+  `interaction: 'switch'` (klatki `spin_2`/`spin_3`); ławka z kocem jest siedziskiem (`SOFAS`).
