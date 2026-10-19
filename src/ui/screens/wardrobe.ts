@@ -2,6 +2,7 @@ import type { App, Screen } from '../../app';
 import type { ClothSlot, Outfit } from '../../core/types';
 import { SHADOW_COLOR, shadowRect } from '../../pet/petRenderer';
 import { ANIMATIONS, frameAt, resolveAnimation } from '../../sprites/animations';
+import { hasOutfitFrames } from '../../sprites/outfitFrames';
 import { CLOTH_SLOTS, CLOTH_SLOT_NAMES, clothesBySlot, findCloth, type ClothDef } from '../../wardrobe/catalog';
 import { buyCloth, isDefaultOutfit, isOwned, takeOff, takeOffAll, wear } from '../../wardrobe/outfit';
 import { h, icon } from '../dom';
@@ -159,9 +160,11 @@ export function wardrobeScreen(app: App): Screen {
     const s = app.store.get();
     const owned = isOwned(s, def.id);
     const worn = s.outfit[def.slot] === def.id;
+    // Strój z arkuszy wygląda na Gabi jak na miniaturze — pokazujemy Gabi, a nie obrazek z wieszaka.
+    const rack = def.thumb !== undefined && !hasOutfitFrames(def.id);
     const thumb = h('img', {
-      class: def.thumb ? 'px cloth-art' : 'px',
-      src: def.thumb ? itemUrl(def.thumb) : app.figures.url('idle_front', { outfit: tryOn(s.outfit, def) }),
+      class: rack ? 'px cloth-art' : 'px',
+      src: rack ? itemUrl(def.thumb!) : app.figures.url('idle_front', { outfit: tryOn(s.outfit, def) }),
       alt: '',
       draggable: 'false',
     });
