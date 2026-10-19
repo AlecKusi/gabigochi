@@ -8,6 +8,7 @@ import {
   outfitPortrait,
   outfitSpriteNames,
   outfitSpriteUrl,
+  sheetSource,
 } from '../../src/sprites/outfitFrames';
 
 describe('klatki strojów z arkuszy', () => {
@@ -59,9 +60,41 @@ describe('klatki strojów z arkuszy', () => {
         expect(base, name).toBeDefined();
         expect(f.meta.scale, name).toBe(base.scale);
         expect(Math.abs(f.meta.h / base.h - 1), name).toBeLessThanOrEqual(0.15);
-        expect(f.meta.head, name).toBeDefined();
+        const head = f.meta.head;
+        expect(head, name).toBeTruthy();
+        expect(head!.w, name).toBeGreaterThan(0);
+        // kotwica przy czubku głowy, jak w oryginale — inaczej Gabi skakałaby w poziomie przy zmianie klatki
+        expect(Math.abs(f.meta.anchorX - head!.x), name).toBeLessThanOrEqual(1.5);
+        expect(f.meta.anchorX, name).toBeGreaterThanOrEqual(0);
+        expect(f.meta.anchorX, name).toBeLessThanOrEqual(f.meta.w);
         expect(f.meta.mask, name).toBeUndefined();
       }
     }
+  });
+
+  it('każdy obrazek stroju istnieje w public/ i ma wymiary z metadanych', () => {
+    // pliki jako data URI (bez typów Node w projekcie); klucz: `<id>/<klatka>`
+    const files = import.meta.glob<string>('../../public/sprites/stroje/*/*.png', { query: '?inline', import: 'default', eager: true });
+    const pngs = new Map(Object.entries(files).map(([path, uri]) => [path.replace(/^.*\/stroje\/|\.png$/g, ''), uri]));
+    for (const key of outfitSpriteNames()) {
+      const uri = pngs.get(key);
+      expect(uri, key).toBeDefined();
+      const bytes = Uint8Array.from(atob(uri!.slice(uri!.indexOf(',') + 1)), (c) => c.charCodeAt(0));
+      // nagłówek IHDR: szerokość i wysokość w bajtach 16–23 (big-endian)
+      const view = new DataView(bytes.buffer);
+      const size = [view.getUint32(16), view.getUint32(20)];
+      const [id, name] = key.split('/');
+      const meta = outfitPortrait(id, name)?.meta ?? outfitFrame(id, name)!.meta;
+      expect(size, key).toEqual([meta.w, meta.h]);
+    }
+  });
+
+  it('źródło z arkusza: portret, klatka, brak; `sheet: false` — zawsze przemalowanie', () => {
+    expect(sheetSource('goth_lolita', 'idle_front')!.key).toBe('goth_lolita/idle_front');
+    expect(sheetSource('goth_lolita', 'portrait_b')!.meta.scale).toBe(1);
+    expect(sheetSource('goth_lolita', 'idle_front', false)).toBeNull();
+    expect(sheetSource('goth_lolita', 'portrait_a', false)).toBeNull();
+    expect(sheetSource('goth_lolita', 'fun_eat')).toBeNull();
+    expect(sheetSource(null, 'idle_front')).toBeNull();
   });
 });

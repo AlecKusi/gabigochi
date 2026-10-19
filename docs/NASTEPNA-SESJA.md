@@ -352,3 +352,4 @@ Spec: docs/superpowers/specs/2026-10-19-stroje-z-arkuszy-design.md, plan: docs/s
   stroju, gdy jest, inaczej przemalowanie; portret w rogu ze stroju; miniatura w Szafie = Gabi w stroju.
 - Gotycka lolita: jest arkusz `main` (stanie, chodzenie, machanie, rozmowa, portrety; `fun_eat` pominięte — bez
   kanapki). Pozostałe ~18 arkuszy generuje użytkownik wg docs/prompty-stroje.md; dodawać po jednym.
+- Dopóki strój nie ma wszystkich arkuszy, sukienka zmienia wygląd między klatkami z arkusza a przemalowanymi — oczekiwane.

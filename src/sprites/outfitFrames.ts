@@ -42,6 +42,14 @@ export function outfitPortrait(dress: string | null | undefined, name: string): 
   return size ? { key: `${dress}/${name}`, meta: { w: size[0], h: size[1], anchorX: 0, scale: 1 } } : null;
 }
 
+/**
+ * Obrazek z arkusza stroju dla klatki albo portretu `name` — `null`, gdy go nie ma albo nie wolno go użyć
+ * (`sheet: false`, np. nogi pod popiersiem pozy łazienkowej); wtedy przemalowanie oryginału.
+ */
+export function sheetSource(dress: string | null | undefined, name: string, sheet = true): OutfitFrame | null {
+  return sheet ? outfitPortrait(dress, name) ?? outfitFrame(dress, name) : null;
+}
+
 /** Czy strój ma klatki z arkusza (wtedy miniatura w Szafie to Gabi w tym stroju). */
 export function hasOutfitFrames(id: string): boolean {
   return OUTFITS[id]?.frames.idle_front !== undefined;

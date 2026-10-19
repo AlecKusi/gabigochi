@@ -2,7 +2,7 @@ import type { Outfit } from '../core/types';
 import { FRAMES, PORTRAIT_MASKS, hasClothesMask, spriteUrl, type FrameMeta, type SpriteMap } from '../sprites/loader';
 import { dressPixels, isBackView, isSeated, lookOf, type Pixels } from './dresser';
 import { outfitKey } from './outfit';
-import { outfitFrame, outfitPortrait, outfitSpriteUrl } from '../sprites/outfitFrames';
+import { outfitSpriteUrl, sheetSource } from '../sprites/outfitFrames';
 
 /** Klatka postaci gotowa do `drawSprite`: obrazek (oryginał albo przebrany canvas) i jego metadane. */
 export interface Figure {
@@ -15,6 +15,11 @@ export interface FigureOpts {
   hat?: boolean;
   /** Inny strój niż bieżący (podglądy w Szafie). */
   outfit?: Outfit;
+  /**
+   * Domyślnie `true`; `false` — nigdy klatka ani portret z arkusza stroju, zawsze przemalowany oryginał
+   * (nogi pod popiersiem: cięcie pozy łazienkowej jest dopasowane do bazowej `idle_front`).
+   */
+  sheet?: boolean;
 }
 
 export interface Figures {
@@ -54,8 +59,9 @@ function portraitMeta(img: HTMLImageElement): FrameMeta {
 
 /**
  * Źródło klatek postaci w stroju: wszystkie miejsca rysujące Gabi pobierają klatki stąd, więc nowe ubranie widać
- * w każdej animacji bez nowych sprite'ów. Wynik cache'owany per (klatka, ozdoba, strój).
- * Strój z arkuszy (`outfitFrames`) ma własne klatki — wtedy zamiast przemalowania rysujemy klatkę stroju (z ozdobą głowy).
+ * w każdej animacji bez nowych sprite'ów. Wynik cache'owany per (klatka, ozdoba, arkusz, strój).
+ * Strój z arkuszy (`outfitFrames`) ma własne klatki — wtedy zamiast przemalowania rysujemy klatkę stroju (z ozdobą
+ * głowy), chyba że `sheet: false`.
  */
 export function createFigures(
   sprites: SpriteMap,
@@ -79,15 +85,16 @@ export function createFigures(
     const o = opts?.outfit ?? outfit();
     const portrait = PORTRAIT_MASKS.includes(name);
     const hat = (opts?.hat ?? true) && !portrait;
-    const key = `${name}#${hat ? 1 : 0}#${outfitKey(o)}`;
+    const sheet = opts?.sheet ?? true;
+    const key = `${name}#${hat ? 1 : 0}#${sheet ? 1 : 0}#${outfitKey(o)}`;
     const hit = cache.get(key);
     if (hit !== undefined) {
       cache.delete(key);
       cache.set(key, hit);
       return hit;
     }
-    // Strój z arkuszy: własna klatka (albo portret) zamiast przemalowania oryginału.
-    const own = outfitPortrait(o.dress, name) ?? outfitFrame(o.dress, name);
+    // Strój z arkuszy: własna klatka (albo portret) zamiast przemalowania oryginału — o ile wolno (`sheet`).
+    const own = sheetSource(o.dress, name, sheet);
     const ownImg = own ? outfitSprites.get(own.key) : undefined;
     const img = ownImg ?? sprites.get(name);
     const meta = ownImg ? own!.meta : FRAMES[name] ?? (img && portrait ? portraitMeta(img) : undefined);

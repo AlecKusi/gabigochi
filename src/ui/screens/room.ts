@@ -1019,9 +1019,10 @@ export function roomScreen(app: App): Screen {
           if (fig) drawSprite(ctx, k, fig.img, fig.meta, { x: at.x, feetY: at.feetY, flip: at.flip, bob: 0, squash: 0, jump: 0 });
           return;
         }
-        // nogi bez ozdoby głowy — ozdobę (jeśli pasuje) ma popiersie
+        // nogi bez ozdoby głowy — ozdobę (jeśli pasuje) ma popiersie; zawsze przemalowana bazowa `idle_front`,
+        // nie klatka z arkusza stroju (cięcie popiersia w bustPose jest dopasowane do bazowej klatki)
         const name = loopFrame(pose.busts, pose.fps, iv.inStepMs);
-        const body = app.figures.get('idle_front', { hat: false });
+        const body = app.figures.get('idle_front', { hat: false, sheet: false });
         const bust = app.figures.get(name);
         if (body && bust) {
           drawBust(ctx, k, { body: body.img, bust: bust.img }, { body: body.meta, bust: bust.meta }, BUSTS[name], at.x, at.feetY);
