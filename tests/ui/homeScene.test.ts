@@ -4,6 +4,7 @@ import type { PlacedItem } from '../../src/core/types';
 import { GABI_BED, itemById, itemFrames } from '../../src/home/catalog';
 import { ROOMS, itemBox } from '../../src/home/layout';
 import { createHome } from '../../src/home/starter';
+import { WEATHER_TINT } from '../../src/home/weatherFx';
 import { ROOM_BOUNDS } from '../../src/pet/brain';
 import { FEET_Y, NIGHT_TINT, ROOM_W } from '../../src/pet/room';
 import { withPreview } from '../../src/ui/home/editMode';
@@ -67,6 +68,13 @@ describe('nakładki koloru', () => {
     expect(itemTints(plant, item('monstera', 64, 140, { wateredAt: T0 }), true, T0 + 80 * HOUR)).toEqual([WILTED_TINT, NIGHT_TINT]);
     expect(itemTints(itemById('window_flower'), item('window_flower', 24, 48), true, T0)).toEqual([NIGHT_TINT, WINDOW_NIGHT_TINT]);
     expect(itemTints(itemById('window_flower'), item('window_flower', 24, 48), false, T0)).toEqual([]);
+  });
+
+  it('okno: odcień pogody w dzień, przy zgaszonym świetle tylko noc', () => {
+    const w = itemById('window_flower');
+    expect(itemTints(w, item('window_flower', 24, 48), false, T0, 'day', 'rain')).toEqual([WEATHER_TINT.rain]);
+    expect(itemTints(w, item('window_flower', 24, 48), false, T0, 'day', 'sunny')).toEqual([]);
+    expect(itemTints(w, item('window_flower', 24, 48), true, T0, 'day', 'rain')).toEqual([NIGHT_TINT, WINDOW_NIGHT_TINT]);
   });
 
   it('zapalona lampka nocą świeci (bez przyciemnienia)', () => {

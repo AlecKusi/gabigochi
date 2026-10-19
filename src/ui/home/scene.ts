@@ -5,6 +5,8 @@ import { plantState } from '../../home/plants';
 import { ROOM_BOUNDS } from '../../pet/brain';
 import { FEET_Y, NIGHT_TINT } from '../../pet/room';
 import { WINDOW_PHASE_TINT, type DayPhase } from '../../home/daytime';
+import type { Weather } from '../../home/season';
+import { WEATHER_TINT } from '../../home/weatherFx';
 import type { FrameMeta } from '../../sprites/loader';
 
 /** Zwiędnięta roślina: brązowawe przyciemnienie (nakładka `source-atop` na kopii sprite'a). */
@@ -48,16 +50,18 @@ export function itemFrameAnchor(item: PlacedItem, def: ItemDef, sprite: string):
 }
 
 /** Nakładki koloru dla przedmiotu (kolejno, `source-atop`); pusta lista = oryginalny sprite. */
-export function itemTints(def: ItemDef, item: PlacedItem, night: boolean, now: number, phase: DayPhase = 'day'): string[] {
+export function itemTints(def: ItemDef, item: PlacedItem, night: boolean, now: number, phase: DayPhase = 'day', weather: Weather = 'sunny'): string[] {
   const tints: string[] = [];
   if (plantState(item, now) === 'wilted') tints.push(WILTED_TINT);
   if (night && !(def.interaction === 'lamp' && item.lampOn)) {
     tints.push(NIGHT_TINT);
     if (def.interaction === 'window') tints.push(WINDOW_NIGHT_TINT);
   } else if (!night && def.interaction === 'window') {
-    // za oknem pora dnia: różowy poranek, pomarańczowy wieczór, ciemna noc
+    // za oknem pora dnia (różowy poranek, pomarańczowy wieczór, ciemna noc) i pogoda (szaro, deszczowo, burza)
     const t = WINDOW_PHASE_TINT[phase];
     if (t) tints.push(t);
+    const w = WEATHER_TINT[weather];
+    if (w) tints.push(w);
   }
   return tints;
 }

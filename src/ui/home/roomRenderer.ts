@@ -12,6 +12,7 @@ import { deviceRect, drawSprite } from '../pixelStage';
 import { backdropImage } from './balconyBackdrop';
 import { itemSource } from './itemSprites';
 import { WINDOW_NIGHT_TINT, isLitLamp, itemAnchor, itemFrameAnchor, itemTints, needsWater } from './scene';
+import { drawWindowWeather } from './windowWeather';
 
 /** Gabi (albo scena zajęcia / snu) jako jeden element kolejności rysowania. */
 export interface GabiLayer {
@@ -111,27 +112,29 @@ export function createRoomRenderer(): RoomRenderer {
     bg.drawImage(base, 0, 0);
   }
 
-  function drawItem(ctx: CanvasRenderingContext2D, k: number, it: PlacedItem, f: RoomFrame): void {
+  /** Rysuje przedmiot i zwraca nazwę narysowanej klatki (sprite albo klatka stanu) albo null, gdy nic nie narysowano. */
+  function drawItem(ctx: CanvasRenderingContext2D, k: number, it: PlacedItem, f: RoomFrame): string | null {
     const def = findItem(it.itemId);
-    if (!def) return;
+    if (!def) return null;
     // Okno z nocnym wariantem (gwiazdy, księżyc) — w nocy jego klatka zamiast przyciemnionej dziennej.
     // Zegar ma klatkę na każdą porę dnia (okienko nieba) — zawsze wg godziny, także przy zgaszonym świetle.
     const phase = f.phase ?? 'day';
     const frames = itemFrames(it.itemId);
     const nightFrame = frames.evening !== undefined ? frames[phase] : f.night || phase === 'night' ? frames.night : undefined;
-    const tints = itemTints(def, it, f.night, f.now, phase).filter((t) => !nightFrame || (t !== WINDOW_NIGHT_TINT && t !== WINDOW_PHASE_TINT.night));
+    const tints = itemTints(def, it, f.night, f.now, phase, f.weather ?? 'sunny').filter((t) => !nightFrame || (t !== WINDOW_NIGHT_TINT && t !== WINDOW_PHASE_TINT.night));
     const state = f.states.get(it.uid) ?? nightFrame;
     const stateSrc = state ? itemSource(state, tints) : null;
     if (state && stateSrc) {
       const a = itemFrameAnchor(it, def, state);
       drawSprite(ctx, k, stateSrc, a.meta, { x: a.x, feetY: a.feetY, flip: it.flip, bob: 0, squash: 0, jump: 0 });
-      return;
+      return state;
     }
     // bez klatki stanu (albo jeszcze się wczytuje) — zwykły przedmiot
     const src = itemSource(def.sprite, tints);
-    if (!src) return;
+    if (!src) return null;
     const a = itemAnchor(it, def);
     drawSprite(ctx, k, src, a.meta, { x: a.x, feetY: a.feetY, flip: it.flip, bob: 0, squash: 0, jump: 0 });
+    return def.sprite;
   }
 
   /** Wskazówki zegara ściennego (godzina z `f.now`) w pół-pikselach logicznych — drobniej niż rama, jak twarz Gabi. */
@@ -199,7 +202,10 @@ export function createRoomRenderer(): RoomRenderer {
         g.draw(ctx, k);
         ctx.restore();
       } else {
-        drawItem(ctx, k, e, f);
+        const sprite = drawItem(ctx, k, e, f);
+        const def = findItem(e.itemId);
+        // na szybie okna: śnieg, deszcz, liście, płatki (tuż nad oknem, pod tym, co przed nim stoi)
+        if (sprite && def?.interaction === 'window') drawWindowWeather(ctx, k, e, def, sprite, f);
         if (e.itemId === WALL_CLOCK) drawClockHands(ctx, k, e, f);
         f.itemOverlays?.get(e.uid)?.(ctx, k);
       }
