@@ -166,8 +166,7 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
 - Ekstraktor: obrys (`outline`) poszerza też współrzędne komórek (klatki stanów z obrysem).
 - Poprawka lodówek: blade partie (miętowa lodówka, stalowe uchwyty) były brane za tło — w trybie `smooth` próg tła jest teraz polem arkusza `bgTol` (domyślnie 45; lodówki 20), a lodówka dwudrzwiowa ma `holeTol: 0` (jasnoszare szczeliny drzwi zostają). Dziury sprawdzane automatycznie (przezroczyste piksele niepołączone z brzegiem) — zostały tylko prawdziwe prześwity (między stopą Gabi a drzwiami).
 - Podgląd pory dnia (tylko `npm run dev`): `http://localhost:5173/?godzina=23` (albo `?godzina=7:30`) — `setClockOverride`/`gameClock` w `src/home/clock.ts`: przesuwa tylko godzinę gry (okna, balkon, zegary, kwestie), potrzeby i zapis liczą się od prawdziwego czasu. Bez parametru — zegar telefonu.
-- Żywe niebo nad balkonem: `src/home/balconySky.ts` (czyste funkcje: `litShare`, `windowLit`, `meteorAt`, `starDimmed`) + rysowanie w `pet/room.ts` (`drawBalconyBack` / `drawBalconyLive` / `drawBalconyFront`). Renderer pokoju na balkonie składa warstwy co klatkę: niebo z miastem (bufor) → okna, migotanie, spadające gwiazdy → podłoga z balustradą (bufor) → nocna nakładka przy zgaszonym świetle. Okna wieczorem i nocą gasną/zapalają się (cykl 40–120 s, im później, tym mniej świeci: 22:00 ~80%, 5:00 ~25%); spadająca gwiazda średnio co ~13 s (lot 1 s), co piąta gwiazda migocze.
-- Niebo w dzień: chmurki (`CLOUDS`, `cloudX`) dryfują w prawo (0,8–2,2 px/s) i wracają zza lewej krawędzi — rano, w dzień i wieczorem (różowe); klucze ptaków (`birdsAt`: 1–4 ptaki co ~18 s, przelot 7 s, machają skrzydłami „v”/„^”). Chmurki są teraz w warstwie żywej (`drawBalconyLive`), nie w buforze nieba.
+- Balkon (od 2026-10-19): namalowane tła pór roku — opis w sekcji „Pory roku i pogoda” niżej. `src/home/balconySky.ts` ma już tylko klucze ptaków (`birdsAt`) i spadające gwiazdy (`meteorAt`, omijają namalowany księżyc).
 - Nowe jedzenie (14 potraw): truskawki, pączek, lody, zapiekanka, naleśniki, pierogi, ramen, sushi — ikonki 12×12 w `src/art/icons.ts`, kwestie przy konkretnej potrawie `content.foodLines` (reszta — `lines.eat`), kuchenka gotuje też pierogi, naleśniki, zapiekankę i ramen.
 
 ## Pięć nowych minigier (2026-10-09)
@@ -322,3 +321,18 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   generatora tryb dopisywania (`--first-id`).
 - Ze słownika `slowa.txt` usunięte słowa nie-polskie, rzadkie i ponure (np. ION, ZDRADA, WOJNA) — przy kolejnej
   paczce obejrzeć listę słów z podglądu tak samo.
+
+## Pory roku i pogoda — etap 1 (2026-10-19)
+- Pora roku z miesiąca, pogoda dnia z daty (`src/home/season.ts`, tabela `WEATHER_ODDS`), długość dnia wg pory
+  roku (`PHASE_STARTS` w `daytime.ts`); pora snu Gabi bez zmian (`isBedtime`, 21–6). Nic w zapisie gry.
+- Balkon: namalowane tła `public/backgrounds/{pora}-{day|night}.png` (narzędzie `tools/make_backgrounds.py` ze źródeł
+  `assets/source/bg-*.jpg`), wieczorem przejście dzień → noc, chmury przy złej pogodzie zasłaniają słońce/księżyc,
+  drobinki z `src/home/weatherFx.ts` (deszcz z rozpryskami, burza z grzmotem, śnieg, mróz, liście, płatki, motyle,
+  świetliki, migoczące gwiazdy); na balkonie nie ma wyboru tapety ani podłogi.
+- Okna: opady na szybie (`src/home/glass.ts` — szyba z kolorów sprite'a; `NO_GLASS` bez szyby, `GLASS_CLIP` przycięcie;
+  bez wykrytej szyby: lilac, wood_blinds, gothic, fairy).
+- Kwestie: `content.seasonLines` + `speech.ts` (`worldLine`, `windowLine`, `greetingLine`, `clockLinesAt`); nocą bez
+  słońca, zimą przed 21:00 przy zegarze „za oknem ciemno” zamiast „dobranoc”.
+- Podgląd (tylko `npm run dev`): `?pora=wiosna|lato|jesien|zima`, `?pogoda=slonce|pochmurno|deszcz|burza|snieg|mroz`,
+  `?godzina=…`, `?monety=9000` (dopisuje monety raz).
+- Etap 2 (ozdoby sezonowe z `assets/source/sheet-seasonal.jpg`, `sheet-autumn1.jpg`, `sheet-autumn2.jpg`) — osobny plan.

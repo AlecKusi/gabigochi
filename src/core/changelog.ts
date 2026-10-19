@@ -18,6 +18,15 @@ export interface Release {
  */
 export const RELEASES: readonly Release[] = [
   {
+    version: 3,
+    date: '2026-10-19',
+    changes: [
+      'Pory roku i pogoda: balkon zmienia się z porą roku, pada deszcz i śnieg, latem są burze, motyle i świetliki.',
+      'Gabi mówi o pogodzie, a w oknach widać deszcz, śnieg i liście.',
+    ],
+    soon: ['Ozdoby sezonowe w sklepie: dynie, choinki, wiatrak i dużo jesiennych rzeczy!'],
+  },
+  {
     version: 2,
     date: '2026-10-15',
     changes: [
