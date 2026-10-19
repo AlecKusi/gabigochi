@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { itemFrames } from '../../src/home/catalog';
-import { FLAME_ITEMS, TWINKLE_ITEMS, glowStrength, onFrame } from '../../src/home/lamps';
+import { FLAME_ITEMS, GLOW_AT, TWINKLE_ITEMS, glowStrength, onFrame } from '../../src/home/lamps';
 
 describe('włączone przedmioty', () => {
   it('wyłączone — zwykły sprite', () => {
@@ -18,10 +18,16 @@ describe('włączone przedmioty', () => {
     expect(states).toContain(null);
   });
 
-  it('wiatrak kręci się przez 3 klatki', () => {
+  it('włączony wiatrak — zawsze rozmyta klatka spin_2, bez cyklu', () => {
     const f = itemFrames('fan');
-    const seen = new Set([0, 90, 180, 270].map((t) => onFrame('fan', true, t)));
-    expect(seen).toEqual(new Set([null, f.spin_2, f.spin_3]));
+    expect(f.spin_2).toBeTruthy();
+    for (const t of [0, 90, 180, 270]) expect(onFrame('fan', true, t)).toBe(f.spin_2);
+    for (const t of [0, 90, 180, 270]) expect(onFrame('fan', false, t)).toBeNull();
+  });
+
+  it('poświata kominka i paleniska jest nisko, w środku przedmiotu', () => {
+    expect(GLOW_AT.fireplace).toBeGreaterThan(0.5);
+    expect(GLOW_AT.fireplace).toBeLessThan(0.8);
   });
 
   it('poświata: płomienie drgają w 0,6–1, choinki pulsują, reszta stała', () => {

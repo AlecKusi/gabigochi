@@ -44,7 +44,7 @@ zastąpiona odbiciem połowy przed nim, np. dywan zasłonięty z jednej strony) 
 `layer`, `interaction`, `price` oraz opcjonalnie `season` — pora roku, w której rzecz jest w sklepie). Przy `keep` "largest" zostaje tylko jeden spójny kształt (bez odprysków
 sąsiadów). Arkusz może mieć `halo` i `holeTol` (= `hole_tol`) — patrz `background_mask` (rozmyty arkusz z jasną
 obwódką konturu i jasnymi płaszczyznami blisko tła: poduszki, dywany). Wyjście: public/items/<id>.png (przycięte
-do obrysu), src/home/items.generated.json {id: {w, h, scale, name, category, layer, interaction, price}} (dane
+do obrysu), src/home/items.generated.json {id: {w, h, scale, name, category, layer, interaction, price, season (opcjonalnie)}} (dane
 katalogu tylko dla wpisów z `name`), tools/out/items_manifest.json (te same dane katalogu jako lista),
 podgląd ×3 z podpisami i postacią `idle_front` dla skali: tools/out/items_preview.png.
 

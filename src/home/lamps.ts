@@ -2,7 +2,8 @@ import { itemFrames } from './catalog';
 
 /**
  * Włączone przedmioty (czyste funkcje): zapalona dynia i choinka mają klatkę `lit` (choinka co chwilę gaśnie —
- * lampki migają), włączony wiatrak kręci się przez klatki `spin_2`/`spin_3`, a poświata płomieni drga.
+ * lampki migają), włączony wiatrak pokazuje rozmytą klatkę `spin_2` (kręci się — bez przełączania klatek, bo to trzy różne rysunki i
+ * miganie wyglądałoby źle), a poświata płomieni drga.
  */
 
 /** Przedmioty z płomieniem: poświata drga. */
@@ -10,14 +11,15 @@ export const FLAME_ITEMS: ReadonlySet<string> = new Set(['pumpkin', 'jar_candle'
 /** Choinki: lampki migają, poświata pulsuje. */
 export const TWINKLE_ITEMS: ReadonlySet<string> = new Set(['xmas_tree', 'xmas_tree_blue']);
 
+/** Wysokość poświaty (część wysokości przedmiotu od góry), gdy ogień jest nisko — kominek, palenisko. */
+export const GLOW_AT: Readonly<Record<string, number>> = { fireplace: 0.65, fire_pit: 0.55 };
+
 /** Klatka włączonego przedmiotu w chwili `t` (ms) albo null — zwykły sprite. */
 export function onFrame(itemId: string, on: boolean, t: number): string | null {
   if (!on) return null;
   const frames = itemFrames(itemId);
-  if (frames.spin_2 && frames.spin_3) {
-    const k = Math.floor(t / 90) % 3;
-    return k === 0 ? null : k === 1 ? frames.spin_2 : frames.spin_3;
-  }
+  // wiatrak: rozmyta klatka „w ruchu” — bez cyklu, bo klatki to różne rysunki
+  if (frames.spin_2) return frames.spin_2;
   if (!frames.lit) return null;
   // choinka: lampki gasną na chwilę co czwarty takt (400 ms)
   if (TWINKLE_ITEMS.has(itemId) && Math.floor(t / 400) % 4 === 3) return null;

@@ -4,7 +4,7 @@ import type { PlacedItem, RoomId, RoomState } from '../../core/types';
 import { findItem, itemFrames } from '../../home/catalog';
 import { GABI, drawOrder, itemBox } from '../../home/layout';
 import { DEFAULT_LOOKS, findLook } from '../../home/looks';
-import { glowStrength, onFrame } from '../../home/lamps';
+import { GLOW_AT, glowStrength, onFrame } from '../../home/lamps';
 import { CLOCK_FACE, WALL_CLOCK, gameClock, handAngles } from '../../home/clock';
 import { ROOM_PHASE_TINT, WINDOW_PHASE_TINT, type DayPhase } from '../../home/daytime';
 import type { Season, Weather } from '../../home/season';
@@ -131,7 +131,8 @@ export function createRoomRenderer(): RoomRenderer {
     const nightFrame = frames.evening !== undefined ? frames[phase] : f.night || phase === 'night' ? frames.night : undefined;
     const tints = itemTints(def, it, f.night, f.now, phase, f.weather ?? 'sunny').filter((t) => !nightFrame || (t !== WINDOW_NIGHT_TINT && t !== WINDOW_PHASE_TINT.night));
     // włączony przedmiot: zapalona dynia/choinka (choinka miga), kręcący się wiatrak
-    const onState = def.interaction === 'lamp' || def.interaction === 'switch' ? onFrame(it.itemId, it.lampOn === true, f.t) : null;
+    const lt = f.calm ? 0 : f.t; // ograniczony ruch: bez migania i kręcenia
+    const onState = def.interaction === 'lamp' || def.interaction === 'switch' ? onFrame(it.itemId, it.lampOn === true, lt) : null;
     const state = f.states.get(it.uid) ?? onState ?? nightFrame;
     const stateSrc = state ? itemSource(state, tints) : null;
     if (state && stateSrc) {
@@ -174,7 +175,8 @@ export function createRoomRenderer(): RoomRenderer {
   function drawGlow(ctx: CanvasRenderingContext2D, k: number, it: PlacedItem, night: boolean, strength: number): void {
     const b = itemBox(it);
     const cx = it.x * k;
-    const cy = (b.y + Math.min(b.h * 0.3, 10)) * k;
+    const at = GLOW_AT[it.itemId];
+    const cy = (b.y + (at !== undefined ? b.h * at : Math.min(b.h * 0.3, 10))) * k;
     const r = GLOW_R * k;
     const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
     g.addColorStop(0, `rgba(255, 226, 140, ${(night ? 0.55 : 0.3) * strength})`);
@@ -226,7 +228,8 @@ export function createRoomRenderer(): RoomRenderer {
       g.draw(ctx, k);
       ctx.restore();
     }
-    for (const it of visible) if (isLitLamp(it)) drawGlow(ctx, k, it, f.night, glowStrength(it.itemId, f.t));
+    const lt = f.calm ? 0 : f.t;
+    for (const it of visible) if (isLitLamp(it)) drawGlow(ctx, k, it, f.night, glowStrength(it.itemId, lt));
     const sel = f.selectedUid ? f.items.find((i) => i.uid === f.selectedUid) : undefined;
     if (sel) drawSelection(ctx, k, sel, f.t);
   }
