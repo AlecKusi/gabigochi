@@ -45,7 +45,9 @@
   "outfits": {
     "goth_lolita": {
       "desc": "a black and dark-red gothic lolita dress: black fitted bodice with dark-red lace-up corset front, black puffed long sleeves, a black short jacket-like overlay, a full knee-length skirt with layered dark-red and black ruffles, black tights and black boots",
-      "sheets": { "main": {} }, "skip": ["fun_eat", "nurse_*"] }
+      "sheets": { "main": {}, "turnaround": {}, "sitting": {}, "status": {}, "expressions": {}, "table": {}, "lying": {},
+        "plants2": {}, "hobby": {}, "cat": {}, "drink": {} },
+      "skip": ["nurse_*"] }
   },
   "sheets": {
     "kitchen":    { "path": "assets/source/sheet-kitchen.png", "background": [206, 206, 211], "gridPeriod": 4.0, "keep": "all", "paletteColours": 184, "itemPreview": "kitchen_preview" },
