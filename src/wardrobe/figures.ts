@@ -2,6 +2,7 @@ import type { Outfit } from '../core/types';
 import { FRAMES, PORTRAIT_MASKS, hasClothesMask, spriteUrl, type FrameMeta, type SpriteMap } from '../sprites/loader';
 import { dressPixels, isBackView, isSeated, lookOf, type Pixels } from './dresser';
 import { outfitKey } from './outfit';
+import { outfitFrame, outfitPortrait, outfitSpriteUrl } from '../sprites/outfitFrames';
 
 /** Klatka postaci gotowa do `drawSprite`: obrazek (oryginał albo przebrany canvas) i jego metadane. */
 export interface Figure {
@@ -54,8 +55,15 @@ function portraitMeta(img: HTMLImageElement): FrameMeta {
 /**
  * Źródło klatek postaci w stroju: wszystkie miejsca rysujące Gabi pobierają klatki stąd, więc nowe ubranie widać
  * w każdej animacji bez nowych sprite'ów. Wynik cache'owany per (klatka, ozdoba, strój).
+ * Strój z arkuszy (`outfitFrames`) ma własne klatki — wtedy zamiast przemalowania rysujemy klatkę stroju (z ozdobą głowy).
  */
-export function createFigures(sprites: SpriteMap, masks: SpriteMap, outfit: () => Outfit, hats: SpriteMap = new Map()): Figures {
+export function createFigures(
+  sprites: SpriteMap,
+  masks: SpriteMap,
+  outfit: () => Outfit,
+  hats: SpriteMap = new Map(),
+  outfitSprites: SpriteMap = new Map(),
+): Figures {
   const cache = new Map<string, { fig: Figure; url?: string } | null>();
   const pixels = new Map<string, Pixels>();
   const px = (key: string, img: HTMLImageElement) => {
@@ -68,11 +76,8 @@ export function createFigures(sprites: SpriteMap, masks: SpriteMap, outfit: () =
   };
 
   function dressed(name: string, opts: FigureOpts | undefined): { fig: Figure; url?: string } | null {
-    const img = sprites.get(name);
-    const portrait = PORTRAIT_MASKS.includes(name);
-    const meta = FRAMES[name] ?? (img && portrait ? portraitMeta(img) : undefined);
-    if (!img || !meta) return null;
     const o = opts?.outfit ?? outfit();
+    const portrait = PORTRAIT_MASKS.includes(name);
     const hat = (opts?.hat ?? true) && !portrait;
     const key = `${name}#${hat ? 1 : 0}#${outfitKey(o)}`;
     const hit = cache.get(key);
@@ -81,14 +86,21 @@ export function createFigures(sprites: SpriteMap, masks: SpriteMap, outfit: () =
       cache.set(key, hit);
       return hit;
     }
-    let entry: { fig: Figure; url?: string } | null = { fig: { img, meta } };
+    // Strój z arkuszy: własna klatka (albo portret) zamiast przemalowania oryginału.
+    const own = outfitPortrait(o.dress, name) ?? outfitFrame(o.dress, name);
+    const ownImg = own ? outfitSprites.get(own.key) : undefined;
+    const img = ownImg ?? sprites.get(name);
+    const meta = ownImg ? own!.meta : FRAMES[name] ?? (img && portrait ? portraitMeta(img) : undefined);
+    if (!img || !meta) return null;
+    let entry: { fig: Figure; url?: string } | null = { fig: { img, meta }, url: ownImg ? outfitSpriteUrl(own!.key) : undefined };
     try {
-      const mask = hasClothesMask(name) ? masks.get(name) : undefined;
+      const mask = !ownImg && hasClothesMask(name) ? masks.get(name) : undefined;
       const art = (sprite: string) => {
         const h = hats.get(sprite);
         return h ? px(`hat:${sprite}`, h) : null;
       };
-      const r = dressPixels(px(name, img), mask ? px(`mask:${name}`, mask) : null, meta, lookOf(o), { hat, seated: isSeated(name), art, back: isBackView(name) });
+      const srcKey = ownImg ? `stroj:${own!.key}` : name;
+      const r = dressPixels(px(srcKey, img), mask ? px(`mask:${name}`, mask) : null, meta, lookOf(o), { hat, seated: isSeated(name), art, back: isBackView(name) });
       if (r) entry = { fig: { img: canvasOf(r.px), meta: r.meta } };
     } catch (err) {
       // Bez canvasa (albo uszkodzona maska) zostaje oryginał — gra działa dalej.
@@ -103,8 +115,10 @@ export function createFigures(sprites: SpriteMap, masks: SpriteMap, outfit: () =
     get: (name, opts) => dressed(name, opts)?.fig ?? null,
     url(name, opts) {
       const e = dressed(name, opts);
-      if (!e || e.fig.img === sprites.get(name)) return spriteUrl(name);
-      e.url ??= (e.fig.img as HTMLCanvasElement).toDataURL();
+      if (!e) return spriteUrl(name);
+      if (e.url) return e.url;
+      if (e.fig.img === sprites.get(name)) return spriteUrl(name);
+      e.url = (e.fig.img as HTMLCanvasElement).toDataURL();
       return e.url;
     },
   };

@@ -19,6 +19,7 @@ import { allActivityFrames } from './pet/activities';
 import { ANIMATIONS, allFrameNames } from './sprites/animations';
 import framesMeta from './sprites/frames.generated.json';
 import { FRAMES, PORTRAIT_MASKS, loadSprites, maskUrl } from './sprites/loader';
+import { outfitSpriteNames, outfitSpriteUrl } from './sprites/outfitFrames';
 import { h } from './ui/dom';
 import { mountInstall } from './ui/install';
 import { unlockAudio } from './ui/sound';
@@ -142,12 +143,13 @@ async function boot(): Promise<void> {
       ...Object.keys(framesMeta.portraits),
     ]);
     const maskNames = [...Object.keys(FRAMES).filter((n) => FRAMES[n]?.mask), ...PORTRAIT_MASKS];
-    const [sprites, masks, hats] = await Promise.all([
+    const [sprites, masks, hats, outfitSprites] = await Promise.all([
       loadSprites([...names]),
       loadSprites(maskNames, maskUrl),
       loadSprites(headSpriteNames(), itemUrl),
+      loadSprites(outfitSpriteNames(), outfitSpriteUrl),
     ]);
-    const figures = createFigures(sprites, masks, () => store.get().outfit, hats);
+    const figures = createFigures(sprites, masks, () => store.get().outfit, hats, outfitSprites);
     app = createApp(root, store, sprites, figures, SCREENS);
     try {
       // Gry rysują tekst na canvasie – font musi być gotowy przed pierwszym użyciem.
