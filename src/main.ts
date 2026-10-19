@@ -35,6 +35,7 @@ import { createFigures } from './wardrobe/figures';
 import { itemUrl } from './ui/home/itemSprites';
 import { setClockOverride } from './home/clock';
 import { setSeasonOverride, setWeatherOverride } from './home/season';
+import type { GameState } from './core/types';
 
 const SCREENS: Record<ScreenName, ScreenFactory> = {
   birthday: birthdayScreen,
@@ -65,6 +66,20 @@ function showBootError(message?: string): void {
       h('button', { class: 'px-btn big', onclick: () => location.reload() }, 'Spróbuj ponownie'),
     ),
   );
+}
+
+/**
+ * Przy tworzeniu gry (tylko `npm run dev`): `?monety=9000` dopisuje monety do zapisu, a parametr znika z adresu,
+ * żeby odświeżenie strony nie dodało ich drugi raz.
+ */
+function withTestCoins(state: GameState): GameState {
+  const params = new URLSearchParams(location.search);
+  const extra = Number(params.get('monety'));
+  if (!Number.isInteger(extra) || extra <= 0) return state;
+  params.delete('monety');
+  const query = params.toString();
+  history.replaceState(null, '', `${location.pathname}${query ? `?${query}` : ''}${location.hash}`);
+  return { ...state, coins: state.coins + extra };
 }
 
 async function boot(): Promise<void> {
@@ -113,10 +128,11 @@ async function boot(): Promise<void> {
     const now = Date.now();
     const loaded = loadState(localStorage, now);
     const bonus = claimDailyBonus(applyElapsed(loaded.state, now), now);
-    const store = new Store(bonus.state, localStorage, {
+    const start = import.meta.env.DEV ? withTestCoins(bonus.state) : bonus.state;
+    const store = new Store(start, localStorage, {
       onSaveError: () => app?.toast('Nie udało się zapisać postępu.'),
     });
-    saveState(localStorage, bonus.state);
+    saveState(localStorage, start);
 
     // Klatki zajęć i ich miny (face_study, face_phone) są w body/portraits; allActivityFrames() dla pewności, gdyby wypadły z listy.
     const names = new Set([
