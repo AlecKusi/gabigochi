@@ -13,7 +13,9 @@ export type Sfx =
   // minigry: odbicie, rozbity klocek, karta, para, „nie”, tyknięcie, wpisanie cyfry, gumka, klawisz,
   // pełna linia, zapalona świeczka, kot wychyla się, pudło, nowy rekord
   | 'blip' | 'brick' | 'flip' | 'match' | 'nope' | 'tick' | 'place' | 'erase' | 'type'
-  | 'line' | 'flick' | 'peek' | 'thud' | 'record';
+  | 'line' | 'flick' | 'peek' | 'thud' | 'record'
+  // pogoda: grzmot przy błyskawicy
+  | 'thunder';
 
 /** Podłoga pod stopami Gabi: deski, płytki, dywan. */
 export type StepSurface = 'wood' | 'tile' | 'soft';
@@ -263,6 +265,9 @@ export function play(s: Sfx): void {
       return tone('square', 300, 700, 0.07, 0.3);
     case 'thud':
       return tone('triangle', 150, 90, 0.08, 0.45);
+    case 'thunder':
+      noise(1.4, 0.55, 0, 180, 'lowpass');
+      return tone('triangle', 70, 40, 1.1, 0.35, 0.05);
     case 'record':
       arp('square', [C5, E5, G5, C6, E6], 0.08, 0.6);
       tone('triangle', C6, C6, 0.5, 0.45, 0.42);

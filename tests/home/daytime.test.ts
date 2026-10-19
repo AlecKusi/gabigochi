@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { PHASE_STARTS, SKY, WINDOW_PHASE_TINT, dayPhase, eveningProgress } from '../../src/home/daytime';
+import { PHASE_STARTS, WINDOW_PHASE_TINT, dayPhase, eveningProgress } from '../../src/home/daytime';
 import { setSeasonOverride } from '../../src/home/season';
 
 const at = (h: number) => new Date(2026, 9, 9, h, 30);
@@ -15,10 +15,9 @@ describe('pora dnia', () => {
     expect(dayPhase(at(21))).toBe('night');
     expect(dayPhase(at(0))).toBe('night');
   });
-  it('okna w dzień bez barwy, w pozostałych porach zabarwione; niebo na każdą porę', () => {
+  it('okna w dzień bez barwy, w pozostałych porach zabarwione', () => {
     expect(WINDOW_PHASE_TINT.day).toBeNull();
     for (const p of ['morning', 'evening', 'night'] as const) expect(WINDOW_PHASE_TINT[p]).toMatch(/^rgba/);
-    for (const p of ['morning', 'day', 'evening', 'night'] as const) expect(SKY[p]).toHaveLength(2);
   });
 });
 

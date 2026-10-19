@@ -1,31 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { BIRDS_MS, CLOUDS, METEOR_MS, METEOR_SLOT_MS, birdsAt, cloudX, litShare, meteorAt, starDimmed, windowLit } from '../../src/home/balconySky';
-
-const at = (h: number, m = 0) => new Date(2026, 9, 9, h, m).getTime();
+import { BIRDS_MS, METEOR_MS, METEOR_SLOT_MS, birdsAt, meteorAt } from '../../src/home/balconySky';
 
 describe('życie nieba nad balkonem', () => {
-  it('im później w nocy, tym mniej okien świeci; wieczorem prawie wszystkie, w dzień żadne', () => {
-    expect(litShare('evening', 19)).toBeGreaterThan(litShare('night', 22));
-    expect(litShare('night', 22)).toBeGreaterThan(litShare('night', 1));
-    expect(litShare('night', 1)).toBeGreaterThan(litShare('night', 5));
-    expect(litShare('night', 5)).toBeGreaterThan(0.1);
-    expect(litShare('day', 12)).toBe(0);
-    expect(litShare('morning', 8)).toBe(0);
-  });
-
-  it('okna gasną i zapalają się w czasie, a odsetek świecących zgadza się z porą', () => {
-    const lit = (clock: number, share: number) => Array.from({ length: 200 }, (_, i) => windowLit(i, clock, share)).filter(Boolean).length;
-    expect(lit(at(22), 0.8)).toBeGreaterThan(130);
-    expect(lit(at(4), 0.3)).toBeLessThan(90);
-    expect(lit(at(4), 0)).toBe(0);
-    // po kilku minutach część okien zmieniła stan
-    const before = Array.from({ length: 200 }, (_, i) => windowLit(i, at(23), 0.6));
-    const after = Array.from({ length: 200 }, (_, i) => windowLit(i, at(23, 5), 0.6));
-    const changed = before.filter((v, i) => v !== after[i]).length;
-    expect(changed).toBeGreaterThan(10);
-    expect(changed).toBeLessThan(150);
-  });
-
   it('spadające gwiazdy: co kilkanaście sekund, krótki lot, cała smuga na niebie nad miastem', () => {
     let count = 0;
     let frames = 0;
@@ -46,24 +22,6 @@ describe('życie nieba nad balkonem', () => {
     expect(count).toBeLessThan(70);
     expect(frames / count).toBeCloseTo(METEOR_MS / 50, -1);
     expect(METEOR_SLOT_MS).toBeGreaterThan(METEOR_MS);
-  });
-
-  it('migocząca gwiazda przygasa tylko na chwilę', () => {
-    const dim = Array.from({ length: 1000 }, (_, k) => starDimmed(5, k * 20)).filter(Boolean).length;
-    expect(dim).toBeGreaterThan(50);
-    expect(dim).toBeLessThan(250);
-  });
-
-  it('chmurki w dzień dryfują w prawo i wracają zza lewej krawędzi; na starcie stoją tam, gdzie dawniej', () => {
-    CLOUDS.forEach((c, i) => {
-      expect(cloudX(i, 0)).toBeCloseTo(c.x);
-      expect(cloudX(i, 10_000)).toBeCloseTo(c.x + c.speed * 10);
-      for (let t = 0; t < 600_000; t += 997) {
-        const x = cloudX(i, t);
-        expect(x).toBeGreaterThanOrEqual(-20 - c.w);
-        expect(x).toBeLessThan(128 + 0.001);
-      }
-    });
   });
 
   it('ptaki: klucze 1–4 ptaków co kilkanaście sekund, przelot przez cały pokój po niebie, machają skrzydłami', () => {

@@ -45,7 +45,11 @@ import { createPixelStage, deviceRect, drawSprite } from '../pixelStage';
 import { play, step, type Sfx, type StepSurface } from '../sound';
 import { showTips } from '../tips';
 import { PHASE_ICON, clockNow, gameClock } from '../../home/clock';
-import { PHASE_NAMES, dayPhase, type DayPhase } from '../../home/daytime';
+import { PHASE_NAMES, dayPhase, eveningProgress, type DayPhase } from '../../home/daytime';
+import { seasonNow, weatherNow } from '../../home/season';
+import { flashSlot } from '../../home/weatherFx';
+import { preloadBackdrops } from '../home/balconyBackdrop';
+import { reducedMotion } from '../transition';
 
 interface Heart {
   x: number;
@@ -318,6 +322,11 @@ export function roomScreen(app: App): Screen {
         }),
     ),
   );
+  preloadBackdrops(seasonNow(gameClock()));
+  /** Ograniczony ruch (ustawienie telefonu): opady na balkonie i w oknach stoją, bez błysków i grzmotów. */
+  const calm = reducedMotion();
+  /** Ostatnia błyskawica z grzmotem (numer okna czasu) — grzmot raz na błysk. */
+  let lastThunder: number | null = null;
 
   const navBtn = (name: IconName, label: string, onClick: () => void, nav?: string) =>
     h('button', { class: 'nav-btn', 'data-nav': nav, onclick: onClick }, h('span', { class: 'nav-icon' }, icon(name, 3)), h('span', {}, label));
@@ -1306,12 +1315,17 @@ export function roomScreen(app: App): Screen {
       const r = tv ? screenRect(tv) : null;
       if (tv && r) itemOverlays.set(tv.uid, (ctx, k) => drawScreenFlicker(ctx, k, r, t));
     }
+    const clock = gameClock();
     const f: RoomFrame = {
       room: viewRoom,
       looks: room,
       items,
       night: s.sleeping,
-      phase: dayPhase(gameClock()),
+      phase: dayPhase(clock),
+      season: seasonNow(clock),
+      weather: weatherNow(clock),
+      dusk: eveningProgress(clock),
+      calm,
       now: Date.now(),
       t,
       hidden: hiddenItems(stage, inBed && !edit.active ? bed : null, act),
@@ -1321,6 +1335,14 @@ export function roomScreen(app: App): Screen {
       extras,
       itemOverlays,
     };
+    // burza na balkonie: grzmot przy każdym błysku
+    if (viewRoom === 'balcony' && f.weather === 'storm' && !calm) {
+      const slot = flashSlot(t);
+      if (slot !== null && slot !== lastThunder) {
+        lastThunder = slot;
+        play('thunder');
+      }
+    }
     px.clear();
     renderer.drawBackground(bg, f);
     renderer.drawOverlays(fx, f);

@@ -1,7 +1,8 @@
-import type { RoomId } from '../core/types';
+import type { DayPhase } from '../home/daytime';
 import { drawFloor, drawWallpaper, type LookDef } from '../home/looks';
-import { SKY, type DayPhase } from '../home/daytime';
-import { CLOUDS, METEOR_FLIGHT, birdsAt, cloudX, litShare, meteorAt, skyHash as hash, starDimmed, windowLit } from '../home/balconySky';
+import { METEOR_FLIGHT, birdsAt, meteorAt } from '../home/balconySky';
+import type { Season, Weather } from '../home/season';
+import { WEATHER_TINT, lightning, twinkles, weatherParticles, type Area, type Particle } from '../home/weatherFx';
 
 /** Wymiary pokoju w pikselach logicznych; canvas skalowany CSS-em. */
 export const ROOM_W = 128;
@@ -16,134 +17,86 @@ export const FEET_Y = 144;
 export const NIGHT_TINT = 'rgba(30, 16, 72, 0.75)';
 
 /**
- * Stałe tło pokoju (px logiczne): tapeta na ścianie i podłoga (na balkonie — niebo i balustrada). Okna, półki,
- * dywany, a także urodzinowa girlanda i obrazek „26” w salonie to przedmioty rysowane osobno.
+ * Stałe tło pokoju (px logiczne): tapeta na ścianie i podłoga. Okna, półki, dywany, a także urodzinowa girlanda
+ * i obrazek „26” w salonie to przedmioty rysowane osobno. Balkon ma namalowane tło — `drawBalcony`.
  */
-export function drawRoomBase(ctx: CanvasRenderingContext2D, room: RoomId, wallpaper: LookDef, floor: LookDef, phase: DayPhase = 'day'): void {
-  if (room === 'balcony') {
-    // nieruchomy widok (okna wg pory, bez spadających gwiazd); w grze warstwy rysuje renderer pokoju
-    drawBalconyBack(ctx, phase);
-    drawBalconyLive(ctx, phase, null, 0);
-    drawBalconyFront(ctx, floor);
-    return;
-  }
+export function drawRoomBase(ctx: CanvasRenderingContext2D, wallpaper: LookDef, floor: LookDef): void {
   drawWallpaper(ctx, wallpaper, ROOM_W, FLOOR_Y);
   drawFloor(ctx, floor, FLOOR_Y, ROOM_W, ROOM_H - FLOOR_Y);
 }
 
-function mixHex(a: string, b: string, t: number): string {
-  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
-  const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
-  return `rgb(${pa.map((v, i) => Math.round(v + (pb[i] - v) * t)).join(',')})`;
+/** Na namalowane tło balkonu: rano lekko różowo, wieczorem ciepło. */
+export const BALCONY_PHASE_TINT: Readonly<Record<DayPhase, string | null>> = {
+  morning: 'rgba(255, 168, 150, 0.16)',
+  day: null,
+  evening: 'rgba(255, 130, 70, 0.14)',
+  night: null,
+};
+
+/** Widok nad podłogą balkonu, pod daszkiem: tu padają opady i latają ptaki (pod daszkiem nie pada). */
+export const BALCONY_SKY: Area = { x: 0, y: 9, w: ROOM_W, h: FLOOR_Y - 9 };
+
+/** Co narysować na balkonie w tej klatce. */
+export interface BalconyView {
+  /** Tła pory roku (null — jeszcze się wczytują). */
+  day: CanvasImageSource | null;
+  night: CanvasImageSource | null;
+  phase: DayPhase;
+  /** 0 — dzień, 1 — noc; wieczorem nocne tło stopniowo przykrywa dzienne. */
+  dusk: number;
+  season: Season;
+  weather: Weather;
+  /** Zegar animacji (ms); przy ograniczonym ruchu stały — opady stoją. */
+  t: number;
+  /** Ograniczony ruch: bez błysków burzy, ptaków i spadających gwiazd. */
+  calm: boolean;
 }
 
-/** Gwiazdy nad balkonem (px logiczne) — co piąta migocze. */
-const STARS = Array.from({ length: 40 }, (_, i) => ({ x: Math.floor(hash(i) * ROOM_W), y: Math.floor(hash(i + 99) * 70) }));
-
-/** Miasto na horyzoncie: budynki i miejsca na okna (każde może świecić albo być ciemne). */
-const CITY = (() => {
-  const buildings: { x: number; w: number; h: number }[] = [];
-  const windows: { x: number; y: number }[] = [];
-  let x = 0;
-  for (let i = 0; x < ROOM_W; i++) {
-    const w = 8 + Math.floor(hash(i + 7) * 10);
-    const h = 18 + Math.floor(hash(i + 31) * 30);
-    buildings.push({ x, w, h });
-    for (let wy = FLOOR_Y - h + 3; wy < FLOOR_Y - 4; wy += 5) {
-      for (let wx = x + 2; wx < x + w - 3; wx += 3) if (hash(wx * 13 + wy) > 0.55) windows.push({ x: wx, y: wy });
-    }
-    x += w;
-  }
-  return { buildings, windows };
-})();
-
 /**
- * Widok z balkonu bez tego, co żyje: niebo z pory dnia (pasy gradientu), słońce/księżyc albo gwiazdy, daszek
- * i sylwetki budynków (chmurki, ptaki i okna dorysowuje `drawBalconyLive`).
+ * Balkon: namalowane tło pory roku (rano i w dzień dzienne, wieczorem przejście w nocne, w nocy nocne), odcień pory
+ * dnia i pogody, błysk burzy, w pogodny dzień ptaki, w pogodną noc migoczące i spadające gwiazdy, a na wierzchu
+ * opady i drobinki pory roku (liście, płatki, motyle, świetliki).
  */
-export function drawBalconyBack(ctx: CanvasRenderingContext2D, phase: DayPhase): void {
-  const [top, bottom] = SKY[phase];
-  const bands = 12;
-  for (let i = 0; i < bands; i++) {
-    ctx.fillStyle = mixHex(top, bottom, i / (bands - 1));
-    ctx.fillRect(0, Math.floor((FLOOR_Y * i) / bands), ROOM_W, Math.ceil(FLOOR_Y / bands) + 1);
-  }
-  if (phase === 'night') {
-    STARS.forEach((st, i) => {
-      ctx.fillStyle = i % 7 === 0 ? '#ffe9a8' : '#ffffff';
-      ctx.fillRect(st.x, st.y, 1, 1);
-    });
-    // księżyc
-    ctx.fillStyle = '#fff4c8';
-    ctx.fillRect(98, 14, 10, 10);
-    ctx.fillRect(97, 16, 12, 6);
-    ctx.fillStyle = SKY.night[0];
-    ctx.fillRect(102, 13, 8, 8);
-  } else {
-    // słońce: rano nisko z lewej, w dzień wysoko, wieczorem nisko z prawej
-    const sun = phase === 'morning' ? { x: 22, y: 50, c: '#ffd9a0' } : phase === 'day' ? { x: 90, y: 16, c: '#fff1a0' } : { x: 100, y: 62, c: '#ff8a5a' };
-    ctx.fillStyle = sun.c;
-    ctx.fillRect(sun.x - 5, sun.y - 3, 10, 6);
-    ctx.fillRect(sun.x - 3, sun.y - 5, 6, 10);
-    ctx.fillRect(sun.x - 4, sun.y - 4, 8, 8);
-  }
-  // daszek nad balkonem (na nim wiszą lampki)
-  ctx.fillStyle = '#5a3a8a';
-  ctx.fillRect(0, 0, ROOM_W, 6);
-  ctx.fillStyle = '#7a52b0';
-  ctx.fillRect(0, 0, ROOM_W, 2);
+export function drawBalcony(ctx: CanvasRenderingContext2D, v: BalconyView): void {
   ctx.fillStyle = '#2a1f3d';
-  ctx.fillRect(0, 6, ROOM_W, 1);
-  for (let x = 0; x < ROOM_W; x += 8) {
-    ctx.fillStyle = '#2a1f3d';
-    ctx.fillRect(x, 7, 8, 1);
-    ctx.fillRect(x + 1, 8, 6, 1);
+  ctx.fillRect(0, 0, ROOM_W, ROOM_H);
+  if (v.dusk < 1 && v.day) ctx.drawImage(v.day, 0, 0, ROOM_W, ROOM_H);
+  if (v.dusk > 0 && v.night) {
+    ctx.save();
+    ctx.globalAlpha = v.dusk;
+    ctx.drawImage(v.night, 0, 0, ROOM_W, ROOM_H);
+    ctx.restore();
   }
-  // miasto na horyzoncie
-  ctx.fillStyle = phase === 'night' ? '#1f1b45' : phase === 'evening' ? '#5a3f78' : '#9aa7cf';
-  for (const b of CITY.buildings) ctx.fillRect(b.x, FLOOR_Y - b.h, b.w - 1, b.h);
+  const phaseTint = BALCONY_PHASE_TINT[v.phase];
+  if (phaseTint) {
+    ctx.fillStyle = phaseTint;
+    ctx.fillRect(0, 0, ROOM_W, ROOM_H);
+  }
+  const weatherTint = WEATHER_TINT[v.weather];
+  if (weatherTint) {
+    ctx.fillStyle = weatherTint;
+    ctx.fillRect(0, 0, ROOM_W, ROOM_H);
+  }
+  const flash = v.weather === 'storm' && !v.calm ? lightning(v.t) : 0;
+  if (flash > 0) {
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.45 * flash})`;
+    ctx.fillRect(0, 0, ROOM_W, FLOOR_Y);
+  }
+  const clear = v.weather === 'sunny' || v.weather === 'frost';
+  if (clear && !v.calm && (v.phase === 'day' || v.phase === 'morning')) drawBirds(ctx, v.phase, v.t);
+  if (clear && v.phase === 'night') {
+    drawParticles(ctx, twinkles(BALCONY_SKY, v.t));
+    if (!v.calm) drawMeteor(ctx, v.t);
+  }
+  drawParticles(ctx, weatherParticles({ season: v.season, weather: v.weather, phase: v.phase, area: BALCONY_SKY, t: v.t, open: true }));
 }
 
-/**
- * To, co żyje na niebie (rysowane co klatkę między widokiem a balustradą): za dnia dryfują chmurki i przelatują
- * klucze ptaków; okna w mieście wieczorem i nocą gasną i zapalają się (im później, tym mniej świeci), a nocą
- * migoczą gwiazdy i przelatują spadające gwiazdy.
- * `clockMs` — godzina gry (ms); null — nieruchomy widok: chmurki na miejscach startowych, świecą wszystkie okna.
- * `t` — zegar animacji (ms).
- */
-export function drawBalconyLive(ctx: CanvasRenderingContext2D, phase: DayPhase, clockMs: number | null, t: number): void {
-  const still = clockMs === null;
-  if (phase !== 'night') drawClouds(ctx, phase, still ? 0 : t);
-  if (phase === 'night' || phase === 'evening') {
-    const d = still ? null : new Date(clockMs);
-    const share = d ? litShare(phase, d.getHours() + d.getMinutes() / 60) : 1;
-    ctx.fillStyle = '#ffd86a';
-    CITY.windows.forEach((w, i) => {
-      if (still || windowLit(i, clockMs, share)) ctx.fillRect(w.x, w.y, 1, 2);
-    });
+/** Drobinki jako prostokąciki w px logicznych. */
+export function drawParticles(ctx: CanvasRenderingContext2D, ps: readonly Particle[]): void {
+  for (const p of ps) {
+    ctx.fillStyle = p.color;
+    ctx.fillRect(Math.round(p.x), Math.round(p.y), p.w, p.h);
   }
-  if (still) return;
-  if (phase !== 'night') {
-    drawBirds(ctx, phase, t);
-    return;
-  }
-  // migotanie: co piąta gwiazda co chwilę przygasa
-  ctx.fillStyle = '#5d5796';
-  STARS.forEach((st, i) => {
-    if (i % 5 === 0 && starDimmed(i, t)) ctx.fillRect(st.x, st.y, 1, 1);
-  });
-  drawMeteor(ctx, t);
-}
-
-/** Chmurki dryfujące w prawo (za krawędzią wracają z lewej); wieczorem różowe od zachodu. */
-function drawClouds(ctx: CanvasRenderingContext2D, phase: DayPhase, t: number): void {
-  ctx.fillStyle = phase === 'evening' ? '#ffb9a0' : '#ffffff';
-  CLOUDS.forEach((c, i) => {
-    const x = Math.round(cloudX(i, t, ROOM_W));
-    const top = Math.round(c.w * 0.25);
-    ctx.fillRect(x, c.y, c.w, 4);
-    ctx.fillRect(x + top, c.y - 3, c.w - 2 * top, 3);
-  });
 }
 
 /** Ptaki: ciemne sylwetki „v” (skrzydła w górze) i „^” (w dole), machają na zmianę. */
@@ -194,26 +147,3 @@ function drawMeteor(ctx: CanvasRenderingContext2D, t: number): void {
   ctx.fillRect(hx, hy, 1, 1);
   ctx.restore();
 }
-
-/** Przód balkonu (na wierzchu nieba): podłoga i balustrada. */
-export function drawBalconyFront(ctx: CanvasRenderingContext2D, floor: LookDef): void {
-  drawFloor(ctx, floor, FLOOR_Y, ROOM_W, ROOM_H - FLOOR_Y);
-  drawRailing(ctx);
-}
-
-/** Balustrada balkonu: poręcz i szczeble na tle miasta. */
-function drawRailing(ctx: CanvasRenderingContext2D): void {
-  const top = FLOOR_Y - 26;
-  ctx.fillStyle = '#2a1f3d';
-  ctx.fillRect(0, top, ROOM_W, 3);
-  ctx.fillRect(0, FLOOR_Y - 3, ROOM_W, 3);
-  ctx.fillStyle = '#f3ecff';
-  ctx.fillRect(0, top + 1, ROOM_W, 1);
-  for (let x = 2; x < ROOM_W; x += 7) {
-    ctx.fillStyle = '#2a1f3d';
-    ctx.fillRect(x, top + 3, 2, 23);
-    ctx.fillStyle = '#c9b9e8';
-    ctx.fillRect(x, top + 3, 1, 23);
-  }
-}
-

@@ -6,8 +6,10 @@ import { GABI, drawOrder, itemBox } from '../../home/layout';
 import { DEFAULT_LOOKS, findLook } from '../../home/looks';
 import { CLOCK_FACE, WALL_CLOCK, gameClock, handAngles } from '../../home/clock';
 import { ROOM_PHASE_TINT, WINDOW_PHASE_TINT, type DayPhase } from '../../home/daytime';
-import { NIGHT_TINT, ROOM_H, ROOM_W, drawBalconyBack, drawBalconyFront, drawBalconyLive, drawRoomBase } from '../../pet/room';
+import type { Season, Weather } from '../../home/season';
+import { NIGHT_TINT, ROOM_H, ROOM_W, drawBalcony, drawRoomBase } from '../../pet/room';
 import { deviceRect, drawSprite } from '../pixelStage';
+import { backdropImage } from './balconyBackdrop';
 import { itemSource } from './itemSprites';
 import { WINDOW_NIGHT_TINT, isLitLamp, itemAnchor, itemFrameAnchor, itemTints, needsWater } from './scene';
 
@@ -29,6 +31,13 @@ export interface RoomFrame {
   night: boolean;
   /** Pora dnia (okna, balkon, poświata pokoju). */
   phase?: DayPhase;
+  /** Pora roku i pogoda (balkon, okna); domyślnie jesień i pogodnie. */
+  season?: Season;
+  weather?: Weather;
+  /** Zmierzch 0–1 (przejście tła balkonu dzień → noc); domyślnie z pory dnia. */
+  dusk?: number;
+  /** Ograniczony ruch (ustawienie telefonu): opady stoją, bez błysków. */
+  calm?: boolean;
   /** Date.now() — stan roślin. */
   now: number;
   /** performance.now() — animacje (kropla). */
@@ -63,43 +72,43 @@ export function createRoomRenderer(): RoomRenderer {
   base.width = ROOM_W;
   base.height = ROOM_H;
   const baseCtx = base.getContext('2d')!;
-  /** Balkon: podłoga z balustradą na wierzchu żywego nieba (okna, spadające gwiazdy). */
-  const front = document.createElement('canvas');
-  front.width = ROOM_W;
-  front.height = ROOM_H;
-  const frontCtx = front.getContext('2d')!;
   let baseKey = '';
 
   function drawBackground(bg: CanvasRenderingContext2D, f: RoomFrame): void {
     const phase = f.phase ?? 'day';
-    const key = `${f.room}|${f.looks.wallpaper}|${f.looks.floor}|${f.night}|${phase}`;
+    if (f.room === 'balcony') {
+      // balkon: namalowane tło pory roku (wieczorem przejście w noc) i pogoda — co klatkę
+      const season = f.season ?? 'autumn';
+      const calm = f.calm ?? false;
+      drawBalcony(bg, {
+        day: backdropImage(season, 'day'),
+        night: backdropImage(season, 'night'),
+        phase,
+        dusk: f.dusk ?? (phase === 'night' ? 1 : 0),
+        season,
+        weather: f.weather ?? 'sunny',
+        t: calm ? 0 : f.t,
+        calm,
+      });
+      if (f.night) {
+        bg.fillStyle = NIGHT_TINT;
+        bg.fillRect(0, 0, ROOM_W, ROOM_H);
+      }
+      return;
+    }
+    const key = `${f.room}|${f.looks.wallpaper}|${f.looks.floor}|${f.night}`;
     if (key !== baseKey) {
       baseKey = key;
       const wall = findLook(f.looks.wallpaper) ?? findLook(DEFAULT_LOOKS[f.room].wallpaper)!;
       const floor = findLook(f.looks.floor) ?? findLook(DEFAULT_LOOKS[f.room].floor)!;
       baseCtx.clearRect(0, 0, ROOM_W, ROOM_H);
-      if (f.room === 'balcony') {
-        // balkon w warstwach: niebo z miastem (tu), co klatkę żywe niebo, na wierzchu podłoga z balustradą
-        drawBalconyBack(baseCtx, phase);
-        frontCtx.clearRect(0, 0, ROOM_W, ROOM_H);
-        drawBalconyFront(frontCtx, floor);
-      } else {
-        drawRoomBase(baseCtx, f.room, wall, floor, phase);
-        if (f.night) {
-          baseCtx.fillStyle = NIGHT_TINT;
-          baseCtx.fillRect(0, 0, ROOM_W, ROOM_H);
-        }
+      drawRoomBase(baseCtx, wall, floor);
+      if (f.night) {
+        baseCtx.fillStyle = NIGHT_TINT;
+        baseCtx.fillRect(0, 0, ROOM_W, ROOM_H);
       }
     }
     bg.drawImage(base, 0, 0);
-    if (f.room === 'balcony') {
-      drawBalconyLive(bg, phase, gameClock(f.now).getTime(), f.t);
-      bg.drawImage(front, 0, 0);
-      if (f.night) {
-        bg.fillStyle = NIGHT_TINT;
-        bg.fillRect(0, 0, ROOM_W, ROOM_H);
-      }
-    }
   }
 
   function drawItem(ctx: CanvasRenderingContext2D, k: number, it: PlacedItem, f: RoomFrame): void {

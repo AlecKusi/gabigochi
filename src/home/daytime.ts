@@ -57,11 +57,3 @@ export const ROOM_PHASE_TINT: Readonly<Record<DayPhase, string | null>> = {
   evening: 'rgba(255, 150, 80, 0.12)',
   night: 'rgba(40, 24, 90, 0.16)',
 };
-
-/** Niebo nad balkonem: [góra, dół] gradientu. */
-export const SKY: Readonly<Record<DayPhase, readonly [string, string]>> = {
-  morning: ['#9fc4f0', '#ffc9b5'],
-  day: ['#6fb3f2', '#c7e6ff'],
-  evening: ['#5b4a9e', '#ff9a6a'],
-  night: ['#141238', '#33306e'],
-};
