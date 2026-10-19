@@ -73,9 +73,9 @@ export function weatherOf(d: Date): Weather {
   return weatherFor(seasonOf(d), d);
 }
 
-/** Tło balkonu: pora roku × dzień/noc → nazwa pliku w `public/backgrounds` (bez `.png`). */
 export type BackdropTime = 'day' | 'night';
 
+/** Tło balkonu: pora roku × dzień/noc → nazwa pliku w `public/backgrounds` (bez `.png`). */
 export function backdropName(season: Season, time: BackdropTime): string {
   return `${season}-${time}`;
 }
@@ -112,7 +112,7 @@ export function setSeasonOverride(name: string | null): boolean {
     seasonOverride = null;
     return true;
   }
-  const s = SEASON_PARAM[name.trim().toLowerCase()];
+  const s = SEASON_PARAM[name.normalize('NFC').trim().toLowerCase()];
   if (!s) return false;
   seasonOverride = s;
   return true;
@@ -124,7 +124,7 @@ export function setWeatherOverride(name: string | null): boolean {
     weatherOverride = null;
     return true;
   }
-  const w = WEATHER_PARAM[name.trim().toLowerCase()];
+  const w = WEATHER_PARAM[name.normalize('NFC').trim().toLowerCase()];
   if (!w) return false;
   weatherOverride = w;
   return true;

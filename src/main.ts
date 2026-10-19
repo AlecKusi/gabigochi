@@ -100,14 +100,14 @@ async function boot(): Promise<void> {
     void navigator.storage?.persist?.();
     // podgląd przy tworzeniu gry (tylko wygląd, potrzeby bez zmian): ?godzina=23 albo ?godzina=7:30,
     // ?pora=wiosna|lato|jesien|zima, ?pogoda=slonce|pochmurno|deszcz|burza|snieg|mroz
-    const params = new URLSearchParams(location.search);
     if (import.meta.env.DEV) {
+      const params = new URLSearchParams(location.search);
       const hour = params.get('godzina');
-      if (hour) setClockOverride(hour);
+      if (hour && !setClockOverride(hour)) console.warn('Nieznane ?godzina=', hour);
       const pora = params.get('pora');
-      if (pora) setSeasonOverride(pora);
+      if (pora && !setSeasonOverride(pora)) console.warn('Nieznane ?pora=', pora);
       const pogoda = params.get('pogoda');
-      if (pogoda) setWeatherOverride(pogoda);
+      if (pogoda && !setWeatherOverride(pogoda)) console.warn('Nieznane ?pogoda=', pogoda);
     }
 
     const now = Date.now();
