@@ -221,4 +221,22 @@ describe('pogoda na scenie', () => {
     expect(WEATHER_TINT.frost).toBeNull();
     for (const w of ['cloudy', 'rain', 'storm', 'snow'] as const) expect(WEATHER_TINT[w]).toMatch(/^rgba/);
   });
+
+  it('deszcz na balkonie rozpryskuje się przy samej krawędzi (w oknie — bez rozprysków)', () => {
+    let splashed = 0;
+    for (let t = 0; t <= 2000; t += 50) {
+      for (const p of scene({ weather: 'rain', open: true, t })) {
+        if (p.w === 1 && p.h === 1 && p.y >= SKY.y + SKY.h - 2) splashed++;
+      }
+    }
+    expect(splashed).toBeGreaterThan(0);
+    expect(scene({ weather: 'storm', open: false }).every((p) => !(p.w === 1 && p.h === 1))).toBe(true);
+  });
+
+  it('jesień przy słońcu — liście; wiosna przy słońcu — płatki, w deszcz bez płatków', () => {
+    expect(scene({}).length).toBeGreaterThan(0);
+    expect([...colours(scene({}))].every((c) => ['#e8902c', '#c9581e', '#f2c14a', '#a8452a'].includes(c))).toBe(true);
+    expect(colours(scene({ season: 'spring' })).has('#ffc4dc')).toBe(true);
+    expect(colours(scene({ season: 'spring', weather: 'rain' })).has('#ffc4dc')).toBe(false);
+  });
 });

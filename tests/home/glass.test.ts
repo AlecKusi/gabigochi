@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { findItem } from '../../src/home/catalog';
 import { GLASS_CLIP, GLASS_MIN_SHARE, NO_GLASS, glassMask, isGlassColour } from '../../src/home/glass';
 
 type Px = readonly [number, number, number, number];
@@ -81,6 +82,10 @@ describe('szyba okna', () => {
       expect(c.w, id).toBeGreaterThan(0);
       expect(c.h, id).toBeGreaterThan(0);
       expect(NO_GLASS.has(id), id).toBe(false);
+      const def = findItem(id)!;
+      expect(def, id).toBeDefined();
+      expect(c.x + c.w, id).toBeLessThanOrEqual(def.w);
+      expect(c.y + c.h, id).toBeLessThanOrEqual(def.h);
     }
   });
 

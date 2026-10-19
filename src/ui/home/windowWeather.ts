@@ -28,6 +28,13 @@ interface Pane {
   box: Area;
 }
 
+/** Stałe przesunięcie czasu opadów dla okna (0–9999 ms), żeby takie same okna nie miały identycznych kropli. */
+function uidOffset(uid: string): number {
+  let h = 0;
+  for (let i = 0; i < uid.length; i++) h = (h * 31 + uid.charCodeAt(i)) % 10_000;
+  return h;
+}
+
 /** Maska szyby dla sprite'a (null — bez szyby albo nie do odczytu); liczona raz. */
 const masks = new Map<string, Pane | null>();
 /** Płótno robocze opadów na rozmiar sprite'a. */
@@ -106,7 +113,8 @@ export function drawWindowWeather(ctx: CanvasRenderingContext2D, k: number, it: 
   const calm = f.calm ?? false;
   // każde okno ma własny przebieg opadów (identyczne okna nie pokazują identycznych drobinek); błysk — wspólny z balkonem
   const t = calm ? 0 : f.t;
-  const tp = calm ? 0 : f.t + it.x * 37 + it.y * 11;
+  // stałe przesunięcie czasu dla każdego okna (z uid — przesuwanie okna w urządzaniu nie przyspiesza deszczu)
+  const tp = calm ? 0 : f.t + uidOffset(it.uid);
   const weather = f.weather ?? 'sunny';
   const ps = weatherParticles({
     season: f.season ?? 'autumn',

@@ -32,8 +32,8 @@ pokoi widać opady, Gabi mówi o pogodzie, a w sklepie pojawiają się ozdoby se
   | wiosna, jesień | 6–10 | 10–18 | 18–21 | 21–6 |
   | lato | 5–9 | 9–20 | 20–22 | 22–5 |
 
-  Zmienia tylko wygląd (niebo, okna, poświata, zegar ścienny, kwestie zegara). Sen Gabi, potrzeby i `isNightHour`
-  w `room.ts` bez zmian. Postęp wieczoru `eveningProgress(d)` (0–1) służy do przejścia tła dzień → noc.
+  Zmienia tylko wygląd (niebo, okna, poświata, zegar ścienny, kwestie zegara). Sen Gabi i potrzeby bez zmian
+  (pora snu `isBedtime` 21–6, także kwestie zegara „dobranoc”); okno i to, co Gabi przy nim robi, idą wg `dayPhase`. Postęp wieczoru `eveningProgress(d)` (0–1) służy do przejścia tła dzień → noc.
 - `weatherOf(d: Date): Weather` — `'sunny' | 'cloudy' | 'rain' | 'storm' | 'snow' | 'frost'`; ziarno z daty
   (RRRR-MM-DD, ten sam dzień = ta sama pogoda na każdym urządzeniu), losowanie wg tabeli:
 
@@ -77,7 +77,7 @@ Rysowanie (`src/pet/room.ts` + renderer pokoju):
   - burza — ulewa, co kilka sekund błysk nieba i cichy grzmot (nowy efekt `thunder` w `src/ui/sound.ts`, tylko
     gdy widać balkon, najwyżej co kilka sekund);
   - śnieg — płatki 1–2 px, różna prędkość, kołysanie;
-  - mróz — bez opadów, czasem pojedynczy płatek;
+  - mróz — bez opadów, tylko pojedyncze płatki (1–2 naraz);
 - pory roku: wiosna — różowe płatki (słońce); lato — motyle w dzień (słońce), świetliki w nocy; jesień — liście
   (słońce, pochmurno); nocą migoczą pojedyncze gwiazdy;
 - wszystko deterministyczne od czasu animacji (jak dzisiejsze `balconySky.ts`); przy `prefers-reduced-motion`
@@ -116,8 +116,8 @@ Nowe grupy kwestii; `{kot}` — imię kota:
   wiosna — „{kot} kicha od kwiatków!”
 
 Kiedy:
-- przy oknie (interakcja `window`, w dzień) — kwestie pogody zamiast stałego „Ładna pogoda!” (nocą bez zmian:
-  gwiazdy, księżyc; przy śniegu nocą — kwestie śniegu);
+- przy oknie (interakcja `window`, w dzień) — kwestie pogody zamiast stałego „Ładna pogoda!” (nocą przy pogodzie:
+  gwiazdy, księżyc; przy deszczu, burzy i śniegu — kwestie o nich; nocą nigdy o słońcu);
 - losowe pogawędki — mniej więcej co trzecia kwestia z pory roku / pogody / o Somerce (o Somerce tylko gdy kot jest);
 - powitanie po otwarciu gry — czasem kwestia pogody zamiast „Cześć!”.
 

@@ -1,8 +1,8 @@
-# Gdzie skończyliśmy (2026-10-15)
+# Gdzie skończyliśmy (2026-10-19)
 
 ## Stan
 Gra jest **opublikowana**: https://aleckusi.github.io/gabigochi/ (repozytorium https://github.com/AlecKusi/gabigochi,
-wdrożenie z `main` przez GitHub Actions). Praca na `etap-1` (577 testów, typy i build przechodzą).
+wdrożenie z `main` przez GitHub Actions). Praca na `etap-1` (633 testy, typy i build przechodzą).
 - 6 pokoi (salon, sypialnia, pracownia, łazienka, kuchnia, balkon), urządzanie, sklep (14 potraw, meble — w tym
   26 łazienkowych i 30 kuchennych, okna, ozdoby, rośliny, gaming, hobby, balkon, tapety, podłogi) ze znaczkiem „NOWE”
   po aktualizacjach;
@@ -12,7 +12,8 @@ wdrożenie z `main` przez GitHub Actions). Praca na `etap-1` (577 testów, typy 
   czesanie, pranie, waga, toaleta); nawyki — Gabi sama robi kawę rano, myje zęby, bierze prysznic…;
 - kot jako postać (imię, głód, sympatia, je z miski, śpi na meblach);
 - zajęcia: nauka, praktyka, telefon, szydełko, muzyka, karaoke, taniec, ukulele; cola z animacją picia;
-- pora dnia (okna, poświata, zegarek), żywe niebo nad balkonem; podgląd innej godziny: `?godzina=23` (tylko dev);
+- pora dnia (okna, poświata, zegarek), pory roku i pogoda (namalowane tła balkonu, opady w oknach, ikonka przy
+  zegarze); podgląd: `?godzina=23`, `?pora=zima`, `?pogoda=snieg`, `?monety=9000` (tylko dev);
 - życzenia od użytkownika; urodziny 12.10 co roku (1000 monet, konfetti, teksty); samouczek przy pierwszym wejściu;
 - dźwięki 8-bit (kroki wg podłogi, czynności, wszystkie minigry) z wyłącznikiem; 11 minigier z przyciskiem „i”;
 - aktualizacje bez utraty zapisu: „Co nowego?”, kopia zapisu w pliku (Profil), test zgodności zapisu
@@ -332,7 +333,7 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
 - Okna: opady na szybie (`src/home/glass.ts` — szyba z kolorów sprite'a; `NO_GLASS` bez szyby, `GLASS_CLIP` przycięcie;
   bez wykrytej szyby: lilac, wood_blinds, gothic, fairy).
 - Kwestie: `content.seasonLines` + `speech.ts` (`worldLine`, `windowLine`, `greetingLine`, `clockLinesAt`); nocą bez
-  słońca, zimą przed 21:00 przy zegarze „za oknem ciemno” zamiast „dobranoc”.
+  słońca, zimą przy zegarze wieczorem przed 21:00 i rano 6–7 „za oknem ciemno” zamiast „dobranoc”.
 - Podgląd (tylko `npm run dev`): `?pora=wiosna|lato|jesien|zima`, `?pogoda=slonce|pochmurno|deszcz|burza|snieg|mroz`,
   `?godzina=…`, `?monety=9000` (dopisuje monety raz).
 - Etap 2 (ozdoby sezonowe z `assets/source/sheet-seasonal.jpg`, `sheet-autumn1.jpg`, `sheet-autumn2.jpg`) — osobny plan.

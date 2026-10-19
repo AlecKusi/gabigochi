@@ -45,7 +45,7 @@ import { createPixelStage, deviceRect, drawSprite } from '../pixelStage';
 import { play, step, type Sfx, type StepSurface } from '../sound';
 import { showTips } from '../tips';
 import { PHASE_ICON, WEATHER_ICON, clockNow, gameClock } from '../../home/clock';
-import { PHASE_NAMES, dayPhase, eveningProgress, isBedtime, type DayPhase } from '../../home/daytime';
+import { PHASE_NAMES, dayPhase, eveningProgress, type DayPhase } from '../../home/daytime';
 import { SEASON_NAMES, WEATHER_NAMES, seasonNow, weatherNow, type Weather } from '../../home/season';
 import { flashSlot } from '../../home/weatherFx';
 import { preloadBackdrops } from '../home/balconyBackdrop';

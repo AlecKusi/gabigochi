@@ -3,7 +3,7 @@
  * a w pogodną noc od czasu do czasu spadająca gwiazda. Wspólny „los” `skyHash` służy też drobinkom pogody.
  */
 
-/** Deterministyczny „los” 0–1 (te same okna i gwiazdy przy każdym rysowaniu). */
+/** Deterministyczny „los” 0–1 (te same ptaki, gwiazdy i drobinki przy każdym rysowaniu). */
 export function skyHash(n: number): number {
   const x = Math.sin(n * 127.1) * 43758.5453;
   return x - Math.floor(x);
