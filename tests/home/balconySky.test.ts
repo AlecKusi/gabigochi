@@ -24,6 +24,15 @@ describe('życie nieba nad balkonem', () => {
     expect(METEOR_SLOT_MS).toBeGreaterThan(METEOR_MS);
   });
 
+  it('spadające gwiazdy omijają namalowany księżyc (x 84–96) i korony drzew: głowa w x ≤ 82, y ≤ 56', () => {
+    for (let t = 0; t < 10 * 60_000; t += 50) {
+      const m = meteorAt(t);
+      if (!m) continue;
+      expect(m.x, `x @${t}`).toBeLessThanOrEqual(82);
+      expect(m.y, `y @${t}`).toBeLessThanOrEqual(56);
+    }
+  });
+
   it('ptaki: klucze 1–4 ptaków co kilkanaście sekund, przelot przez cały pokój po niebie, machają skrzydłami', () => {
     let flocks = 0;
     const sizes = new Set<number>();

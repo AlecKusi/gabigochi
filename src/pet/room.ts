@@ -2,7 +2,7 @@ import type { DayPhase } from '../home/daytime';
 import { drawFloor, drawWallpaper, type LookDef } from '../home/looks';
 import { METEOR_FLIGHT, birdsAt, meteorAt } from '../home/balconySky';
 import type { Season, Weather } from '../home/season';
-import { WEATHER_TINT, lightning, twinkles, weatherParticles, type Area, type Particle } from '../home/weatherFx';
+import { SUN_BOX, WEATHER_TINT, lightning, overcast, twinkles, weatherParticles, type Area, type Particle } from '../home/weatherFx';
 
 /** Wymiary pokoju w pikselach logicznych; canvas skalowany CSS-em. */
 export const ROOM_W = 128;
@@ -25,16 +25,12 @@ export function drawRoomBase(ctx: CanvasRenderingContext2D, wallpaper: LookDef, 
   drawFloor(ctx, floor, FLOOR_Y, ROOM_W, ROOM_H - FLOOR_Y);
 }
 
-/** Na namalowane tło balkonu: rano lekko różowo, wieczorem ciepło. */
-export const BALCONY_PHASE_TINT: Readonly<Record<DayPhase, string | null>> = {
-  morning: 'rgba(255, 168, 150, 0.16)',
-  day: null,
-  evening: 'rgba(255, 130, 70, 0.14)',
-  night: null,
-};
-
 /** Widok nad podłogą balkonu, pod daszkiem: tu padają opady i latają ptaki (pod daszkiem nie pada). */
 export const BALCONY_SKY: Area = { x: 0, y: 9, w: ROOM_W, h: FLOOR_Y - 9 };
+
+/** Migoczące gwiazdy tylko wysoko na niebie (`twinkles` bierze górne 45% → y 10–44) i nie na księżycu. */
+const BALCONY_STARS: Area = { x: 0, y: 10, w: ROOM_W, h: 76 };
+const outside = (p: Particle, b: Area) => p.x + p.w <= b.x || p.x >= b.x + b.w || p.y + p.h <= b.y || p.y >= b.y + b.h;
 
 /** Co narysować na balkonie w tej klatce. */
 export interface BalconyView {
@@ -53,8 +49,8 @@ export interface BalconyView {
 }
 
 /**
- * Balkon: namalowane tło pory roku (rano i w dzień dzienne, wieczorem przejście w nocne, w nocy nocne), odcień pory
- * dnia i pogody, błysk burzy, w pogodny dzień ptaki, w pogodną noc migoczące i spadające gwiazdy, a na wierzchu
+ * Balkon: namalowane tło pory roku (rano i w dzień dzienne, wieczorem przejście w nocne, w nocy nocne), odcień
+ * pogody i szare chmury (zasłaniają namalowane słońce/księżyc), błysk burzy, w pogodny dzień ptaki, w pogodną noc migoczące i spadające gwiazdy, a na wierzchu
  * opady i drobinki pory roku (liście, płatki, motyle, świetliki).
  */
 export function drawBalcony(ctx: CanvasRenderingContext2D, v: BalconyView): void {
@@ -67,16 +63,12 @@ export function drawBalcony(ctx: CanvasRenderingContext2D, v: BalconyView): void
     ctx.drawImage(v.night, 0, 0, ROOM_W, ROOM_H);
     ctx.restore();
   }
-  const phaseTint = BALCONY_PHASE_TINT[v.phase];
-  if (phaseTint) {
-    ctx.fillStyle = phaseTint;
-    ctx.fillRect(0, 0, ROOM_W, ROOM_H);
-  }
   const weatherTint = WEATHER_TINT[v.weather];
   if (weatherTint) {
     ctx.fillStyle = weatherTint;
     ctx.fillRect(0, 0, ROOM_W, ROOM_H);
   }
+  drawParticles(ctx, overcast(BALCONY_SKY, v.t, v.weather, v.phase === 'night'));
   const flash = v.weather === 'storm' && !v.calm ? lightning(v.t) : 0;
   if (flash > 0) {
     ctx.fillStyle = `rgba(255, 255, 255, ${0.45 * flash})`;
@@ -85,7 +77,7 @@ export function drawBalcony(ctx: CanvasRenderingContext2D, v: BalconyView): void
   const clear = v.weather === 'sunny' || v.weather === 'frost';
   if (clear && !v.calm && (v.phase === 'day' || v.phase === 'morning')) drawBirds(ctx, v.phase, v.t);
   if (clear && v.phase === 'night') {
-    drawParticles(ctx, twinkles(BALCONY_SKY, v.t));
+    drawParticles(ctx, twinkles(BALCONY_STARS, v.t).filter((p) => outside(p, SUN_BOX)));
     if (!v.calm) drawMeteor(ctx, v.t);
   }
   drawParticles(ctx, weatherParticles({ season: v.season, weather: v.weather, phase: v.phase, area: BALCONY_SKY, t: v.t, open: true }));

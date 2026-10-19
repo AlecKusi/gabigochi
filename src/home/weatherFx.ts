@@ -4,8 +4,8 @@ import type { Season, Weather } from './season';
 
 /**
  * Drobinki pogody i pór roku jako czyste funkcje czasu (te same dla tej samej chwili): deszcz, ulewa, śnieg,
- * pojedyncze płatki przy mrozie, liście jesienią, płatki kwiatów wiosną, motyle i świetliki latem, migotanie gwiazd
- * i błyskawice. Współrzędne w obszarze `Area` — na balkonie px logiczne pokoju, w oknie px natywne sprite'a.
+ * pojedyncze płatki przy mrozie, liście jesienią, płatki kwiatów wiosną, motyle i świetliki latem, migotanie gwiazd,
+ * błyskawice i szare chmury. Współrzędne w obszarze `Area` — na balkonie px logiczne pokoju, w oknie px natywne sprite'a.
  */
 
 export interface Area {
@@ -77,15 +77,35 @@ export function snow(a: Area, t: number): Particle[] {
   });
 }
 
-/** Mróz: pojedyncze, wolne płatki. */
+/** Mróz: tylko czasem pojedynczy, wolny płatek. */
 export function frostFlakes(a: Area, t: number): Particle[] {
-  return falling(a, t, countFor(a, 0.0004, 1), 3, {
+  const all = falling(a, t, countFor(a, 0.0004, 1), 3, {
     speed: [6, 10],
     drift: 1,
     sway: 2,
     size: () => [1, 1],
     color: () => '#f4fbff',
   });
+  // tylko czasem: każdy płatek widać przez ok. 40% jego cyklu (6 s)
+  return all.filter((_, i) => wrap(t / 6000 + hash(i * 8.3 + 0.6), 1) < 0.4);
+}
+
+const SPLASH = 'rgba(220, 235, 255, 0.85)';
+
+/** Rozpryski deszczu przy krawędzi balkonu (dolny rząd obszaru): kropla uderza i rozpryskuje się na boki. */
+export function splashes(a: Area, t: number, heavy: boolean): Particle[] {
+  const out: Particle[] = [];
+  const n = Math.max(2, Math.round(a.w / (heavy ? 10 : 16)));
+  const y = a.y + a.h - 1;
+  for (let i = 0; i < n; i++) {
+    const period = 500 + hash(i * 6.1 + 0.9) * 600;
+    const local = wrap(t + hash(i * 3.9 + 0.2) * period, period);
+    if (local >= 180) continue;
+    const x = Math.round(a.x + 1 + hash(i * 4.7 + 0.5) * (a.w - 3));
+    if (local < 90) out.push({ x, y, w: 1, h: 1, color: SPLASH });
+    else out.push({ x: x - 1, y: y - 1, w: 1, h: 1, color: SPLASH }, { x: x + 1, y: y - 1, w: 1, h: 1, color: SPLASH });
+  }
+  return out;
 }
 
 const LEAF_COLORS = ['#e8902c', '#c9581e', '#f2c14a', '#a8452a'];
@@ -172,11 +192,13 @@ export function twinkles(a: Area, t: number): Particle[] {
 /** Co tyle ms jest szansa na błyskawicę (w burzy). */
 export const LIGHTNING_SLOT_MS = 4200;
 const LIGHTNING_CHANCE = 0.7;
+/** Błysk zaczyna się w pierwszych 1700 ms okna — kolejne błyski (i grzmoty) dzieli co najmniej 2,5 s. */
+const FLASH_WINDOW_MS = 1700;
 
 /** Początek błysku w oknie czasu `slot` (ms) albo null — w tym oknie bez błyskawicy. */
 function flashStart(slot: number): number | null {
   if (hash(slot * 3.71 + 0.5) > LIGHTNING_CHANCE) return null;
-  return slot * LIGHTNING_SLOT_MS + hash(slot * 1.93 + 0.2) * (LIGHTNING_SLOT_MS - 400);
+  return slot * LIGHTNING_SLOT_MS + hash(slot * 1.93 + 0.2) * FLASH_WINDOW_MS;
 }
 
 /** Jasność błysku burzy w chwili `t` (0–1): podwójne mignięcie raz na kilka sekund. */
@@ -210,6 +232,7 @@ export function weatherParticles(s: WeatherScene): Particle[] {
   const out: Particle[] = [];
   const daylight = s.phase === 'day' || s.phase === 'morning';
   if (s.weather === 'rain' || s.weather === 'storm') out.push(...rain(a, t, s.weather === 'storm'));
+  if (s.open && (s.weather === 'rain' || s.weather === 'storm')) out.push(...splashes(a, t, s.weather === 'storm'));
   if (s.weather === 'snow') out.push(...snow(a, t));
   if (s.weather === 'frost') out.push(...frostFlakes(a, t));
   if (s.season === 'autumn' && (s.weather === 'sunny' || s.weather === 'cloudy')) out.push(...leaves(a, t));
@@ -217,6 +240,48 @@ export function weatherParticles(s: WeatherScene): Particle[] {
   if (s.open && s.season === 'summer' && s.weather === 'sunny' && daylight) out.push(...butterflies(a, t));
   if (s.open && s.season === 'summer' && s.phase === 'night' && (s.weather === 'sunny' || s.weather === 'cloudy')) {
     out.push(...fireflies(a, t));
+  }
+  return out;
+}
+
+/** Kolor chmur: [dzień, noc]. Pogodnie i przy mrozie — bez chmur. */
+const OVERCAST: Readonly<Partial<Record<Weather, readonly [string, string]>>> = {
+  cloudy: ['#c9ced8', '#4a4d66'],
+  rain: ['#9aa2b2', '#3e4258'],
+  storm: ['#5d6378', '#2e3146'],
+  snow: ['#dfe3ea', '#7d8296'],
+};
+
+/** Namalowane słońce i księżyc (px logiczne balkonu) z marginesem 1 px. */
+export const SUN_BOX: Area = { x: 83, y: 10, w: 15, h: 15 };
+
+/**
+ * Szare chmury przy pochmurnej pogodzie, deszczu, burzy i śniegu: jedna stoi na słońcu/księżycu (zasłania je),
+ * pięć płynie powoli w prawo. Prostokąty przycięte do obszaru `a` (niebo balkonu).
+ */
+export function overcast(a: Area, t: number, weather: Weather, night: boolean): Particle[] {
+  const c = OVERCAST[weather];
+  if (!c) return [];
+  const color = night ? c[1] : c[0];
+  const out: Particle[] = [];
+  const push = (x: number, y: number, w: number, h: number) => {
+    const x0 = Math.max(a.x, Math.round(x));
+    const x1 = Math.min(a.x + a.w, Math.round(x + w));
+    const y0 = Math.max(a.y, Math.round(y));
+    const y1 = Math.min(a.y + a.h, Math.round(y + h));
+    if (x1 > x0 && y1 > y0) out.push({ x: x0, y: y0, w: x1 - x0, h: y1 - y0, color });
+  };
+  // stała chmura na słońcu/księżycu
+  push(SUN_BOX.x - 4, SUN_BOX.y - 1, SUN_BOX.w + 8, SUN_BOX.h + 2);
+  push(SUN_BOX.x - 1, SUN_BOX.y - 3, SUN_BOX.w + 2, 2);
+  for (let i = 0; i < 5; i++) {
+    const w = 24 + Math.round(hash(i * 2.7 + 0.4) * 14);
+    const span = a.w + w + 20;
+    const x = a.x - w - 10 + wrap(hash(i * 5.1 + 0.2) * span + (t / 1000) * (1.5 + i * 0.4), span);
+    const y = a.y + 4 + Math.round(hash(i * 3.3 + 0.9) * 30);
+    const top = Math.round(w * 0.25);
+    push(x, y, w, 5);
+    push(x + top, y - 3, w - 2 * top, 3);
   }
   return out;
 }

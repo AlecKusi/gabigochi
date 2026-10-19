@@ -34,9 +34,9 @@ export function meteorAt(t: number): Meteor | null {
   if (local < 0 || local > METEOR_MS) return null;
   const p = local / METEOR_MS;
   const dir: -1 | 1 = skyHash(slot * 8.9 + 0.4) < 0.5 ? -1 : 1;
-  // start daleko od krawędzi, w którą leci — cała smuga mieści się na niebie i omija księżyc (x ≥ 97)
-  const x0 = dir === 1 ? 8 + skyHash(slot * 5.3) * 58 : 50 + skyHash(slot * 5.3) * 45;
-  const y0 = 12 + skyHash(slot * 4.1 + 0.7) * 28;
+  // głowa zawsze w x 8–82, y 12–56: cała smuga omija namalowany księżyc (x 84–96, y 11–23) i korony drzew (y ≳ 46)
+  const x0 = dir === 1 ? 8 + skyHash(slot * 5.3) * 30 : 50 + skyHash(slot * 5.3) * 30;
+  const y0 = 12 + skyHash(slot * 4.1 + 0.7) * 22;
   return { x: x0 + dir * METEOR_FLIGHT.dx * p, y: y0 + METEOR_FLIGHT.dy * p, dir, p };
 }
 

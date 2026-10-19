@@ -10,6 +10,7 @@ function image(name: string): HTMLImageElement {
   if (!img) {
     img = new Image();
     img.decoding = 'async';
+    img.onerror = () => images.delete(name);
     img.src = backdropUrl(name);
     images.set(name, img);
   }

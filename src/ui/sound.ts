@@ -124,7 +124,7 @@ const C5 = 523, E5 = 659, G5 = 784, C6 = 1047, A4 = 440, F4 = 349, D5 = 587, E6 
  * Najmniejszy odstęp (ms) między powtórzeniami efektu: dziesiątki kulek w cegiełkach albo szybkie stukanie
  * nie zlewają się w trzask.
  */
-const MIN_GAP: Partial<Record<Sfx, number>> = { blip: 45, brick: 55, tick: 35, type: 30, flip: 40, peek: 120, place: 40 };
+const MIN_GAP: Partial<Record<Sfx, number>> = { blip: 45, brick: 55, tick: 35, type: 30, flip: 40, peek: 120, place: 40, thunder: 2500 };
 const lastAt = new Map<Sfx, number>();
 
 function tooSoon(s: Sfx): boolean {
@@ -266,8 +266,9 @@ export function play(s: Sfx): void {
     case 'thud':
       return tone('triangle', 150, 90, 0.08, 0.45);
     case 'thunder':
-      noise(1.4, 0.55, 0, 180, 'lowpass');
-      return tone('triangle', 70, 40, 1.1, 0.35, 0.05);
+      noise(0.18, 0.5, 0, 1400, 'bandpass');
+      noise(1.4, 0.6, 0.05, 420, 'lowpass');
+      return tone('triangle', 110, 50, 1.1, 0.4, 0.05);
     case 'record':
       arp('square', [C5, E5, G5, C6, E6], 0.08, 0.6);
       tone('triangle', C6, C6, 0.5, 0.45, 0.42);

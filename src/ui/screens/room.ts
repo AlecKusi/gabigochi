@@ -1034,6 +1034,8 @@ export function roomScreen(app: App): Screen {
       return x >= b.x && x <= b.x + b.w && FEET_Y >= b.y && FEET_Y <= b.y + b.h + 2;
     });
     if (onRug) return 'soft';
+    // balkon ma namalowaną podłogę z desek (wybór podłogi jest tam ukryty)
+    if (viewRoom === 'balcony') return 'wood';
     const pattern = findLook(room.floor)?.pattern;
     return pattern === 'tiles' ? 'tile' : pattern === 'carpet' ? 'soft' : 'wood';
   }

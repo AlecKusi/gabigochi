@@ -74,6 +74,9 @@ export function createRoomRenderer(): RoomRenderer {
   base.height = ROOM_H;
   const baseCtx = base.getContext('2d')!;
   let baseKey = '';
+  /** Ostatnie wczytane tła balkonu — gdy nowa pora roku jeszcze się wczytuje (np. o północy), rysujemy poprzednie. */
+  let lastDay: HTMLImageElement | null = null;
+  let lastNight: HTMLImageElement | null = null;
 
   function drawBackground(bg: CanvasRenderingContext2D, f: RoomFrame): void {
     const phase = f.phase ?? 'day';
@@ -81,9 +84,13 @@ export function createRoomRenderer(): RoomRenderer {
       // balkon: namalowane tło pory roku (wieczorem przejście w noc) i pogoda — co klatkę
       const season = f.season ?? 'autumn';
       const calm = f.calm ?? false;
+      const day = backdropImage(season, 'day') ?? lastDay;
+      const night = backdropImage(season, 'night') ?? lastNight;
+      lastDay = day;
+      lastNight = night;
       drawBalcony(bg, {
-        day: backdropImage(season, 'day'),
-        night: backdropImage(season, 'night'),
+        day,
+        night,
         phase,
         dusk: f.dusk ?? (phase === 'night' ? 1 : 0),
         season,
