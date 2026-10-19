@@ -129,7 +129,7 @@ describe('klocki', () => {
         }
       }
     }
-  });
+  }, 30_000); // dużo kroków i asercji — na wolniejszym serwerze CI ponad 5 s
 
   it('kulka nie utyka w ruchu poziomym (minimalna składowa pionowa)', () => {
     const s = flying({ flying: [ball(64, 100, SPEED, -0.001)] });

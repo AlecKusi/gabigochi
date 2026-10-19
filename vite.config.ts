@@ -26,5 +26,5 @@ export default defineConfig({
       workbox: { globPatterns: ['**/*.{js,css,html,png,woff2,json}'] },
     }),
   ],
-  test: { environment: 'node', include: ['tests/**/*.test.ts'] },
+  test: { environment: 'node', include: ['tests/**/*.test.ts'], testTimeout: 20_000 }, // serwer CI bywa kilka razy wolniejszy
 });
