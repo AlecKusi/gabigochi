@@ -31,7 +31,10 @@ z ostrzeżeniem (w grze zostaje przemalowanie). Klatki pochodne (`derived`) — 
 pochodne z `noStool` (współrzędne w pikselach klatki oryginalnej) są pomijane z ostrzeżeniem.
 Portrety: pad `portraitPad` (domyślnie 2 — nad ramką jest napis PORTRAIT, który przy większym pad-zie się dokleja);
 resztki napisu nad górną krawędzią ramki są czyszczone (`clear_caption`).
-Nadpisania arkusza: `background` (domyślnie "auto" — mediana lewego górnego rogu 20×20), `gridPeriod`, `pad`, `portraitPad`.
+Klatki ciała (nie portrety — ich ramka jest jasna z założenia): jasne szarawe piksele tuż za ciemnym konturem
+(dzwonienie JPEG jasnego tła przy czarnym konturze, białe kropki wokół sukienki) znikają (`drop_halo`, przed `outline`).
+Nadpisania arkusza: `background` (domyślnie "auto" — mediana lewego górnego rogu 20×20), `gridPeriod`, `pad`,
+`portraitPad`, `halo` (domyślnie true; false — bez `drop_halo`).
 Wyjście: public/sprites/stroje/<id>/<klatka>.png, src/sprites/outfits.generated.json
 {<id>: {"frames": {klatka: {w, h, anchorX, foot, scale, head?, noHat?}}, "portraits": {portret: [w, h]}}},
 podgląd tools/out/stroj_<id>_<arkusz>.png (u góry oryginał, pod spodem strój, ×3).
@@ -62,6 +65,8 @@ DEFAULT_PAD = 10
 PORTRAIT_PAD = 2  # portrety: napis PORTRAIT nad ramką leży ok. 4 px nad prostokątem — szerszy pad dokleja jego resztki
 SIZE_TOL = 0.15
 WIDTH_TOL = 0.35  # szerokość klatki ciała: sukienka bywa wyraźnie szersza niż dżinsy oryginału
+# `drop_halo`: jasność (luminancja 0–255) piksela obwódki, jego maks. nasycenie HSV, jasność konturu, liczba przebiegów
+HALO_LIGHT, HALO_SAT, HALO_DARK, HALO_PASSES = 140, 0.25, 60, 2
 # Opcje geometrii wpisu (po `X.entry`, więc i z arkusza), których ta ścieżka nie odtwarza — klatka stroju
 # wypadłaby w innym miejscu albo wyglądała inaczej niż oryginał. Do tego `align` arkusza (sprawdzane osobno).
 UNSUPPORTED = {
@@ -108,10 +113,41 @@ def largest_only(im):
     return Image.fromarray(arr, 'RGBA').crop((int(x0), int(y0), int(x1) + 1, int(y1) + 1)), (int(x0), int(y0))
 
 
-def cut(img, e, bg, period, pad, palette, portrait=False):
+def drop_halo(im):
+    """Jasna obwódka za konturem: nieprzezroczysty piksel stykający się (4-sąsiedztwo, także brzeg obrazka)
+    z przezroczystością, jasny (luminancja > HALO_LIGHT), mało nasycony (HSV s < HALO_SAT) i mający ciemnego
+    4-sąsiada (luminancja < HALO_DARK — kontur) staje się przezroczysty; do HALO_PASSES przebiegów (obwódka bywa
+    podwójna). Jasne włosy i szkła okularów są zamknięte konturem, więc przezroczystości nie dotykają.
+    Zwraca (obrazek przycięty do nieprzezroczystych pikseli, liczba usuniętych pikseli)."""
+    arr = np.array(im)
+    h, w = arr.shape[:2]
+    removed = 0
+    for _ in range(HALO_PASSES):
+        rgb = arr[:, :, :3].astype(float)
+        lum = rgb @ np.array([0.299, 0.587, 0.114])
+        mx, mn = rgb.max(axis=2), rgb.min(axis=2)
+        sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
+        op = arr[:, :, 3] > 0
+        clear = np.pad(~op, 1, constant_values=True)  # poza obrazkiem = przezroczystość
+        dark = np.pad(op & (lum < HALO_DARK), 1, constant_values=False)
+        touch, near_dark = np.zeros((h, w), bool), np.zeros((h, w), bool)
+        for dy, dx in X.NEIGH4:
+            touch |= clear[1 + dy:1 + dy + h, 1 + dx:1 + dx + w]
+            near_dark |= dark[1 + dy:1 + dy + h, 1 + dx:1 + dx + w]
+        drop = op & touch & near_dark & (lum > HALO_LIGHT) & (sat < HALO_SAT)
+        if not drop.any():
+            break
+        arr[drop] = 0
+        removed += int(drop.sum())
+    out = Image.fromarray(arr, 'RGBA')
+    return out.crop(out.getbbox()), removed
+
+
+def cut(img, e, bg, period, pad, palette, portrait=False, halo=True):
     """Klatka z arkusza stroju: prostokąt oryginału + `pad`, obróbka jak w extract_sprites, największy kształt
-    (przy `keep` "all" — wszystkie kształty z prostokąta), potem `noSeat`, `clean_smooth`, `outline`.
-    Portret (`portrait`) — dodatkowo bez resztek napisu nad ramką (`clear_caption`)."""
+    (przy `keep` "all" — wszystkie kształty z prostokąta), potem `noSeat`, `clean_smooth`, `drop_halo` (klatka ciała
+    z `halo`), `outline`. Portret (`portrait`) — bez `drop_halo`, za to bez resztek napisu nad ramką
+    (`clear_caption`). Zwraca (obrazek, liczba pikseli usuniętych przez `drop_halo`)."""
     h, w = img.shape[:2]
     x0, y0, x1, y1 = e['rect']
     rect = [max(0, x0 - pad), max(0, y0 - pad), min(w - 1, x1 + pad), min(h - 1, y1 + pad)]
@@ -160,9 +196,12 @@ def cut(img, e, bg, period, pad, palette, portrait=False):
             im = X.without_seat(im, region)
     if e['sampleMode'] == 'smooth':
         im = X.clean_smooth(im)
+    removed = 0
+    if halo and not portrait:
+        im, removed = drop_halo(im)
     if e['outline']:
         im = X.outer_outline(im, e['outline'])
-    return clear_caption(im) if portrait else im
+    return (clear_caption(im) if portrait else im), removed
 
 
 def clear_caption(im, run=0.6, corner=0.1, rows=8):
@@ -291,7 +330,7 @@ def main():
             for group, name, e in frames_on(skey, skip):
                 period = over.get('gridPeriod', e['period'])
                 if group == 'body':
-                    im = cut(img, e, bg, period, pad, palette)
+                    im, halo_px = cut(img, e, bg, period, pad, palette, halo=over.get('halo', True))
                     base = BASE_META['frames'][name]
                     if abs(im.height / base['h'] - 1) > SIZE_TOL or abs(im.width / base['w'] - 1) > WIDTH_TOL:
                         print(f'POMINIĘTA {oid}/{name}: {im.width}x{im.height} (oryginał {base["w"]}x{base["h"]})')
@@ -300,7 +339,7 @@ def main():
                     if e['alignBottom']:
                         aligned[name] = e
                 else:
-                    im = cut(img, e, bg, period, over.get('portraitPad', PORTRAIT_PAD), palette, portrait=True)
+                    im, halo_px = cut(img, e, bg, period, over.get('portraitPad', PORTRAIT_PAD), palette, portrait=True)
                     bw, bh = BASE_META['portraits'][name]
                     if abs(im.width / bw - 1) > SIZE_TOL or abs(im.height / bh - 1) > SIZE_TOL:
                         print(f'POMINIĘTY {oid}/{name}: {im.width}x{im.height} (oryginał {bw}x{bh})')
@@ -309,7 +348,8 @@ def main():
                 im.save(odir / f'{name}.png')
                 cut_ims[name] = im
                 pairs[name] = (Image.open(X.OUT_DIR / f'{name}.png').convert('RGBA'), im)
-                print(f'{oid}/{name:14s} {im.width:3d}x{im.height:3d}')
+                halo_note = f'  obwódka -{halo_px} px' if halo_px else ''
+                print(f'{oid}/{name:14s} {im.width:3d}x{im.height:3d}{halo_note}')
             for name in align_bottoms(oid, aligned, frames, cut_ims):
                 (odir / f'{name}.png').unlink()
                 del pairs[name]
