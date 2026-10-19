@@ -342,3 +342,13 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   „Tylko jesienią”), kupione zostają na zawsze. Świecące (`interaction: 'lamp'`): dynie, choinki, świeca, lampion,
   kominek, palenisko — `src/home/lamps.ts` (klatka `lit`, mruganie choinek, drgająca poświata); wiatrak
   `interaction: 'switch'` (klatki `spin_2`/`spin_3`); ławka z kocem jest siedziskiem (`SOFAS`).
+
+## Stroje z arkuszy — pilotaż (2026-10-19, niewydane)
+Spec: docs/superpowers/specs/2026-10-19-stroje-z-arkuszy-design.md, plan: docs/superpowers/plans/2026-10-19-stroje-z-arkuszy.md.
+- Strój = oryginalne arkusze animacji wygenerowane jeszcze raz z Gabi w tym stroju (ten sam układ). Przemalowanie
+  i obrazki z wieszaka wyglądały źle (szkice odrzucone przez użytkownika); nowy model bez ubrań niepotrzebny.
+- `tools/extract_outfits.py` (sekcja `outfits` w frames.json) → `public/sprites/stroje/<id>/`,
+  `src/sprites/outfits.generated.json`; podgląd `tools/out/stroj_<id>_<arkusz>.png`. Gra (`figures.ts`) bierze klatkę
+  stroju, gdy jest, inaczej przemalowanie; portret w rogu ze stroju; miniatura w Szafie = Gabi w stroju.
+- Gotycka lolita: jest arkusz `main` (stanie, chodzenie, machanie, rozmowa, portrety; `fun_eat` pominięte — bez
+  kanapki). Pozostałe ~18 arkuszy generuje użytkownik wg docs/prompty-stroje.md; dodawać po jednym.
