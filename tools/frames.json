@@ -42,6 +42,9 @@
     "sit_crochet_4": { "from": "crochet_4", "noStool": [0, 34, 13, 60] },
     "sit_crochet_5": { "from": "crochet_5", "noStool": [0, 34, 13, 60] }
   },
+  "outfits": {
+    "goth_lolita": { "sheets": { "main": {} }, "skip": ["fun_eat", "nurse_*"] }
+  },
   "sheets": {
     "kitchen":    { "path": "assets/source/sheet-kitchen.png", "background": [206, 206, 211], "gridPeriod": 4.0, "keep": "all", "paletteColours": 184, "itemPreview": "kitchen_preview" },
     "status": { "path": "assets/source/sheet-status.jpg", "background": [208, 207, 212], "gridPeriod": 7.82, "keep": "all", "scaleRef": "sad_cry" },
