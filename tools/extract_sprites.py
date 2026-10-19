@@ -41,7 +41,7 @@ Przedmioty (sekcja `items`, osobna od `body`/`portraits`): wpis jak klatka ({"sh
 `keep` ("largest" — największy kształt w prostokącie, albo "all"), `scale` (skala wpisu; domyślnie `scale` arkusza,
 skala z `scaleRef` arkusza postaci albo 1), `mirror` ([["x"|"y", środek w px arkusza], ...] — połowa za środkiem
 zastąpiona odbiciem połowy przed nim, np. dywan zasłonięty z jednej strony) i dane katalogu (`name`, `category`,
-`layer`, `interaction`, `price`). Przy `keep` "largest" zostaje tylko jeden spójny kształt (bez odprysków
+`layer`, `interaction`, `price` oraz opcjonalnie `season` — pora roku, w której rzecz jest w sklepie). Przy `keep` "largest" zostaje tylko jeden spójny kształt (bez odprysków
 sąsiadów). Arkusz może mieć `halo` i `holeTol` (= `hole_tol`) — patrz `background_mask` (rozmyty arkusz z jasną
 obwódką konturu i jasnymi płaszczyznami blisko tła: poduszki, dywany). Wyjście: public/items/<id>.png (przycięte
 do obrysu), src/home/items.generated.json {id: {w, h, scale, name, category, layer, interaction, price}} (dane
@@ -106,6 +106,7 @@ ITEMS_PREVIEW = ROOT / 'tools' / 'out' / 'items_preview.png'
 MASKS_DIR = ROOT / 'public' / 'masks'
 WARDROBE_PREVIEW = ROOT / 'tools' / 'out' / 'wardrobe_masks.png'
 ITEM_FIELDS = ('name', 'category', 'layer', 'interaction', 'price')
+ITEM_OPTIONAL_FIELDS = ('season',)
 RETOUCH_KEYS = ('bag', 'wipe', 'cut', 'copy', 'fix', 'shadow')
 LIST_KEYS = ('erase', 'paint') + RETOUCH_KEYS
 ALIGN_SEARCH = 20
@@ -1061,6 +1062,7 @@ def save_items(images, coords, sheet_scale, gabi_scale, body, frames):
             meta[name].update(frameOf=base_name, state=state, overlay=spec.get('overlay', True))
         if 'name' in spec:
             catalog = {k: spec[k] for k in ITEM_FIELDS}
+            catalog.update({k: spec[k] for k in ITEM_OPTIONAL_FIELDS if k in spec})
             meta[name].update(catalog)
             manifest.append({'id': name, **catalog})
         tiles.append((name, im, scale))
