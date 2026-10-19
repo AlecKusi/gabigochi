@@ -1,3 +1,44 @@
+import type { Season, Weather } from './home/season';
+
+/** Kwestie o porze roku, pogodzie i o kotku w tej pogodzie/porze (`{kot}` — imię kota). */
+const seasonLines: {
+  season: Readonly<Record<Season, readonly string[]>>;
+  weather: Readonly<Record<Weather, readonly string[]>>;
+  catWeather: Readonly<Partial<Record<Weather, readonly string[]>>>;
+  catSeason: Readonly<Partial<Record<Season, readonly string[]>>>;
+} = {
+  season: {
+    spring: ['Wiosna! Wszystko kwitnie!', 'Pachnie wiosną!', 'Czas na nowe kwiatki na balkonie.'],
+    summer: ['Ale upał!', 'Lody by się przydały…', 'Lato, wakacje, KitKat w lodówce!'],
+    autumn: [
+      'Jestem jesieniarą!',
+      'Czas na herbatkę i kocyk.',
+      'Czas na pumpkin spice latte!',
+      'Pumpkin spice latte, poproszę!',
+      'Liście są takie kolorowe!',
+    ],
+    winter: ['Brr, zimno!', 'Kakao i kocyk — idealnie.', 'Ulepimy bałwanka?'],
+  },
+  weather: {
+    sunny: ['Ładna pogoda!', 'Ale słoneczko!'],
+    cloudy: ['Szaro dziś…', 'Chmurki zasłoniły słońce.'],
+    rain: ['Pada i pada…', 'Kap, kap, kap…', 'Dobrze, że jestem w domu.'],
+    storm: ['Aaa! Grzmi!', 'Ale błyska!'],
+    snow: ['Śnieg! Wszystko białe!', 'Pada śnieg!'],
+    frost: ['Mróz szczypie w nos!', 'Szron na szybach!'],
+  },
+  catWeather: {
+    snow: ['{kot} chce łapać płatki za szybą!'],
+    rain: ['{kot} patrzy na krople na szybie.'],
+    storm: ['{kot} chowa się pod łóżkiem!'],
+  },
+  catSeason: {
+    spring: ['{kot} kicha od kwiatków!'],
+    summer: ['{kot} wygrzewa się w słoneczku.'],
+    autumn: ['{kot} poluje na liście!'],
+  },
+};
+
 export const content = {
   name: 'Gabriela',
   nameGenitive: 'Gabrieli',
@@ -36,6 +77,7 @@ export const content = {
     pizza: ['Pizza zawsze wchodzi!'],
     cake: ['Tort! Sto lat!'],
   },
+  seasonLines,
   lines: {
     greeting: ['Cześć!', 'Hej, tęskniłam!', 'O, jesteś!'],
     /** W dniu urodzin — zamiast części zwykłych tekstów (`{wiek}` — ile lat kończy). */
@@ -84,6 +126,8 @@ export const content = {
     clockDay: ['Jest {czas}.', '{czas} — dzień w pełni!', 'Dopiero {czas}, jeszcze dużo dnia!'],
     clockEvening: ['Jest {czas}, robi się wieczór.', '{czas} — zachód słońca!', 'Już {czas}, czas na relaks.'],
     clockNight: ['Jest {czas}… pora spać!', '{czas}?! Trzeba iść do łóżka.', 'Już {czas}, dobranoc!'],
+    // noc wg pory roku, ale jeszcze nie pora spać (zimą od 17:00) — {czas} to godzina z telefonu
+    clockDark: ['Jest {czas}, a już ciemno!', '{czas} — za oknem już noc.', 'Już {czas}, księżyc świeci!'],
     toilet: ['Pssst!'],
     shower: ['Czas na prysznic!', 'Ciepła woda!'],
     showerDone: ['Świeżutka!', 'Pachnę jak kwiatuszek!'],

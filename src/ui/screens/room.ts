@@ -21,7 +21,7 @@ import { ACTIVITIES, ACTIVITY_IDS, type ActivityId } from '../../pet/activities'
 import { animationName, createBrain, pickEmote, stepBrain, triggerBrain, wakeBrain, type Brain } from '../../pet/brain';
 import { SHADOW_COLOR, shadowRect } from '../../pet/petRenderer';
 import { FEET_Y, ROOM_H, ROOM_W } from '../../pet/room';
-import { pick, pickLine } from '../../pet/speech';
+import { clockLines, greetingLine, pick, pickLine, windowLine } from '../../pet/speech';
 import { ANGRY_TAPS, SUGAR_RUSH, avatarFor, countRecent, statusAnimation, type StatusAnim } from '../../pet/status';
 import { ANIMATIONS, frameAt, resolveAnimation } from '../../sprites/animations';
 import { DISPLAY_HEIGHT, FRAMES, type FrameMeta } from '../../sprites/loader';
@@ -76,10 +76,7 @@ const ON_TOP = ROOM_H * 2;
 const ITEM_TAP_SLOP = 12;
 /** Szansa, że pogawędka przy spragnionej roślinie będzie o kwiatkach. */
 const PLANT_NAG_CHANCE = 0.5;
-/** Kwestie przy zegarze ściennym wg pory dnia. */
-const CLOCK_LINES = { morning: 'clockMorning', day: 'clockDay', evening: 'clockEvening', night: 'clockNight' } as const;
-
-/** Nocą (wg zegara) Gabi przy oknie mówi o gwiazdach. */
+/** Pora snu wg zegara (21–6) — nie zależy od pory roku (okno i tło idą wg `dayPhase`). */
 const isNightHour = (d: Date) => d.getHours() >= 21 || d.getHours() < 6;
 /** Poniżej tej energii stuknięcie kanapy to drzemka, a nie szydełko. */
 const NAP_ENERGY = 60;
@@ -603,9 +600,12 @@ export function roomScreen(app: App): Screen {
     if (key === 'calendar') return `Dziś Dzień ${dayNumber(store.get().createdAt, now)}!`;
     if (key === 'clock') {
       const c = clockNow(gameClock(now));
-      return pick(content.lines[CLOCK_LINES[c.phase]]).split('{czas}').join(c.text);
+      return pick(clockLines(c.phase, isNightHour(gameClock(now)))).split('{czas}').join(c.text);
     }
-    if (key === 'window') return pick(isNightHour(gameClock(now)) ? content.lines.windowNight : content.lines.window);
+    if (key === 'window') {
+      const d = gameClock(now);
+      return withCat(windowLine(weatherNow(d), dayPhase(d) === 'night'));
+    }
     return withCat(pick(content.lines[key]));
   }
 
@@ -1407,7 +1407,10 @@ export function roomScreen(app: App): Screen {
           play('meow');
         } else if (isBirthday(Date.now()) && Math.random() < 0.5) {
           say(withAge(pick(content.lines.birthdayToday), Date.now()));
-        } else say(pickLine(s.needs));
+        } else {
+          const d = gameClock();
+          say(withCat(pickLine(s.needs, Math.random, { season: seasonNow(d), weather: weatherNow(d) })));
+        }
       } else {
         // codzienna mina: ziewanie, nuda, zamyślenie, pomysł, przeciąganie, śmiech
         const emote = pickEmote(s.needs, Math.random);
@@ -1425,7 +1428,7 @@ export function roomScreen(app: App): Screen {
   const unsubscribe = store.subscribe(sync);
   if (!s0.sleeping) {
     brain = triggerBrain(brain, 'wave', performance.now());
-    say(pick(content.lines.greeting), 2400);
+    say(greetingLine(weatherNow(gameClock())), 2400);
   }
   raf = requestAnimationFrame(frame);
   // samouczek przy pierwszym wejściu do pokoju (po ekranie urodzinowym); wyjście z pokoju — wraca w tym samym miejscu
