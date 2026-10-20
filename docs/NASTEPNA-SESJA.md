@@ -343,7 +343,7 @@ Teraz (`skirt` i `seatedSkirt` w src/wardrobe/dresser.ts):
   kominek, palenisko — `src/home/lamps.ts` (klatka `lit`, mruganie choinek, drgająca poświata); wiatrak
   `interaction: 'switch'` (klatki `spin_2`/`spin_3`); ławka z kocem jest siedziskiem (`SOFAS`).
 
-## Stroje z arkuszy — pilotaż (2026-10-19, niewydane)
+## Stroje z arkuszy — gotycka lolita (wydane jako wersja 4, 2026-10-20)
 Spec: docs/superpowers/specs/2026-10-19-stroje-z-arkuszy-design.md, plan: docs/superpowers/plans/2026-10-19-stroje-z-arkuszy.md.
 - Strój = oryginalne arkusze animacji wygenerowane jeszcze raz z Gabi w tym stroju (ten sam układ). Przemalowanie
   i obrazki z wieszaka wyglądały źle (szkice odrzucone przez użytkownika); nowy model bez ubrań niepotrzebny.
@@ -353,3 +353,10 @@ Spec: docs/superpowers/specs/2026-10-19-stroje-z-arkuszy-design.md, plan: docs/s
 - Gotycka lolita: jest arkusz `main` (stanie, chodzenie, machanie, rozmowa, portrety; `fun_eat` pominięte — bez
   kanapki). Pozostałe ~18 arkuszy generuje użytkownik wg docs/prompty-stroje.md; dodawać po jednym.
 - Dopóki strój nie ma wszystkich arkuszy, sukienka zmienia wygląd między klatkami z arkusza a przemalowanymi — oczekiwane.
+- Wersja 4 (2026-10-20): gotycka lolita z 17 arkuszy (152 klatki, 9 portretów; bez urodzin, nauki i telefonu na
+  leżąco — tam przemalowanie). W Szafie znaczki „Naprawiony” (strój z arkuszy) i „Do naprawy” (reszta ubrań, bez
+  ozdób głowy). Karaoke: `scaleMul` we wpisach klatek 1–3 (arkusz rysował je mniejsze).
+- Nowy strój: arkusz główny w stroju (wzór) + szablony z assets/source; gotowe pliki z dowolnymi nazwami →
+  `/c/gvenv/Scripts/python tools/import_outfit_sheets.py <id> <folder>` (sam rozpoznaje szablon i dopasowuje),
+  klucze do `outfits.<id>.sheets`, potem `tools/extract_outfits.py`. Użytkownik generuje ręcznie w Gemini
+  (API odrzucone; skrypt tools/generate_outfit_sheets.py zostaje na przyszłość).
