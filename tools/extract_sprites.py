@@ -5,6 +5,7 @@ Konfiguracja: tools/frames.json
 
 Arkusze: domyślny `main` (pola `sheet`, `background`, `gridPeriod` na górze pliku) oraz sekcja `sheets`.
 Wpis klatki: [x0,y0,x1,y1] (arkusz main) albo {"sheet": nazwa, "rect": [...], "erase": [...]}.
+`scaleMul` (wpis ciała) — mnożnik skali klatki, gdy arkusz narysował ją większą/mniejszą niż resztę animacji.
 `erase` — prostokąty [x0,y0,x1,y1] albo wielokąty [[x,y],...] w px arkusza, wymazywane do przezroczystości.
 `paint` — [[x0,y0,x1,y1,[r,g,b]], ...]: komórki ze środkiem w prostokącie (px arkusza) dostają ten kolor
           (po dopasowaniu do palety) i są nieprzezroczyste — drobne poprawki po wymazaniu (np. odsłonięta noga łóżka).
@@ -1901,6 +1902,9 @@ def main():
         b = body[name]
         im, sname = b['im'], b['e']['sheet']
         scale = group_scale[group_of(name)] if sname == 'main' else sheet_scale[sname]
+        # `scaleMul` (wpis): klatka narysowana w arkuszu większa/mniejsza niż reszta animacji (karaoke 4–5)
+        spec = CFG['body'].get(name)
+        scale *= spec.get('scaleMul', 1) if isinstance(spec, dict) else 1
         im.save(OUT_DIR / f'{name}.png')
         frames[name] = {'w': im.width, 'h': im.height, 'anchorX': round(b['anchorX'], 2),
                         'foot': b['foot'], 'scale': round(scale, 4)}
