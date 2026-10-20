@@ -25,7 +25,7 @@ describe('klatki strojów z arkuszy', () => {
     expect(outfitFrame(null, 'idle_front')).toBeNull();
     expect(outfitFrame(undefined, 'idle_front')).toBeNull();
     expect(outfitFrame('dress_dots', 'idle_front')).toBeNull();
-    // arkusze, których strój jeszcze nie ma (karaoke, ukulele)
+    // klatki bez arkusza stroju: opieka nad chorą (inny strój) i piana w wannie
     expect(outfitFrame('goth_lolita', 'nurse_1')).toBeNull();
     expect(outfitFrame('goth_lolita', 'gabi_foam_1')).toBeNull();
     expect(hasOutfitFrames('dress_dots')).toBe(false);
