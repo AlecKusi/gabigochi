@@ -47,7 +47,8 @@
       "desc": "a black and dark-red gothic lolita dress: black fitted bodice with dark-red lace-up corset front, black puffed long sleeves, a black short jacket-like overlay, a full knee-length skirt with layered dark-red and black ruffles, black tights and black boots",
       "sheets": { "main": {}, "turnaround": {}, "sitting": { "seatHue": [310, 45] }, "status": {}, "expressions": {},
         "table": { "seatHue": [310, 45] }, "lying": { "seatHue": "base" }, "plants2": {},
-        "hobby": { "seatHue": [310, 45] }, "cat": {}, "drink": {}, "back": {} },
+        "hobby": { "seatHue": [310, 45] }, "cat": {}, "drink": {}, "back": {},
+        "karaoke": {}, "ukulele": {}, "teethcomb": {}, "laundry": {}, "drag": {} },
       "skip": ["nurse_*"] }
   },
   "sheets": {
