@@ -156,6 +156,14 @@ export function wardrobeScreen(app: App): Screen {
     btn.classList.add('shake');
   }
 
+  /** Ubrania (bez ozdób głowy): narysowane z arkuszy — „Naprawiony”, przemalowanie — „Do naprawy”. */
+  function fixTag(def: ClothDef): HTMLElement | null {
+    if (def.slot === 'head') return null;
+    return hasOutfitFrames(def.id)
+      ? h('small', { class: 'fix-tag fixed' }, 'Naprawiony')
+      : h('small', { class: 'fix-tag todo' }, 'Do naprawy');
+  }
+
   function card(def: ClothDef): HTMLElement {
     const s = app.store.get();
     const owned = isOwned(s, def.id);
@@ -219,6 +227,7 @@ export function wardrobeScreen(app: App): Screen {
       marks.badge(def.id),
       thumbBox,
       h('strong', {}, def.name),
+      fixTag(def),
       btn,
     );
   }

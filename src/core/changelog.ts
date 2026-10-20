@@ -18,6 +18,17 @@ export interface Release {
  */
 export const RELEASES: readonly Release[] = [
   {
+    version: 4,
+    date: '2026-10-20',
+    changes: [
+      'Naprawiona sukienka „Gotycka lolita”: Gabi wygląda w niej jak na obrazku — przy chodzeniu, siedzeniu, zajęciach, z kotkiem i na portrecie.',
+      'W Szafie znaczek „Naprawiony” pokazuje ubrania już poprawione, a „Do naprawy” te, które czekają na swoją kolej.',
+      'Gabi przy karaoke nie zmienia już rozmiaru.',
+    ],
+    items: ['goth_lolita'],
+    soon: ['Naprawiamy po kolei kolejne ubrania Gabi!'],
+  },
+  {
     version: 3,
     date: '2026-10-19',
     changes: [
