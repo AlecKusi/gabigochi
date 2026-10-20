@@ -26,8 +26,8 @@ describe('klatki strojów z arkuszy', () => {
     expect(outfitFrame(undefined, 'idle_front')).toBeNull();
     expect(outfitFrame('dress_dots', 'idle_front')).toBeNull();
     // arkusze, których strój jeszcze nie ma (karaoke, ukulele)
-    expect(outfitFrame('goth_lolita', 'karaoke_1')).toBeNull();
-    expect(outfitFrame('goth_lolita', 'uke_1')).toBeNull();
+    expect(outfitFrame('goth_lolita', 'nurse_1')).toBeNull();
+    expect(outfitFrame('goth_lolita', 'gabi_foam_1')).toBeNull();
     expect(hasOutfitFrames('dress_dots')).toBe(false);
   });
 
@@ -106,7 +106,7 @@ describe('klatki strojów z arkuszy', () => {
     expect(sheetSource('goth_lolita', 'idle_front', false)).toBeNull();
     expect(sheetSource('goth_lolita', 'portrait_a', false)).toBeNull();
     expect(sheetSource('goth_lolita', 'fun_eat')!.key).toBe('goth_lolita/fun_eat');
-    expect(sheetSource('goth_lolita', 'karaoke_1')).toBeNull();
+    expect(sheetSource('goth_lolita', 'nurse_1')).toBeNull();
     expect(sheetSource(null, 'idle_front')).toBeNull();
   });
 });
