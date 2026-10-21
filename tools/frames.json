@@ -43,6 +43,13 @@
     "sit_crochet_5": { "from": "crochet_5", "noStool": [0, 34, 13, 60] }
   },
   "outfits": {
+    "goth_coat": {
+      "desc": "a long black vampire coat down to the knees with a high collar, silver buttons and chains, a black corset top underneath, a black choker, dark trousers and black boots",
+      "sheets": { "main": {}, "turnaround": {}, "sitting": { "seatHue": [310, 45] }, "status": {}, "expressions": {},
+        "table": { "seatHue": [310, 45] }, "lying": { "seatHue": "base" }, "plants2": {},
+        "hobby": { "seatHue": [310, 45] }, "cat": {}, "drink": {}, "back": {},
+        "karaoke": {}, "ukulele": {}, "teethcomb": {}, "laundry": {}, "drag": {} },
+      "skip": ["nurse_*"] },
     "goth_corset": {
       "desc": "a dark purple sleeveless knee-length A-line dress with a black lace-up underbust corset, a black choker with a pendant, black fishnet arm warmers, fishnet tights and black boots",
       "sheets": { "main": {}, "turnaround": {}, "sitting": { "seatHue": [310, 45] }, "status": {}, "expressions": {},
