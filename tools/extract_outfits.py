@@ -77,6 +77,7 @@ PORTRAIT_PAD = 2  # portrety: napis PORTRAIT nad ramką leży ok. 4 px nad prost
 PORTRAIT_FRAME, PORTRAIT_CORNER = 4, 7
 SIZE_TOL = 0.15
 HEAD_MIN_W = 0.5  # `body_meta`: węższa głowa (ułamek szerokości z klatki bazowej) — czubek głowy z klatki bazowej
+HEAD_X_TOL = 2  # px natywne: dopuszczalna różnica (środek głowy − kotwica) względem klatki bazowej
 WIDTH_TOL = 0.35  # szerokość klatki ciała: sukienka bywa wyraźnie szersza niż dżinsy oryginału
 # `drop_halo`: jasność (luminancja 0–255) piksela obwódki, jego maks. nasycenie HSV, jasność konturu, liczba przebiegów
 HALO_LIGHT, HALO_SAT, HALO_DARK, HALO_PASSES = 140, 0.25, 60, 2
@@ -465,7 +466,9 @@ def body_meta(im, base, e):
     jak w extract_sprites — z największego kształtu, skala z klatki bazowej; czubek głowy (`head_point`) tylko,
     gdy ma go klatka bazowa, a `noHat` przepisany z niej. Gdy włosów prawie nie widać (szerokość głowy poniżej
     HEAD_MIN_W szerokości z klatki bazowej — np. włosy zaczerwienione złością), czubek głowy jak w klatce bazowej
-    względem kotwicy i stóp."""
+    względem kotwicy i stóp. Gdy środek głowy odsuwa się od kotwicy o więcej niż HEAD_X_TOL px inaczej niż
+    w klatce bazowej — x środka jak w klatce bazowej względem kotwicy (nie przy `alignBottom`: kotwica przesuwa się
+    potem)."""
     (_, sy0, _, sy1), shape = X.largest_shape(im)
     ax = im.width / 2 if e['anchor'] == 'center' else X.anchor_x(shape, sy0)
     meta = {'w': im.width, 'h': im.height, 'anchorX': round(ax, 2), 'foot': int(sy1) + 1, 'scale': base['scale']}
@@ -476,6 +479,10 @@ def body_meta(im, base, e):
         if head['w'] < HEAD_MIN_W * bh['w']:
             head = {'x': round(ax - (base['anchorX'] - bh['x']), 1),
                     'y': max(0, meta['foot'] - (base['foot'] - bh['y'])), 'w': bh['w']}
+        elif not e['alignBottom'] and abs((head['x'] - ax) - (bh['x'] - base['anchorX'])) > HEAD_X_TOL:
+            # środek głowy z dala od kotwicy, inaczej niż w oryginale (wysoki kołnierz płaszcza wziął się za włosy):
+            # x jak w klatce bazowej względem kotwicy — ozdoba głowy siedzi na głowie
+            head = {**head, 'x': round(ax - (base['anchorX'] - bh['x']), 1)}
         meta['head'] = head
     if 'noHat' in base:
         meta['noHat'] = base['noHat']
