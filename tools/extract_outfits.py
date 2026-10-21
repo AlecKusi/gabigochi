@@ -502,7 +502,13 @@ def align_bottoms(oid, aligned, frames, cut_ims):
             continue
         body = {n: {'im': cut_ims[n], 'foot': frames[n]['foot'], 'anchorX': frames[n]['anchorX']} for n in (name, ref)}
         X.align_bottom(body, name, ref, rows)
-        frames[name]['anchorX'] = round(body[name]['anchorX'], 2)
+        ax = round(body[name]['anchorX'], 2)
+        frames[name]['anchorX'] = ax
+        # środek głowy względem przesuniętej kotwicy — jak w klatce bazowej, gdy odstaje (patrz `body_meta`)
+        base, head = BASE_META['frames'][name], frames[name].get('head')
+        bh = base.get('head')
+        if head and bh and abs((head['x'] - ax) - (bh['x'] - base['anchorX'])) > HEAD_X_TOL:
+            frames[name]['head'] = {**head, 'x': round(ax - (base['anchorX'] - bh['x']), 1)}
     return dropped
 
 
