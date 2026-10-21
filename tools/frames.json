@@ -49,7 +49,7 @@
         "table": { "seatHue": [310, 45] }, "lying": { "seatHue": "base" }, "plants2": {},
         "hobby": { "seatHue": [310, 45] }, "cat": {}, "drink": {}, "back": {},
         "karaoke": {}, "ukulele": {}, "teethcomb": {}, "laundry": {}, "drag": {} },
-      "skip": ["nurse_*"] },
+      "skip": ["nurse_*", "drag_*"] },
     "kawaii_sweet": {
       "desc": "a pink sweet lolita dress with bows, white lace and ruffles, white knee socks",
       "sheets": { "main": {}, "turnaround": {}, "sitting": { "seatHue": [310, 45] }, "status": {}, "expressions": {},
@@ -63,7 +63,7 @@
         "table": { "seatHue": [310, 45] }, "lying": { "seatHue": "base" }, "plants2": {},
         "hobby": { "seatHue": [310, 45] }, "cat": {}, "drink": {}, "back": {},
         "karaoke": {}, "ukulele": {}, "teethcomb": {}, "laundry": {}, "drag": {} },
-      "skip": ["nurse_*"] },
+      "skip": ["nurse_*", "table_*"] },
     "goth_coat": {
       "desc": "a long black vampire coat down to the knees with a high collar, silver buttons and chains, a black corset top underneath, a black choker, dark trousers and black boots",
       "sheets": { "main": {}, "turnaround": {}, "sitting": { "seatHue": [310, 45] }, "status": {}, "expressions": {},

@@ -18,6 +18,16 @@ export interface Release {
  */
 export const RELEASES: readonly Release[] = [
   {
+    version: 7,
+    date: '2026-10-21',
+    changes: [
+      'Naprawione kolejne trzy stroje: „Słodka lolita”, „Marynarska” i „Pastelowa gotycka” — Gabi wygląda w nich jak na obrazku.',
+      'Ładniejsze włosy i jasne ubrania w naprawionych strojach (bez dziurek i postrzępionych brzegów).',
+    ],
+    items: ['kawaii_sweet', 'kawaii_sailor', 'goth_pastel'],
+    soon: ['Naprawiamy po kolei kolejne ubrania Gabi!'],
+  },
+  {
     version: 6,
     date: '2026-10-21',
     changes: [
