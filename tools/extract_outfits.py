@@ -2,7 +2,8 @@
 
 Użycie: /c/gvenv/Scripts/python tools/extract_outfits.py
 Konfiguracja: sekcja `outfits` w tools/frames.json:
-  "outfits": {"<id stroju>": {"sheets": {"<klucz arkusza>": {nadpisania}}, "skip": [wzorce nazw klatek]}}
+  "outfits": {"<id stroju>": {"sheets": {"<klucz arkusza>": {nadpisania}}, "skip": [wzorce nazw klatek],
+              "frames": {"<klatka>": {pola wpisu, np. "onlyLargest": true}}}}
 Plik arkusza: assets/source/stroje/<id>/<klucz>.jpg — klucz jak w `sheets` frames.json (`main` = sprite-sheet.jpg).
 Brak któregokolwiek skonfigurowanego arkusza albo palety: błąd i wyjście (kod 1), nic nie jest kasowane ani nadpisywane.
 Dla każdej klatki ciała i portretu z tego arkusza (bez `skip`, bez wpisów `like`): prostokąt z oryginału poszerzony
@@ -614,6 +615,8 @@ def main():
             pad = over.get('pad', DEFAULT_PAD)
             pairs, aligned = {}, {}
             for group, name, e in frames_on(skey, skip):
+                # nadpisania pojedynczej klatki stroju (np. `onlyLargest` — podpis „1.” wpadł do klatki)
+                e = {**e, **ocfg.get('frames', {}).get(name, {})}
                 period = over.get('gridPeriod', e['period'])
                 if group == 'body':
                     im, halo_px, xy = cut(img, e, bg, period, pad, palette, halo=over.get('halo', True),
