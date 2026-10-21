@@ -18,6 +18,16 @@ export interface Release {
  */
 export const RELEASES: readonly Release[] = [
   {
+    version: 6,
+    date: '2026-10-21',
+    changes: [
+      'Naprawiony „Płaszcz wampira”: Gabi wygląda w nim jak na obrazku — przy chodzeniu, siedzeniu, zajęciach, z kotkiem i na portrecie.',
+      'Ozdoby głowy lepiej siedzą na naprawionych strojach.',
+    ],
+    items: ['goth_coat'],
+    soon: ['Naprawiamy po kolei kolejne ubrania Gabi!'],
+  },
+  {
     version: 5,
     date: '2026-10-21',
     changes: [
