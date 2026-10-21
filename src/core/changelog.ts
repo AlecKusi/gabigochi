@@ -18,6 +18,15 @@ export interface Release {
  */
 export const RELEASES: readonly Release[] = [
   {
+    version: 5,
+    date: '2026-10-21',
+    changes: [
+      'Naprawiona „Sukienka z gorsetem”: Gabi wygląda w niej jak na obrazku — przy chodzeniu, siedzeniu, zajęciach, z kotkiem i na portrecie.',
+    ],
+    items: ['goth_corset'],
+    soon: ['Naprawiamy po kolei kolejne ubrania Gabi!'],
+  },
+  {
     version: 4,
     date: '2026-10-20',
     changes: [
