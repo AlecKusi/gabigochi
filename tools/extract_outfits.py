@@ -41,11 +41,13 @@ resztki napisu nad górną krawędzią ramki są czyszczone (`clear_caption`), a
 pochodzi z portretu oryginalnego (`restore_frame`; nadpisanie arkusza `portraitFrame`: false — bez tego).
 Klatki ciała (nie portrety — ich ramka jest jasna z założenia): jasne szarawe piksele tuż za ciemnym konturem
 (dzwonienie JPEG jasnego tła przy czarnym konturze, białe kropki wokół sukienki) znikają (`drop_halo`, przed `outline`).
-Włosy: w arkuszach strojów jasnolawendowe włosy bywają bliskie szaremu tłu, a kontur wokół nich ma szczeliny —
-komórki w kolorze włosów (`hair_cells`, przed `hairTone`) nie stają się tłem przy próbkowaniu (`sample_hair`), przy
-zalewaniu tła (`guard_hair`) ani jako dziury zamknięte we włosach (`keep_hair_holes`), `drop_halo` nie wgryza się
-we włosy w szczelinach konturu, a w klatkach ciała resztki dziur we włosach i pojedyncze ciemne kropki we włosach
-zamalowuje `tidy_hair` (przed `outline`, który zamalowałby małe dziurki czarnym obrysem).
+Włosy i jasne ubrania: w arkuszach strojów jasnolawendowe włosy i jasne ubrania (jasnoniebieska sukienka
+marynarska) bywają bliskie szaremu tłu, a kontur wokół nich ma szczeliny — komórki w kolorze włosów (`hair_cells`,
+przed `hairTone`) i jasnego ubrania barwniejszego niż tło (`cloth_cells`) nie stają się tłem przy próbkowaniu
+(`sample_figure`), przy zalewaniu tła (`guard_figure`) ani jako dziury zamknięte w nich (`keep_figure_holes`);
+prawdziwe prześwity (między rękami a tułowiem, między nogami, przy rekwizytach) są szare jak tło i zostają.
+`drop_halo` nie wgryza się we włosy w szczelinach konturu, a w klatkach ciała resztki dziur we włosach i pojedyncze
+ciemne kropki we włosach zamalowuje `tidy_hair` (przed `outline`, który zamalowałby małe dziurki czarnym obrysem).
 Nadpisania arkusza: `background` (domyślnie "auto" — mediana lewego górnego rogu 20×20), `gridPeriod`, `pad`,
 `portraitPad`, `halo` (domyślnie true; false — bez `drop_halo`), `seatHue` ([od, do] w stopniach albo "base"),
 `portraitFrame`.
@@ -88,7 +90,9 @@ WIDTH_TOL = 0.35  # szerokość klatki ciała: sukienka bywa wyraźnie szersza n
 HALO_LIGHT, HALO_SAT, HALO_DARK, HALO_PASSES = 140, 0.25, 60, 2
 # `hair_cells`: surowa komórka (przed `hairTone`) w kolorze jasnych włosów — odcień (stopnie), min. nasycenie, jasność
 HAIR_HUE, HAIR_SAT, HAIR_VAL = (280, 318), 0.07, 0.6
-HOLE_HAIR = 0.5  # `keep_hair_holes`: min. udział komórek włosów wśród sąsiadów dziury tła, która wraca do postaci
+HOLE_HAIR = 0.5  # `keep_figure_holes`: min. udział komórek `figure_cells` wśród sąsiadów dziury tła (wraca do postaci)
+# `cloth_cells`: min. nasycenie jasnego ubrania, min. przewaga nad nasyceniem tła, min. jasność
+CLOTH_SAT, CLOTH_SAT_BG, CLOTH_VAL = 0.07, 0.04, 0.6
 # `tidy_hair`: min. udział pikseli włosów wśród 4-sąsiadów zamalowywanej dziury; jasność (HSV) ciemnej kropki
 # i min. jasność pikseli włosów (jasne włosy, nie fioletowa sukienka w tej samej klasie kolorów)
 TIDY_HOLE_HAIR, SPECK_VAL, TIDY_HAIR_VAL = 0.6, 0.5, 0.55
@@ -365,18 +369,36 @@ def hair_cells(cells):
     return (hue >= HAIR_HUE[0]) & (hue <= HAIR_HUE[1]) & (sat >= HAIR_SAT) & (v >= HAIR_VAL)
 
 
-def sample_hair(img, box, period, e, bg):
-    """`X.sample` z ochroną jasnych włosów. W arkuszach strojów (zwłaszcza po planszach 2×2) włosy bywają tak blade,
-    że w trybie "smooth" komórka włosów — w większości pikseli bliżej tła niż `bgTol` — dostaje kolor tła. Tryb
-    "smooth": drugie próbkowanie bez tła (ta sama siatka — przesunięcie liczone z gradientu obrazu) i komórki tła,
-    które bez tła mają kolor włosów (`hair_cells`), wracają do koloru włosów. Zwraca (komórki, xs, ys, maska komórek
-    w kolorze włosów — dla `guard_hair`)."""
+def cloth_cells(cells, bg):
+    """Komórki (RGB 0–255) jasnego ubrania barwniejszego niż szare tło: nasycenie >= CLOTH_SAT i o >= CLOTH_SAT_BG
+    większe niż nasycenie tła `bg`, jasność >= CLOTH_VAL — tylko w grubych plamach (komórka należy do pełnego
+    kwadratu 3×3 takich komórek). Jasnoniebieska sukienka ma odcień tła (ok. 200–225°), ale nasycenie 0,08–0,22,
+    a tło <= 0,05; cienka obwódka (mieszanka tła z ubraniem bez konturu) nie tworzy kwadratów 3×3."""
+    a = np.dstack([np.clip(cells, 0, 255), np.full(cells.shape[:2], 255.0)]).round().astype(np.uint8)
+    _, sat, v = hue_saturation_value(a)
+    _, bg_sat, _ = hue_saturation_value(np.array([[list(np.clip(bg, 0, 255)) + [255]]]).round().astype(np.uint8))
+    cloth = (sat >= max(CLOTH_SAT, float(bg_sat[0, 0]) + CLOTH_SAT_BG)) & (v >= CLOTH_VAL)
+    return X.dilate(X.box_sum(cloth, 1) == 9, 1) & cloth
+
+
+def figure_cells(cells, bg):
+    """Komórki, które nie mogą być tłem: jasne włosy (`hair_cells`) i jasne ubranie (`cloth_cells`)."""
+    return hair_cells(cells) | cloth_cells(cells, bg)
+
+
+def sample_figure(img, box, period, e, bg):
+    """`X.sample` z ochroną jasnych włosów i ubrań. W arkuszach strojów (zwłaszcza po planszach 2×2) włosy
+    i jasne ubrania (jasnoniebieska sukienka marynarska) bywają tak blade, że w trybie "smooth" ich komórka —
+    w większości pikseli bliżej tła niż `bgTol` — dostaje kolor tła. Tryb "smooth": drugie próbkowanie bez tła
+    (ta sama siatka — przesunięcie liczone z gradientu obrazu) i komórki tła, które bez tła są włosami albo jasnym
+    ubraniem (`figure_cells`), wracają do swojego koloru. Zwraca (komórki, xs, ys, maska włosów — `hair_cells`,
+    dla `drop_halo`; maska włosów i jasnych ubrań — `figure_cells`, dla `guard_figure` i `keep_figure_holes`)."""
     cells, xs, ys = X.sample(img, box, period, e['sampleMode'], bg, e['bgTol'])
     if e['sampleMode'] == 'smooth':
         plain, _, _ = X.sample(img, box, period, e['sampleMode'], None)
-        back = hair_cells(plain) & (cells == bg).all(axis=2)
+        back = figure_cells(plain, bg) & (cells == bg).all(axis=2)
         cells[back] = plain[back]
-    return cells, xs, ys, hair_cells(cells)
+    return cells, xs, ys, hair_cells(cells), figure_cells(cells, bg)
 
 
 def cells_at(grid, gxs, gys, xs, ys):
@@ -385,19 +407,20 @@ def cells_at(grid, gxs, gys, xs, ys):
     return grid[np.ix_(np.searchsorted(gys, ys), np.searchsorted(gxs, xs))]
 
 
-def guard_hair(cells, hair):
-    """Komórki do `X.background_mask`: komórki w kolorze włosów (`hair`) zastąpione czernią — nie są „bliskie tłu”,
-    więc zalewanie tła nie przecieka przez szczeliny w konturze do bladych włosów, a włosy nie stają się dziurą
-    (`holeTol`). Same komórki (kolory) zostają bez zmian."""
+def guard_figure(cells, figure):
+    """Komórki do `X.background_mask`: komórki włosów i jasnych ubrań (`figure`) zastąpione czernią — nie są „bliskie
+    tłu”, więc zalewanie tła nie przecieka przez szczeliny w konturze do bladych włosów czy sukienki, a one nie stają
+    się dziurą (`holeTol`). Same komórki (kolory) zostają bez zmian."""
     out = cells.copy()
-    out[hair] = 0
+    out[figure] = 0
     return out
 
 
-def keep_hair_holes(mask, hair, share=HOLE_HAIR):
-    """Dziury tła zamknięte we włosach wracają do postaci: składowa maski tła (4-spójna, nie przy brzegu siatki),
-    której 4-sąsiedzi są w >= `share` komórkami w kolorze włosów (`hair`). To szare cienie i blade refleksy włosów —
-    po wyłączeniu włosów z tła (`guard_hair`) zostają z nich małe, jednolite plamy, które reguła dziur (`holeTol`)
+def keep_figure_holes(mask, figure, share=HOLE_HAIR):
+    """Dziury tła zamknięte we włosach i jasnych ubraniach wracają do postaci: składowa maski tła (4-spójna, nie przy
+    brzegu siatki), której 4-sąsiedzi są w >= `share` komórkami `figure` (`figure_cells`). To szare cienie i blade
+    refleksy włosów czy fałdy sukienki — po wyłączeniu ich z tła (`guard_figure`) zostają z nich małe, jednolite
+    plamy (także cienkie pasy sukienki między fałdami, za cienkie na `cloth_cells`), które reguła dziur (`holeTol`)
     brałaby za tło. Prześwity między rękami a tułowiem czy obok rekwizytów graniczą z konturem, skórą, ubraniem,
     więc zostają tłem."""
     out = mask.copy()
@@ -409,7 +432,7 @@ def keep_hair_holes(mask, hair, share=HOLE_HAIR):
         ys, xs = zip(*comp)
         m[list(ys), list(xs)] = True
         ring = X.ring4(m)
-        if (ring & hair).sum() >= share * ring.sum():
+        if (ring & figure).sum() >= share * ring.sum():
             out[m] = False
     return out
 
@@ -469,8 +492,8 @@ def cut(img, e, bg, period, pad, palette, portrait=False, halo=True, seat_hue=SE
     oryginału), czyli i efekty obok postaci (krople, iskierki, żarówka, serduszka), a poza nią tylko największy
     kształt (sąsiednie klatki, podpisy); potem `onlyLargest`, `noSeat` (`without_seat` stroju z oknem `seat_hue`),
     `clean_smooth`, `pet`, `drop_halo` (klatka ciała z `halo`; bez włosów w szczelinach konturu), `tidy_hair`
-    (klatka ciała), `outline`. Włosy chronione przed tłem już przy próbkowaniu i masce tła (`sample_hair`,
-    `guard_hair`, `keep_hair_holes`). Portret (`portrait`) — bez `drop_halo` i `tidy_hair`,
+    (klatka ciała), `outline`. Włosy i jasne ubrania chronione przed tłem już przy próbkowaniu i masce tła
+    (`sample_figure`, `guard_figure`, `keep_figure_holes`). Portret (`portrait`) — bez `drop_halo` i `tidy_hair`,
     za to bez resztek napisu nad ramką (`clear_caption`). Zwraca (obrazek, liczba pikseli usuniętych przez `drop_halo`,
     (xs, ys) — środki komórek obrazka w px arkusza, z pierścieniami `outline`; dla `noStool` klatek pochodnych)."""
     h, w = img.shape[:2]
@@ -482,14 +505,15 @@ def cut(img, e, bg, period, pad, palette, portrait=False, halo=True, seat_hue=SE
         box, margin, min_blob, hole_tol = rect, 0, 1, e['holeTolAll']
     else:
         box, margin, min_blob, hole_tol = X.tight_box(img, rect, bg), period / 2, 12, e['holeTol']
-    cells, xs, ys, hair = sample_hair(img, box, period, e, bg)
+    cells, xs, ys, hair, figure = sample_figure(img, box, period, e, bg)
     if e['reduce'] == 2:
         cells, xs, ys = X.reduce2(cells, xs, ys, bg)
-        hair = hair_cells(cells)
+        hair, figure = hair_cells(cells), figure_cells(cells, bg)
         period *= 2
     if e['hairTone']:
         cells = X.hair_tone(cells, *e['hairTone'])
-    mask = (keep_hair_holes(X.background_mask(guard_hair(cells, hair), bg, min_blob, hole_tol, e['halo']), hair)
+    mask = (keep_figure_holes(X.background_mask(guard_figure(cells, figure), bg, min_blob, hole_tol, e['halo']),
+                              figure)
             | X.outside_box(xs, ys, box, margin))
     hxs, hys = xs, ys  # siatka maski `hair` (dla `drop_halo` po przycięciach)
     if keep_all:
